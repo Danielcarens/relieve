@@ -1,0 +1,14 @@
+/* style-guide.css — only used by style-guide.html. Not part of the public site. */
+
+/* Color chips for tokens that Bootstrap has no background utility for */
+.sw-link  { background: var(--bs-link-color); }
+.sw-muted { background: var(--bs-secondary-color); }
+.sw-rule  { background: var(--bs-border-color); }
+
+.sg-chip { height: 5rem; }
+
+code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  color: var(--bs-secondary-color);
+}
