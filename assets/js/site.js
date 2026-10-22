@@ -57,6 +57,22 @@
     });
   });
 
+  /* ---- Videos inside an article ({% video %}): same idea as the hero video --------- */
+  document.querySelectorAll("[data-video-embed]").forEach(function (fig) {
+    var play = fig.querySelector("[data-video]");
+    var frame = fig.querySelector("[data-video-frame]");
+    if (!play || !frame) return;
+    play.addEventListener("click", function () {
+      var iframe = document.createElement("iframe");
+      iframe.src = "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(play.getAttribute("data-video")) + "?autoplay=1&rel=0&playsinline=1";
+      iframe.title = play.getAttribute("data-video-title") || "YouTube";
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      iframe.setAttribute("allowfullscreen", "");
+      frame.replaceChildren(iframe);
+      iframe.focus();
+    });
+  });
+
   /* ---- Panoramas: full-bleed, limited height, swipeable. The photo fills the
           height; what does not fit in the width is reached by swiping (touch),
           dragging (mouse), Shift + wheel, or the arrow keys when focused. ----- */
