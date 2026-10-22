@@ -565,6 +565,37 @@ html[data-lang="en"] body [lang="es"] {
 }
 
 .pano.has-overflow:not(.is-touched) .pano-hint { display: inline-flex; }
+/* Room for the enlarge button at the top right */
+.pano[data-zoom] .pano-hint { right: 4.25rem; }
+
+/* Enlarge: button on wide photos and panoramas, and the lightbox it opens.
+   The lightbox covers the page (text included) until it is closed. */
+.zoom-btn { position: absolute; top: 1rem; right: 1rem; z-index: 2; }
+html.lightbox-open { overflow: hidden; }
+.lightbox {
+  padding: 0;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  background: #0b0d0c; /* opaque: nothing of the page shows through */
+}
+.lightbox[open] { display: flex; }
+.lightbox::backdrop { background: transparent; }
+.lightbox-scroll {
+  flex: 1;
+  display: flex;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  cursor: grab;
+}
+.lightbox-scroll::-webkit-scrollbar { display: none; }
+.lightbox-scroll.is-dragging { cursor: grabbing; user-select: none; }
+.lightbox-scroll:focus-visible { outline: 2px solid var(--bs-primary); outline-offset: -2px; }
+.lightbox-scroll img { flex: none; display: block; margin: auto; max-width: none; -webkit-user-drag: none; }
+.lightbox-close { position: fixed; top: 1rem; right: 1rem; z-index: 3; }
 
 /* Reading flow. The text sits in a 46rem column (about 66 characters); wide photos, panoramas and
    pull quotes break out of it (shortcodes in eleventy.config.js). */

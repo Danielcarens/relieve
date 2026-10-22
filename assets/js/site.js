@@ -57,6 +57,43 @@
     });
   });
 
+  /* ---- Mouse drag for scrolling containers (touch scrolls natively). Returns
+          { moved() } so a click that ends a drag can be told apart from a tap. */
+  function makeDraggable(scroller, onStart) {
+    var startX = 0, startLeft = 0, dragging = false, travelled = 0;
+
+    scroller.addEventListener("pointerdown", function (event) {
+      if (event.pointerType !== "mouse" || event.button !== 0) return;
+      dragging = true;
+      travelled = 0;
+      startX = event.clientX;
+      startLeft = scroller.scrollLeft;
+      scroller.setPointerCapture(event.pointerId);
+      scroller.classList.add("is-dragging");
+      if (onStart) onStart();
+    });
+
+    scroller.addEventListener("pointermove", function (event) {
+      if (!dragging) return;
+      travelled = Math.max(travelled, Math.abs(event.clientX - startX));
+      scroller.scrollLeft = startLeft - (event.clientX - startX);
+    });
+
+    function endDrag(event) {
+      if (!dragging) return;
+      dragging = false;
+      scroller.classList.remove("is-dragging");
+      if (scroller.hasPointerCapture(event.pointerId)) scroller.releasePointerCapture(event.pointerId);
+    }
+    scroller.addEventListener("pointerup", endDrag);
+    scroller.addEventListener("pointercancel", endDrag);
+
+    // Stop the browser from dragging the picture itself
+    scroller.addEventListener("dragstart", function (event) { event.preventDefault(); });
+
+    return { moved: function () { return travelled > 4; } };
+  }
+
   /* ---- Panoramas: full-bleed, limited height, swipeable. The photo fills the
           height; what does not fit in the width is reached by swiping (touch),
           dragging (mouse), Shift + wheel, or the arrow keys when focused. ----- */
@@ -88,34 +125,90 @@
       scroller.addEventListener(name, markTouched, { passive: true });
     });
 
-    // Mouse drag (touch scrolls natively)
-    var startX = 0, startLeft = 0, dragging = false;
+    makeDraggable(scroller, markTouched);
+  });
 
-    scroller.addEventListener("pointerdown", function (event) {
-      if (event.pointerType !== "mouse" || event.button !== 0) return;
-      dragging = true;
-      startX = event.clientX;
-      startLeft = scroller.scrollLeft;
-      scroller.setPointerCapture(event.pointerId);
-      scroller.classList.add("is-dragging");
-      markTouched();
+  /* ---- Enlarge: wide photos and panoramas open in a lightbox (a native
+          <dialog>) that covers the page, with the photo at up to 90% of the
+          screen height, pannable sideways. Esc, the close button or a click on
+          the dark area closes it. ------------------------------------------- */
+  var box = null, boxScroll = null, boxImg = null, boxDrag = null, boxNatural = 0, boxFocus = 50;
+
+  function fitLightbox() {
+    if (!boxImg) return;
+    var h = Math.min(window.innerHeight * 0.9, boxNatural || Infinity);
+    boxImg.style.height = Math.round(h) + "px";
+    boxImg.style.width = "auto";
+  }
+
+  function centerLightbox() {
+    var max = boxScroll.scrollWidth - boxScroll.clientWidth;
+    boxScroll.scrollLeft = max * (boxFocus / 100);
+  }
+
+  function buildLightbox(closeLabel) {
+    box = document.createElement("dialog");
+    box.className = "lightbox";
+
+    var close = document.createElement("button");
+    close.type = "button";
+    close.className = "btn btn-light btn-icon lightbox-close";
+    close.setAttribute("aria-label", closeLabel);
+    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
+
+    boxScroll = document.createElement("div");
+    boxScroll.className = "lightbox-scroll";
+    boxScroll.tabIndex = 0;
+    boxImg = document.createElement("img");
+    boxScroll.append(boxImg);
+    box.append(close, boxScroll);
+    document.body.append(box);
+
+    boxDrag = makeDraggable(boxScroll);
+
+    close.addEventListener("click", function () { box.close(); });
+    box.addEventListener("click", function (event) {
+      // A click on the dark area (not on the photo, and not the end of a drag) closes
+      if ((event.target === box || event.target === boxScroll) && !boxDrag.moved()) box.close();
+    });
+    box.addEventListener("close", function () {
+      document.documentElement.classList.remove("lightbox-open");
+      boxImg.removeAttribute("src");
     });
 
-    scroller.addEventListener("pointermove", function (event) {
-      if (!dragging) return;
-      scroller.scrollLeft = startLeft - (event.clientX - startX);
+    // Vertical wheel pans sideways when the photo is wider than the screen
+    boxScroll.addEventListener("wheel", function (event) {
+      if (boxScroll.scrollWidth <= boxScroll.clientWidth) return;
+      if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+        boxScroll.scrollLeft += event.deltaY;
+        event.preventDefault();
+      }
+    }, { passive: false });
+
+    window.addEventListener("resize", function () {
+      if (box.open) { fitLightbox(); }
     });
+    boxImg.addEventListener("load", function () { fitLightbox(); centerLightbox(); });
+  }
 
-    function endDrag(event) {
-      if (!dragging) return;
-      dragging = false;
-      scroller.classList.remove("is-dragging");
-      if (scroller.hasPointerCapture(event.pointerId)) scroller.releasePointerCapture(event.pointerId);
-    }
-    scroller.addEventListener("pointerup", endDrag);
-    scroller.addEventListener("pointercancel", endDrag);
+  document.querySelectorAll("[data-zoom]").forEach(function (fig) {
+    var open = fig.querySelector("[data-zoom-open]");
+    var source = fig.querySelector("img");
+    if (!open || !source) return;
 
-    // Stop the browser from dragging the picture itself
-    img.addEventListener("dragstart", function (event) { event.preventDefault(); });
+    open.hidden = false; // without JavaScript there is no button
+
+    open.addEventListener("click", function () {
+      if (!box) buildLightbox(open.getAttribute("data-close-label") || "Close");
+      boxNatural = parseFloat(fig.getAttribute("data-fh")) || 0;
+      boxFocus = parseFloat(fig.getAttribute("data-focus"));
+      if (isNaN(boxFocus)) boxFocus = 50;
+      boxImg.alt = source.alt;
+      boxImg.src = fig.getAttribute("data-full");
+      fitLightbox();
+      document.documentElement.classList.add("lightbox-open");
+      box.showModal();
+      boxScroll.focus();
+    });
   });
 })();
