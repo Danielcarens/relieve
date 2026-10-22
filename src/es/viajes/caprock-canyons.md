@@ -9,6 +9,7 @@ date: 2026-10-21
 author: Daniel
 credit: Daniel Cárdenas
 draft: true
+ai: true
 youtube: "7EcrNEsd3-E"
 imgBase: /assets/img/caprock-10-2026/
 hero:

@@ -22,6 +22,8 @@ export default {
     panoLabel: "Foto panorámica: desliza a los lados para verla completa",
     sources: "Fuentes",
     draftBanner: "Borrador: texto de prueba, no es el artículo final.",
+    aiTitle: "Versión de prueba",
+    aiNotice: "Este artículo fue escrito enteramente con inteligencia artificial, solo para probar el diseño de la revista. El texto definitivo lo escribirá el autor.",
   },
   en: {
     htmlLang: "en-US",
@@ -44,5 +46,7 @@ export default {
     panoLabel: "Panoramic photo: swipe sideways to see all of it",
     sources: "Sources",
     draftBanner: "Draft: test text, not the final article.",
+    aiTitle: "Test version",
+    aiNotice: "This article was written entirely by artificial intelligence, only to test the magazine design. The author will write the final text.",
   },
 };

@@ -37,6 +37,11 @@ layout: layouts/base.njk
 
   <!-- INTRO + FACTS ===================================================== -->
   <div class="container pt-4 pt-lg-5">
+    {% if ai %}
+    <div class="alert alert-warning rounded-0 border-2 mb-4" role="note">
+      <strong>{{ ui.aiTitle }}.</strong> {{ ui.aiNotice }}
+    </div>
+    {% endif %}
     <div class="row">
       <div class="col-xl-10 d-grid gap-4">
         <p class="lead measure mb-0">{{ subtitle }}</p>
