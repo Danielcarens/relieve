@@ -587,6 +587,15 @@ html[data-lang="en"] body [lang="es"] {
 
 .article-body > .article-column { display: block; }
 
+/* Photos side by side: same height, together exactly the width of a single photo. Each item grows in
+   proportion to its aspect ratio (--g), so heights match whatever the crops are. */
+.fila { display: flex; gap: 1rem; }
+.fila-item { flex: var(--g) 1 0%; min-width: 0; margin: 0; }
+@media (max-width: 767.98px) {
+  .fila { flex-direction: column; gap: 2rem; }  /* phones: every photo full bleed, one per row */
+  .fila-item { flex: none; }
+}
+
 /* Photo credits and sources at the end: same column as the text */
 .article-end { width: min(46rem, 100% - 1.5rem); margin-inline: auto; }
 
