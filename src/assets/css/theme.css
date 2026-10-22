@@ -326,6 +326,16 @@ p { text-wrap: pretty; }
   text-underline-offset: 0.12em;
 }
 
+/* Featured article titles (home hero, section featured): never underlined,
+   not even on hover */
+.story-link,
+.story-link:hover,
+.story-title a.story-link,
+.story-title a.story-link:hover {
+  color: var(--bs-body-color);
+  text-decoration: none;
+}
+
 /* ---- 4. Magazine-only additions ----------------------------------------- */
 
 /* Tape: the signature element. A strip of flagging tape with a diagonal cut.
