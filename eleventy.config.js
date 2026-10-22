@@ -68,25 +68,47 @@ export default function (eleventyConfig) {
 
   const BASE = "/assets/img/caprock-10-2026/";
 
-  // Photo inside the reading column
-  eleventyConfig.addShortcode("foto", function (id) {
-    const p = photo(this.ctx, id);
-    const base = this.ctx.imgBase || BASE;
-    return `<figure class="figure article-column my-5">
-<div class="ratio ratio-3x2 figure-img">${img(p, base, "(min-width: 992px) 640px, 100vw", ' class="object-fit-cover"')}</div>
-${figcaption(p, "figure-caption")}
-</figure>`;
-  });
+  // Photos. Every single photo has the same width: the full container, the
+  // width `agujas` already had. Each photo can be cropped freely in front
+  // matter with `ratio` (width / height; default = the photo's own) and `pos`
+  // (what stays centered, e.g. "50% 30%"). Two or more photos side by side go
+  // in `fila`: they get the same height and add up to the same full width.
+  function frame(p, base, sizes) {
+    const r = Number(p.ratio) > 0 ? Number(p.ratio) : p.w / p.h;
+    const pos = /^\d{1,3}% \d{1,3}%$/.test(p.pos || "") ? ` style="object-position: ${p.pos}"` : "";
+    const frameStyle = ` style="--bs-aspect-ratio: ${(100 / r).toFixed(3)}%"`;
+    return {
+      r,
+      html: `<div class="ratio figure-img"${frameStyle}>${img(p, base, sizes, ` class="object-fit-cover"${pos}`)}</div>`,
+    };
+  }
 
-  // Photo at the full container width
-  eleventyConfig.addShortcode("fotoancha", function (id) {
+  const SIZES_SOLO = "(min-width: 1400px) 1188px, (min-width: 1200px) 1026px, (min-width: 992px) 864px, 100vw";
+
+  eleventyConfig.addShortcode("foto", function (id) {
     const p = photo(this.ctx, id);
     const base = this.ctx.imgBase || BASE;
     return `<div class="container">
 <figure class="figure w-100 my-5">
-<div class="ratio ratio-2x1 figure-img">${img(p, base, "(min-width: 1400px) 1188px, (min-width: 1200px) 1026px, (min-width: 992px) 864px, 100vw", ' class="object-fit-cover"')}</div>
-${figcaption(p, "figure-caption")}
+${frame(p, base, SIZES_SOLO).html}${figcaption(p, "figure-caption")}
 </figure>
+</div>`;
+  });
+
+  // Row of photos: {% fila "a", "b", "c" %}
+  eleventyConfig.addShortcode("fila", function (...ids) {
+    const base = this.ctx.imgBase || BASE;
+    const items = ids.map((id) => {
+      const p = photo(this.ctx, id);
+      const f = frame(p, base, "(min-width: 992px) 600px, 100vw");
+      return `<figure class="fila-item figure" style="--g: ${f.r.toFixed(3)}">
+${f.html}${figcaption(p, "figure-caption")}
+</figure>`;
+    });
+    return `<div class="container">
+<div class="fila my-5">
+${items.join("\n")}
+</div>
 </div>`;
   });
 

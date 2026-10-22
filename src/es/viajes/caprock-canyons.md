@@ -35,6 +35,7 @@ photos:
     file: agujas-roca-roja
     w: 2400
     h: 1598
+    ratio: 2
     alt: Muro de roca roja con dos agujas de piedra en la cima, iluminadas por la luz dorada de la tarde.
     caption: Dos agujas de roca coronan uno de los muros del cañón.
   noche:
@@ -85,7 +86,7 @@ Mucho antes de que existiera el parque, estos cañones ya tenían visitantes. Se
 
 A orillas del lago Theo, un sitio arqueológico conserva su rastro. Las excavaciones de 1974 encontraron un campamento y una zona donde se procesaban bisontes, con puntas de proyectil y raspadores a unos 1,2 metros de profundidad, además de más de 500 huesos de una especie extinta de bisonte. El sitio tiene entre 10.000 y 12.000 años de antigüedad.
 
-{% fotoancha "agujas" %}
+{% foto "agujas" %}
 
 {% cita %}Hace más de 10.000 años, alguien esperó bisontes en este mismo parque.{% endcita %}
 
@@ -101,7 +102,7 @@ Quitaque, el pueblo junto al parque, ya era parada regular de diligencias en 189
 
 Vale la pena agacharse. A pocos centímetros, la roca es un libro de páginas rojas con una franja blanca que cruza las capas, y cada grieta muestra una época distinta.
 
-{% foto "capas" %}
+{% fila "capas", "autor" %}
 
 ## Al caer la tarde
 
@@ -109,4 +110,3 @@ Al final del día, las crestas se vuelven siluetas contra un cielo que pasa del 
 
 {% pano "cresta" %}
 
-{% foto "autor" %}
