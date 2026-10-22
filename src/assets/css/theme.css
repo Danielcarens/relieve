@@ -615,7 +615,7 @@ html[data-lang="en"] body [lang="es"] {
 
 /* Text wrapping (Word's "Square"): a photo, quote or card floats to the left or right and the text wraps
    around it, then goes back to full width. Shortcode options: izquierda | derecha, 33 | 40 | 50, fuera.
-   "fuera" hangs it out to the outer margin of the page container (the same edge single photos use).
+   "fuera" hangs it out to the outer margin of the page container (the same edge single photos use); "borde" runs it all the way to the edge of the screen.
    Widths are always a share of a known width, so the text beside it never gets too narrow.
    Phones: no wrapping, the block takes its own row (photos edge to edge). */
 .article-body { display: flow-root; --cw-inner: calc(100% - 1.5rem); }
@@ -642,6 +642,12 @@ html[data-lang="en"] body [lang="es"] {
   .wrap-hang { width: calc(var(--cw-inner) * var(--ws, 0.4)); }
   .wrap-hang.wrap-left  { margin-left: calc((100% - var(--cw-inner)) / 2); }
   .wrap-hang.wrap-right { margin-right: calc((100% - var(--cw-inner)) / 2); }
+  /* "borde": flush with the edge of the screen. Same inner edge as a normal one, so it is wider by the page margin. */
+  .wrap-edge { width: calc(min(46rem, 100% - 1.5rem) * var(--ws, 0.4) + var(--edge)); }
+  .wrap-edge.wrap-left  { margin-left: 0; }
+  .wrap-edge.wrap-right { margin-right: 0; }
+  .wrap-edge.wrap-left .figure-caption  { padding-left: 0.75rem; }
+  .wrap-edge.wrap-right .figure-caption { padding-right: 0.75rem; }
 }
 @media (max-width: 767.98px) {
   .wrap { width: min(46rem, 100% - 1.5rem); margin: 2rem auto; }

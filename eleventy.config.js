@@ -76,14 +76,14 @@ export default function (eleventyConfig) {
   //
   // Text wrapping (like Word's "Square"): foto, ficha and cita take an optional
   // last argument, a few words: "izquierda" or "derecha" (side), 33 / 40 / 50
-  // (width as a share of the text column) and "fuera" (hang out to the outer
+  // (width as a share of the text column), "borde" (run out to the edge of the screen) and "fuera" (hang out to the outer
   // margin of the page container). Without it the block gets its own row.
   function wrapOf(opts, extra = "") {
     const w = String(opts || "").toLowerCase().split(/\s+/).filter(Boolean);
     const side = w.includes("izquierda") ? "left" : w.includes("derecha") ? "right" : "";
     if (!side) return "";
     const n = w.map(Number).find((x) => [33, 40, 50].includes(x)) || 40;
-    return ` wrap wrap-${side} wrap-s${n}${w.includes("fuera") ? " wrap-hang" : ""}${extra}`;
+    return ` wrap wrap-${side} wrap-s${n}${w.includes("borde") ? " wrap-edge" : w.includes("fuera") ? " wrap-hang" : ""}${extra}`;
   }
 
   function frame(p, base, sizes) {
