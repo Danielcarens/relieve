@@ -7,7 +7,7 @@ Read this file before building or changing any page. Every page must look like t
 - Online magazine about mountain biking, enduro, travel and outdoor living: trips, bikes, motorcycles, gear reviews, videos and opinion. It must look professional even though one person writes and edits it.
 - Name: **RELIEVE** (formerly "Enduro"). Slogan: "Viajes, bicis, reviews y vida al aire libre" / "Travel, bikes, reviews and outdoor life".
 - Bilingual, Spanish by default and English through the ES/EN switch in the menu bar. Only Spanish is written for real; English strings are placeholders for now.
-- Static site: plain HTML, **Bootstrap 5.3.8** from the CDN, one theme file and one small script. No build step. Deployed to Netlify.
+- Static site: plain HTML, **Bootstrap 5.3.8** hosted in the repository (`assets/vendor/bootstrap/`), one theme file and one small script. Articles are built with Eleventy (`src/`). The site makes no requests to third parties. Served by GitHub Pages.
 - All content on the pages today is sample content, and every photo is a `.ph` placeholder.
 
 ## Files
@@ -28,7 +28,7 @@ Obsolete, delete by hand when convenient: `logo/enduro-wordmark.svg`, `logo/endu
 
 Bootstrap docs: https://getbootstrap.com/docs/5.3/ (check the docs before inventing anything).
 
-Every page loads, in this order: Google Fonts (Archivo, DM Serif Display), Google Fonts icons (Material Symbols Outlined, only the icons in use), `bootstrap.min.css` (5.3.8, CDN), `css/theme.css`, `js/site.js` in the head, and `bootstrap.bundle.min.js` at the end of the body. If we upgrade Bootstrap, change the version in every page together.
+Every page loads, in this order: preloads for Archivo and the icon font (`/assets/fonts/`), `/assets/vendor/bootstrap/bootstrap.min.css` (5.3.8), `css/theme.css` (which declares the `@font-face` rules), `js/site.js` in the head, and `/assets/vendor/bootstrap/bootstrap.bundle.min.js` at the end of the body. If we upgrade Bootstrap, replace both files and change the version here.
 
 ## The rule: Bootstrap first
 
@@ -51,8 +51,8 @@ Every page loads, in this order: Google Fonts (Archivo, DM Serif Display), Googl
 - **Pink is for fills** (`btn-primary`, `.tape`). Pink text must use the link color, which passes contrast. Don't use `.text-primary` on small text.
 - **One control height: 44px** (`--control-height: 2.75rem` in `theme.css`) for `.btn`, `.btn-sm`, button groups, `.form-control` and the menu toggler. Consistency is the owner's priority. Change the variable, never a single control.
 - **Fonts:** body text uses the system font stack. **Archivo** condensed for headlines, Archivo normal width for UI (`.font-ui`, set automatically on navbar, buttons, forms, captions). **DM Serif Display** for the logo and the biggest titles: `h1`, `.display-1` and the `.font-serif-display` class (works on any `h2`). No other font.
-- **Fonts and other assets:** host them in this repository (`src/assets/fonts/`), downloaded only when needed and limited to the weights, widths and characters used. No faux or simulated styles (bold, italic, small caps): if a style is needed, download the real one. Today: Archivo (latin, wght 400–800, wdth 68–100) and DM Serif Display regular. Material Symbols still loads from Google.
-- **Icons:** Google Material Symbols Outlined (`<span class="material-symbols-outlined" aria-hidden="true">name</span>`). The font link lists only the icons we use through `icon_names=` (today `search`, `play_arrow`, `swap_horiz`). To add one, add its name to that list on every page. Icon-only buttons use `.btn.btn-outline-dark.btn-icon` with a bilingual `aria-label`.
+- **Fonts and other assets:** host them in this repository (`src/assets/fonts/`), downloaded only when needed and limited to the weights, widths and characters used. No faux or simulated styles (bold, italic, small caps): if a style is needed, download the real one. Today: Archivo (latin, wght 400–800, wdth 68–100) and DM Serif Display regular.
+- **Icons:** Google Material Symbols Outlined (`<span class="material-symbols-outlined" aria-hidden="true">name</span>`). The icon font is a subset hosted in `assets/fonts/material-symbols-outlined-subset.woff2` with only the icons we use (today `search`, `play_arrow`, `swap_horiz`), fixed at FILL 0, weight 400, size 24. To add an icon, rebuild the subset from the `material-symbols` npm package (fontTools: pin the axes, then subset by the icon names as ligature text). Icon-only buttons use `.btn.btn-outline-dark.btn-icon` with a bilingual `aria-label`.
 - **Headlines:** use `h1`–`h4`. `.display-1` only for the biggest headline on a page (article title, landing hero).
 - **Reading text** in a `.measure` block (66ch) or a `col-lg-8 col-xl-7` column.
 - **Motion is none.** No entrance animations, no hover lifts, no transitions on the search box. Hover changes color or underline only.
