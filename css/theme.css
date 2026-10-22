@@ -392,6 +392,26 @@ p { text-wrap: pretty; }
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
 }
 
+/* Home featured article: title, description and details sit over the photo from
+   768px; on phones the photo is a thin strip, so they go under it. */
+.hero-story { padding-top: 1rem; }
+.hero-story .story-title { font-size: clamp(1.75rem, 1.2rem + 2vw, 3rem); line-height: 1; }
+@media (min-width: 768px) {
+  .hero-story {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 5rem 0 1.5rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0));
+    color: #fff;
+  }
+  .hero-story .story-title a.story-link,
+  .hero-story .story-title a.story-link:hover { color: #fff; }
+  .hero-story .small-meta { color: rgba(255, 255, 255, 0.85); }
+}
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .hero-featured .ratio-21x9 { --bs-aspect-ratio: 56.25%; }
+}
+
 /* Pull quote for articles (use on <blockquote class="blockquote pullquote">) */
 .pullquote {
   max-width: 22ch;
