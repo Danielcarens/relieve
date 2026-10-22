@@ -594,10 +594,22 @@ html[data-lang="en"] body [lang="es"] {
 /* Full-bleed row ({% fila "a", "b", "completa" %}): edge to edge, thin gutters, captions keep the page margin */
 .fila-bleed { gap: 0.5rem; }
 .fila-bleed .figure-caption { padding-inline: 0.75rem; }
+
+/* Grids ({% fila "tall", ["a", "b"] %}): cells nest as rows and stacks. Every cell has --g (share of the free space on
+   its axis) and, inside a row, --ar (its own aspect ratio, which gives the row its height). Photo frames fill the cell. */
+.fila-in, .fila-col { flex: var(--g) 1 0%; min-width: 0; min-height: 0; }
+.fila-col { display: flex; flex-direction: column; gap: 1rem; }
+.fila-grid .fila-item, .fila-grid .fila-in, .fila-grid .fila-col { aspect-ratio: var(--ar, auto); }
+.fila-grid .fila-item { display: flex; flex-direction: column; min-height: 0; }
+.fila-grid .fila-item .ratio { flex: 1 1 auto; }
+.fila-bleed.fila-grid, .fila-bleed .fila-col { gap: 0.5rem; }
 @media (max-width: 767.98px) {
   .fila { flex-direction: column; gap: 2rem; }  /* phones: every photo full bleed, one per row */
   .fila.fila-bleed { gap: 0.5rem; }
   .fila-item { flex: none; }
+  .fila.fila-grid, .fila-grid .fila-in { flex-direction: row; gap: 1rem; }  /* grids keep their layout on phones */
+  .fila-grid .fila-item { flex: var(--g) 1 0%; }
+  .fila.fila-grid.fila-bleed, .fila-grid.fila-bleed .fila-in { gap: 0.5rem; }
 }
 
 
