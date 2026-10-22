@@ -11,6 +11,16 @@
 
 /* ---- 1. Brand variables ------------------------------------------------ */
 
+@font-face {
+  font-family: "Material Symbols Outlined";
+  src: url("/assets/fonts/material-symbols-outlined-subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+/* Material Symbols: only the icons search, play_arrow and swap_horiz, fixed at
+   FILL 0, wght 400, GRAD 0, opsz 24. To add an icon, rebuild the subset (DESIGN.md). */
+
 /* Fonts: hosted here, limited to what the site uses (latin, Archivo wght 400-800
    and wdth 68-100, DM Serif Display regular). Files in /assets/fonts/. */
 @font-face {
