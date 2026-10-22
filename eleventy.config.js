@@ -66,16 +66,6 @@ export default function (eleventyConfig) {
     return text ? `\n<figcaption class="${cls}">${esc(text)}</figcaption>` : "";
   }
 
-  // "Enlarge" button for wide photos and panoramas (opens the lightbox in site.js).
-  // Hidden until JavaScript unhides it.
-  function zoomButton(ctx) {
-    const ui = ctx.ui || {};
-    return `<button type="button" class="btn btn-light btn-icon zoom-btn" data-zoom-open data-close-label="${esc(ui.zoomClose || "Cerrar")}" aria-label="${esc(ui.zoom || "Ampliar foto")}" hidden><span class="material-symbols-outlined" aria-hidden="true">open_in_full</span></button>`;
-  }
-  function zoomData(p, base, focus) {
-    return `data-zoom data-full="${base}${p.file}.jpg" data-fw="${p.w}" data-fh="${p.h}" data-focus="${focus}"`;
-  }
-
   const BASE = "/assets/img/caprock-10-2026/";
 
   // Photo inside the reading column
@@ -93,9 +83,8 @@ ${figcaption(p, "figure-caption")}
     const p = photo(this.ctx, id);
     const base = this.ctx.imgBase || BASE;
     return `<div class="container">
-<figure class="figure w-100 my-5 position-relative" ${zoomData(p, base, 50)}>
+<figure class="figure w-100 my-5">
 <div class="ratio ratio-2x1 figure-img">${img(p, base, "(min-width: 1400px) 1188px, (min-width: 1200px) 1026px, (min-width: 992px) 864px, 100vw", ' class="object-fit-cover"')}</div>
-${zoomButton(this.ctx)}
 ${figcaption(p, "figure-caption")}
 </figure>
 </div>`;
@@ -110,9 +99,8 @@ ${figcaption(p, "figure-caption")}
     const ui = this.ctx.ui || {};
     const hint = esc(ui.panoHint || "Desliza para ver más");
     const label = esc(ui.panoLabel || "Foto panorámica: desliza a los lados para verla completa");
-    return `<figure class="pano my-5" data-pano ${zoomData(p, base, focus)}>
+    return `<figure class="pano my-5" data-pano data-focus="${focus}">
 <div class="pano-scroll" tabindex="0" role="group" aria-label="${label}">${img(p, base, "100vw", ' class="pano-img"')}</div>
-${zoomButton(this.ctx)}
 <span class="pano-hint font-ui" aria-hidden="true"><span class="material-symbols-outlined">swap_horiz</span>${hint}</span>
 ${figcaption(p, "figure-caption container pt-2")}
 </figure>`;
