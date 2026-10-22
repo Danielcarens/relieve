@@ -523,8 +523,14 @@ html[data-lang="en"] body [lang="es"] {
    what does not fit in the width is reached by swiping sideways. */
 .pano { position: relative; }
 
+.pano { --pano-limit: clamp(15rem, 50vh, 34rem); }
+.pano-tall { --pano-limit: clamp(20rem, 65vh, 44rem); }
+
+/* Height: the limit above, or taller when the photo needs it. site.js sets
+   --pano-min (screen width divided by the photo's proportion) so the photo is
+   never cropped at the bottom: its whole height always shows. */
 .pano-scroll {
-  height: clamp(15rem, 50vh, 34rem);
+  height: max(var(--pano-limit), var(--pano-min, 0px));
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
@@ -533,8 +539,8 @@ html[data-lang="en"] body [lang="es"] {
 }
 .pano-scroll::-webkit-scrollbar { display: none; }
 
-/* Taller panorama for photos with a lot of detail: {% pano "id", "alta" %} */
-.pano-tall .pano-scroll { height: clamp(20rem, 65vh, 44rem); }
+/* Whole panorama: full bleed, natural proportions, no sliding ({% pano "id", "completa" %}) */
+.pano-full-frame .pano-img { height: auto; width: 100%; min-width: 0; }
 
 .pano-scroll.is-dragging { cursor: grabbing; user-select: none; }
 .pano-scroll:focus-visible { outline: 2px solid var(--bs-primary); outline-offset: -2px; }
