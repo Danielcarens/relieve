@@ -403,7 +403,7 @@ p { text-wrap: pretty; }
 /* Full-bleed photos on phones: story photos inside a container run edge to edge
    (the container side padding is 0.75rem); text keeps its margins. */
 @media (max-width: 767.98px) {
-  main .container .ratio.ph {
+  main .container .ratio:is(.ph, :has(> img)) {
     width: calc(100% + 1.5rem);
     margin-left: -0.75rem;
     margin-right: -0.75rem;
