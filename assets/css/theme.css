@@ -533,6 +533,9 @@ html[data-lang="en"] body [lang="es"] {
 }
 .pano-scroll::-webkit-scrollbar { display: none; }
 
+/* Taller panorama for photos with a lot of detail: {% pano "id", "alta" %} */
+.pano-tall .pano-scroll { height: clamp(20rem, 65vh, 44rem); }
+
 .pano-scroll.is-dragging { cursor: grabbing; user-select: none; }
 .pano-scroll:focus-visible { outline: 2px solid var(--bs-primary); outline-offset: -2px; }
 
