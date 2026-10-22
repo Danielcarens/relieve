@@ -207,17 +207,68 @@ ${figcaption(p, "figure-caption container pt-2")}
 </figure>`;
   });
 
-  // Pull quote. Optional text wrapping like foto: {% cita "derecha 40" %}…{% endcita %}
-  eleventyConfig.addPairedShortcode("cita", function (content, opts) {
+  // Pull quote. Optional text wrapping like foto and an optional author:
+  // {% cita "derecha 40", "Nombre" %}…{% endcita %}  ({% cita "", "Nombre" %} for no wrapping)
+  eleventyConfig.addPairedShortcode("cita", function (content, opts, author) {
     const wrap = wrapOf(opts, " wrap-card");
+    const by = author ? `\n<figcaption class="pullquote-by">${esc(author)}</figcaption>` : "";
     if (wrap) {
       return `<figure class="pullquote-wrap${wrap}">
-<blockquote class="blockquote pullquote mb-0"><p>${esc(content.trim())}</p></blockquote>
+<blockquote class="blockquote pullquote mb-0"><p>${esc(content.trim())}</p></blockquote>${by}
 </figure>`;
     }
     return `<div class="container">
 <figure class="my-5">
-<blockquote class="blockquote pullquote mb-0"><p>${esc(content.trim())}</p></blockquote>
+<blockquote class="blockquote pullquote mb-0"><p>${esc(content.trim())}</p></blockquote>${by}
+</figure>
+</div>`;
+  });
+
+  // ---- Text blocks (the editor's "Insertar" menu) -------------------------------------
+  // Paired blocks leave a blank line around their content so Markdown keeps working inside.
+  eleventyConfig.addShortcode("separador", () => `<hr class="article-rule">`);
+  eleventyConfig.addShortcode("espacio", (size) => `<div class="article-space article-space-${["s", "m", "l"].includes(size) ? size : "m"}" aria-hidden="true"></div>`);
+  // Button: {% boton "Texto", "https://…", "secundario", "centro" %} (style primario | secundario, then optional "centro")
+  eleventyConfig.addShortcode("boton", (text, url, style, align) => {
+    const ext = /^https?:\/\//.test(url || "") ? ' target="_blank" rel="noopener"' : "";
+    return `<p class="article-cta${align === "centro" ? " text-center" : ""}"><a class="btn ${style === "secundario" ? "btn-outline-dark" : "btn-primary"}" href="${esc(url || "#")}"${ext}>${esc(text)}</a></p>`;
+  });
+  // Centered paragraph or title: {% centrado %}## Título{% endcentrado %}
+  eleventyConfig.addPairedShortcode("centrado", (content) => `<div class="article-center">\n\n${content.trim()}\n\n</div>`);
+  // Text box: {% recuadro "gris" %}…{% endrecuadro %} (gris | borde | acento)
+  eleventyConfig.addPairedShortcode("recuadro", (content, tone) =>
+    `<aside class="recuadro recuadro-${["gris", "borde", "acento"].includes(tone) ? tone : "gris"}">\n\n${content.trim()}\n\n</aside>`);
+  // Expandable (questions, extra details): {% desplegable "Pregunta" %}…{% enddesplegable %}
+  eleventyConfig.addPairedShortcode("desplegable", (content, title) =>
+    `<details class="desplegable">\n<summary>${esc(title || "")}</summary>\n<div class="desplegable-body">\n\n${content.trim()}\n\n</div>\n</details>`);
+  // Map (OpenStreetMap, no account or key): {% mapa "30.4207,-101.1700", "Caprock Canyons", "12" %}
+  eleventyConfig.addShortcode("mapa", function (coords, label, zoom) {
+    const [lat, lng] = String(coords || "").split(",").map(Number);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return "";
+    const z = Math.min(18, Math.max(3, Number(zoom) || 11)), d = 180 / 2 ** z * 1.6;
+    const bbox = [lng - d * 1.6, lat - d, lng + d * 1.6, lat + d].map((x) => x.toFixed(5)).join(",");
+    const big = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=${z}/${lat}/${lng}`;
+    const t = esc(label || "Mapa");
+    return `<div class="container">
+<figure class="article-map my-5">
+<div class="ratio ratio-21x9 map-frame"><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&amp;layer=mapnik&amp;marker=${lat},${lng}" title="Mapa: ${t}" loading="lazy"></iframe></div>
+<figcaption class="figure-caption d-flex flex-wrap justify-content-between gap-2"><span>${label ? t : ""}</span><a href="${big}" target="_blank" rel="noopener">Ver el mapa más grande</a></figcaption>
+</figure>
+</div>`;
+  });
+
+  // YouTube video in the article: {% video "id", "Descripción" %}. The thumbnail stays until the reader
+  // clicks (privacy-enhanced player, nothing loads from YouTube before that except the thumbnail).
+  eleventyConfig.addShortcode("video", function (id, caption) {
+    const v = String(id || "").replace(/[^\w-]/g, "");
+    const ui = this.ctx.ui || {};
+    const title = caption || ui.videoTitle || "Video";
+    return `<div class="container">
+<figure class="video-embed my-5" data-video-embed>
+<div class="ratio ratio-16x9 video-frame" data-video-frame>
+<img src="https://i.ytimg.com/vi/${v}/hqdefault.jpg" alt="" loading="lazy" decoding="async" class="object-fit-cover">
+<button type="button" class="btn btn-primary font-ui video-play" data-video="${v}" data-video-title="${esc(title)}" aria-label="${esc(ui.playVideoLabel || "Reproducir el video")}: ${esc(title)}"><span class="material-symbols-outlined me-1" aria-hidden="true">play_arrow</span>${esc(ui.playVideo || "Ver el video")}</button>
+</div>${caption ? `\n<figcaption class="figure-caption">${esc(caption)}</figcaption>` : ""}
 </figure>
 </div>`;
   });

@@ -87,6 +87,24 @@ Every page loads, in this order: preloads for Archivo and the icon font (`/asset
 | Buttons | `.btn.btn-primary`, `.btn.btn-outline-dark` (theme-aware ghost) |
 | Language switch | `.btn-group` with two `.btn-outline-dark` buttons carrying `data-set-lang` |
 
+### Article text blocks (shortcodes; the editor's "Insertar" menu writes them)
+
+All sit in the reading column (`min(46rem, 100% - 1.5rem)`) unless noted. Paired blocks keep a blank line around their content so Markdown works inside.
+
+| Block | Shortcode | Markup / rule |
+|---|---|---|
+| Lists | plain Markdown `- item` / `1. item` | one level, `padding-left: 1.5rem`, `li + li` 0.35rem |
+| Text box | `{% recuadro "gris" %}…{% endrecuadro %}` (gris, borde, acento) | `aside.recuadro.recuadro-*`, `display: flow-root` so it makes room for floating photos |
+| Expandable | `{% desplegable "Pregunta" %}…{% enddesplegable %}` | `details.desplegable` with 2px rules; consecutive ones share a rule; summary in the display face, `+` / `−` |
+| Button | `{% boton "Texto", "url", "primario", "centro" %}` (style primario / secundario, optional centro) | `p.article-cta` > `a.btn`; external links open in a new tab |
+| Centered text | `{% centrado %}## Título{% endcentrado %}` | `div.article-center` (paragraph, title or subtitle only) |
+| Rule | `{% separador %}` | `hr.article-rule`, 2px, body color, 3rem around |
+| Spacer | `{% espacio "m" %}` (s, m, l) | 1.5 / 3 / 6rem |
+| Quote author | `{% cita "", "Nombre" %}…{% endcita %}` (first argument = wrap options) | `figcaption.pullquote-by` with an em dash |
+| YouTube video | `{% video "id", "Descripción" %}` | container width, 16:9, thumbnail + play button; the privacy-enhanced player loads on click (site.js) |
+| Map | `{% mapa "lat,lng", "Lugar", "11" %}` | container width, OpenStreetMap embed (21:9, 4:3 on phones), link to the full map |
+| Data card on its own row | `{% ficha "id" %}` | box as wide as a single photo (`--cw-inner`); its text keeps the reading column |
+
 ## Page templates
 
 **Home (`index.html`):** menu → slogan `h2.font-serif-display` + lead (a hidden `h1` "RELIEVE" for SEO and accessibility) → full-width hero "Artículo destacado" → "Últimos artículos" (5 items) → sections Viajes, Bici, Moto, Reviews, Videos (2 cards each) → Opinión (3 text items, no rules) → dark footer with large logo. Each "Ver todo" links to its section page.

@@ -659,9 +659,12 @@ html[data-lang="en"] body [lang="es"] {
 /* Data cards */
 .ficha { background: var(--bs-secondary-bg); font-size: 1rem; line-height: 1.45; }
 .ficha-plain { background: transparent; }
-.ficha-solo { width: min(46rem, 100% - 1.5rem); margin: 3rem auto; }
+/* On its own row the box is as wide as a single photo; the text inside keeps the reading column */
+.ficha-solo { width: var(--cw-inner); margin: 3rem auto; }
+.ficha-solo .ficha-body { padding-inline: max(1.25rem, (100% - 46rem) / 2); }
+.ficha-solo.ficha-plain .ficha-body { padding-inline: max(0px, (100% - 46rem) / 2); }
 .ficha-body { padding: 1.25rem; }
-.ficha-plain .ficha-body { padding-inline: 0; }
+.ficha-plain:not(.ficha-solo) .ficha-body { padding-inline: 0; }
 .ficha-title { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
 .ficha-title a { text-decoration: none; }
 .ficha-title a:hover { text-decoration: underline; }
@@ -694,3 +697,46 @@ html[data-lang="en"] body [lang="es"] {
   margin-bottom: 1rem;
   font-size: clamp(2rem, 1.4rem + 1.8vw, 2.75rem);
 }
+
+
+/* ---- Text blocks from the editor's "Insertar" menu ------------------------------------------------
+   All of them sit in the reading column. Text boxes and expandables make room for floating photos. */
+.article-body > :is(hr, .recuadro, .desplegable, .article-space, .article-center) { width: min(46rem, 100% - 1.5rem); margin-inline: auto; }
+.article-center { text-align: center; }
+.article-center > p { margin-bottom: 1.25rem; }
+.article-center > h2 { margin-top: 3.5rem; margin-bottom: 1rem; font-size: clamp(2rem, 1.4rem + 1.8vw, 2.75rem); }
+.article-body > .article-center:has(> h2) { clear: both; }
+.article-body > :is(ul, ol) { padding-left: 1.5rem; margin-bottom: 1.25rem; }
+.article-body li + li { margin-top: 0.35rem; }
+.article-body > hr { clear: both; }
+.article-rule { border: 0; border-top: 2px solid var(--bs-body-color); opacity: 1; margin-block: 3rem; }
+.article-space-s { height: 1.5rem; }
+.article-space-m { height: 3rem; }
+.article-space-l { height: 6rem; }
+.article-cta { margin-block: 2rem; }
+.recuadro { display: flow-root; padding: 1.5rem 1.75rem; margin-block: 2.5rem; font-size: 1.0625rem; }
+.recuadro > :last-child { margin-bottom: 0; }
+.recuadro-gris { background: var(--bs-secondary-bg); }
+.recuadro-borde { border: 2px solid var(--bs-body-color); }
+.recuadro-acento { background: var(--bs-secondary-bg); border-left: 6px solid var(--bs-primary); }
+.desplegable { display: flow-root; border-block: 2px solid var(--bs-body-color); margin-block: 2rem; }
+.desplegable + .desplegable { margin-top: -2rem; border-top-width: 0; }
+.desplegable > summary {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  padding: 1rem 0; cursor: pointer; list-style: none;
+  font-family: var(--font-display); font-stretch: 68%; font-weight: 800; font-size: 1.5rem; line-height: 1.1;
+}
+.desplegable > summary::-webkit-details-marker { display: none; }
+.desplegable > summary::after { content: "+"; font-size: 1.75rem; line-height: 1; }
+.desplegable[open] > summary::after { content: "\2212"; }
+.desplegable > summary:focus-visible { outline: 2px solid var(--bs-primary); outline-offset: 2px; }
+.desplegable-body { padding-bottom: 1.25rem; }
+.desplegable-body > :last-child { margin-bottom: 0; }
+.video-frame { background: #000; }
+.video-frame img { width: 100%; height: 100%; }
+.video-play { position: absolute; left: 50%; top: 50%; width: auto; height: var(--control-height); transform: translate(-50%, -50%); display: inline-flex; align-items: center; }
+.pullquote-by { margin-top: 1rem; font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
+.pullquote-by::before { content: "\2014\00a0"; }
+.map-frame { background: var(--bs-secondary-bg); }
+.map-frame iframe { border: 0; }
+@media (max-width: 767.98px) { .map-frame { --bs-aspect-ratio: 75%; } }
