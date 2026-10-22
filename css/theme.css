@@ -395,7 +395,7 @@ p { text-wrap: pretty; }
 /* Home featured article: title, description and details sit over the photo from
    768px; on phones the photo is a thin strip, so they go under it. */
 .hero-story { padding-top: 1rem; }
-.hero-story .story-title { font-size: clamp(1.75rem, 1.2rem + 2vw, 3rem); line-height: 1; }
+.hero-story .story-title { font-size: clamp(2rem, 1.3rem + 2.6vw, 3.5rem); line-height: 1.05; }
 @media (min-width: 768px) {
   .hero-story {
     position: absolute;
