@@ -577,6 +577,9 @@ html[data-lang="en"] body [lang="es"] {
 
 .article-body > .article-column { display: block; }
 
+/* Photo credits and sources at the end: same column as the text */
+.article-end { width: min(46rem, 100% - 1.5rem); margin-inline: auto; }
+
 /* Phones: every photo in an article runs edge to edge. The reading column keeps
    0.75rem of margin on each side, so the photo cancels it. Captions keep it. */
 @media (max-width: 767.98px) {

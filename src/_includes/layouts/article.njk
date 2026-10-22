@@ -26,7 +26,7 @@ layout: layouts/base.njk
       </div>
       {% endif %}
     </div>
-    <p class="hero-credit figure-caption container mb-0 pt-2">{{ ui.photo }}: {{ hero.credit or credit }}. {{ hero.caption }}</p>
+    {% if hero.caption %}<p class="hero-credit figure-caption container mb-0 pt-2">{{ hero.caption }}</p>{% endif %}
     <div class="hero-text">
       <div class="container d-grid gap-3">
         <span class="tape">{% for s in site.sections %}{% if s.id == section %}{{ s[lang] }}{% endif %}{% endfor %}</span>
@@ -66,9 +66,12 @@ layout: layouts/base.njk
     {{ content | safe }}
   </div>
 
-  {% if sources %}
-  <div class="container pb-5">
-    <p class="small-meta measure mx-auto mb-0"><strong class="text-body">{{ ui.sources }}:</strong> {{ sources | join(" · ") }}</p>
+  {% set credits = [hero.credit or credit] %}
+  {% for id, ph in photos %}{% set c = ph.credit or credit %}{% if c not in credits %}{% set _ = credits.push(c) %}{% endif %}{% endfor %}
+  <div class="pb-5">
+    <div class="article-end d-grid gap-2">
+      <p class="small-meta mb-0"><strong class="text-body">{{ ui.photos }}:</strong> {{ credits | join(", ") }}</p>
+      {% if sources %}<p class="small-meta mb-0"><strong class="text-body">{{ ui.sources }}:</strong> {{ sources | join(" · ") }}</p>{% endif %}
+    </div>
   </div>
-  {% endif %}
 </article>

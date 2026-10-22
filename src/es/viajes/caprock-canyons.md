@@ -17,7 +17,6 @@ hero:
   w: 2560
   h: 1440
   alt: Vista panorámica de los cañones rojos de Caprock Canyons bajo un cielo con nubes finas, con árboles y arbustos en primer plano.
-  caption: Los cañones del parque, vistos desde el borde.
 route:
   - { label: Lugar, value: "Quitaque, Texas" }
   - { label: Actividad, value: Senderismo }
@@ -30,38 +29,32 @@ photos:
     h: 699
     focus: 50
     alt: Panorámica desde el borde del cañón, con paredes de roca roja y vegetación verde que se extienden hasta el horizonte bajo un cielo azul.
-    caption: Vista desde el borde del cañón.
   agujas:
     file: agujas-roca-roja
     w: 2400
     h: 1598
     alt: Muro de roca roja con dos agujas de piedra en la cima, iluminadas por la luz dorada de la tarde.
-    caption: Dos agujas de roca coronan uno de los muros del cañón.
   noche:
     file: tips-noche
     w: 2400
     h: 1598
     alt: Letrero iluminado de una licorería de noche, con niebla y reflejos rojos de neón sobre el asfalto mojado.
-    caption: Luces de neón en una noche de niebla.
   capas:
     file: capas-roca-detalle
     w: 2400
     h: 1598
     alt: Detalle de capas de roca roja erosionada con una franja blanca.
-    caption: A pocos centímetros, la roca se lee por capas.
   autor:
     file: autorretrato-mirador
     w: 2400
     h: 1598
     alt: Daniel sonriendo en un mirador, con gafas sobre la gorra y una mochila con trípode, con el cañón rojo detrás.
-    caption: Un alto en el mirador.
   cresta:
     file: cresta-anochecer-pano
     w: 3600
     h: 1021
     focus: 55
     alt: Siluetas negras de las crestas del cañón al anochecer, con dos árboles sin hojas contra un cielo azul oscuro.
-    caption: Las crestas al anochecer.
 sources:
   - Texas Parks and Wildlife Department (historia del parque)
   - Texas Historical Commission (sitio Folsom del lago Theo)

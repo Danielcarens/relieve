@@ -59,11 +59,11 @@ export default function (eleventyConfig) {
     return `<img src="${base}${p.file}.jpg" srcset="${small}, ${large}" sizes="${sizes}" width="${p.w}" height="${p.h}" alt="${esc(p.alt)}" loading="lazy" decoding="async"${extra}>`;
   }
 
-  function caption(ctx, p) {
-    const credit = p.credit || ctx.credit || "";
-    const label = ctx.ui?.photo || "Foto";
-    const lead = credit ? `${esc(label)}: ${esc(credit)}. ` : "";
-    return `${lead}${esc(p.caption || "")}`.trim();
+  // Photos have no visible description unless `caption` is filled in. The
+  // credit is not shown next to photos: it goes once at the end of the article.
+  function figcaption(p, cls) {
+    const text = (p.caption || "").trim();
+    return text ? `\n<figcaption class="${cls}">${esc(text)}</figcaption>` : "";
   }
 
   const BASE = "/assets/img/caprock-10-2026/";
@@ -74,7 +74,7 @@ export default function (eleventyConfig) {
     const base = this.ctx.imgBase || BASE;
     return `<figure class="figure article-column my-5">
 <div class="ratio ratio-3x2 figure-img">${img(p, base, "(min-width: 992px) 640px, 100vw", ' class="object-fit-cover"')}</div>
-<figcaption class="figure-caption">${caption(this.ctx, p)}</figcaption>
+${figcaption(p, "figure-caption")}
 </figure>`;
   });
 
@@ -85,7 +85,7 @@ export default function (eleventyConfig) {
     return `<div class="container">
 <figure class="figure w-100 my-5">
 <div class="ratio ratio-2x1 figure-img">${img(p, base, "(min-width: 1400px) 1188px, (min-width: 1200px) 1026px, (min-width: 992px) 864px, 100vw", ' class="object-fit-cover"')}</div>
-<figcaption class="figure-caption">${caption(this.ctx, p)}</figcaption>
+${figcaption(p, "figure-caption")}
 </figure>
 </div>`;
   });
@@ -102,7 +102,7 @@ export default function (eleventyConfig) {
     return `<figure class="pano my-5" data-pano data-focus="${focus}">
 <div class="pano-scroll" tabindex="0" role="group" aria-label="${label}">${img(p, base, "100vw", ' class="pano-img"')}</div>
 <span class="pano-hint font-ui" aria-hidden="true"><span class="material-symbols-outlined">swap_horiz</span>${hint}</span>
-<figcaption class="figure-caption container pt-2">${caption(this.ctx, p)}</figcaption>
+${figcaption(p, "figure-caption container pt-2")}
 </figure>`;
   });
 
