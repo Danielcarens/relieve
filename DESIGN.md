@@ -114,6 +114,7 @@ Every page loads, in this order: preloads for Archivo and the icon font (`/asset
 
 ## Phones (below 768px)
 
+- **Rule: on phones every photo is full-bleed**, with no exceptions: hero, lists, cards, section featured and every photo inside articles (including normal, wide and panorama). Only captions and text keep their margins. Any new photo component must follow this.
 - Story photos inside a container are **full-bleed**: edge to edge, no rounded corners, text keeps its margins (`main .container .ratio.ph` in `theme.css`). The hero is already full width.
 - Latest articles stack: photo on top, text below.
 - Navbar is shorter: `py-2`, logo 1.75rem. Menu toggler stays 44px.
