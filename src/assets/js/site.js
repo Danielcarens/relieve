@@ -69,7 +69,12 @@
     if (isNaN(focus)) focus = 50;
     var touched = false;
 
+    // Never crop the photo at the bottom: the height must be at least the screen
+    // width divided by the photo's proportion (CSS takes the larger of this and its limit).
+    var ratio = parseFloat(img.getAttribute("width")) / parseFloat(img.getAttribute("height"));
+
     function layout() {
+      if (ratio > 0) pano.style.setProperty("--pano-min", Math.ceil(pano.clientWidth / ratio) + "px");
       var max = scroller.scrollWidth - scroller.clientWidth;
       pano.classList.toggle("has-overflow", max > 8);
       if (!touched) scroller.scrollLeft = max * (focus / 100);

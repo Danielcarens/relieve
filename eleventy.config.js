@@ -95,6 +95,13 @@ ${figcaption(p, "figure-caption")}
   eleventyConfig.addShortcode("pano", function (id, size) {
     const p = photo(this.ctx, id);
     const base = this.ctx.imgBase || BASE;
+    // "completa": the whole photo at full width, natural proportions, no sliding.
+    if (size === "completa") {
+      return `<figure class="pano-full my-5">
+<div class="pano-full-frame">${img(p, base, "100vw", ' class="pano-img"')}</div>
+${figcaption(p, "figure-caption container pt-2")}
+</figure>`;
+    }
     const focus = Number.isFinite(p.focus) ? p.focus : 50;
     const ui = this.ctx.ui || {};
     const hint = esc(ui.panoHint || "Desliza para ver más");

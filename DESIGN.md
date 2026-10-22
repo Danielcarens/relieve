@@ -101,7 +101,7 @@ Every page loads, in this order: preloads for Archivo and the icon font (`/asset
 - **Date:** every article has a date. It is shown only in: Latest articles on the home, featured articles (home hero and section featured) and the article page. Not on section cards, "Más artículos" cards or Opinion items.
 - **Reading column:** 46rem wide, body text 1.125rem. Headings (`h2`, `h3`), lists and normal photos (`foto`) share that column. Wide photos (`fotoancha`, 2:1) use the `.container` width.
 - **Panoramas** (`pano` shortcode): full bleed, height `clamp(15rem, 50vh, 34rem)`, swipeable left and right (touch, mouse drag, Shift + wheel, arrow keys). Each has a `focus` (0 to 100) that sets which part shows first. A small hint "Desliza para ver más" disappears on first touch.
-- **Taller panorama:** `{% pano "id", "alta" %}` raises the height to `clamp(20rem, 65vh, 44rem)` for photos with a lot of detail.
+- **Panorama options** (second argument of `pano`): none = limited height `clamp(15rem, 50vh, 34rem)`, swipeable. `"alta"` = taller limit `clamp(20rem, 65vh, 44rem)`, swipeable. `"completa"` = the whole photo at full width in its natural proportions, no swiping, no hint. In the swipeable modes the photo is never cropped at the bottom: if the screen is wider than the limit allows, the height grows (`--pano-min`, set in `site.js`) so the whole height always shows. Use `"completa"` when the whole photo must be seen at once; the other modes when it is acceptable to swipe.
 - **Pull quote** (`cita`), photo credit under every photo ("Foto: name. Caption").
 - **Drafts:** `draft: true` adds `noindex` (hidden from Google). `ai: true` shows a "Versión de prueba" notice under the hero. Remove both to publish.
 - Article text sits in `data-pagefind-body`.
