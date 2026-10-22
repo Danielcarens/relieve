@@ -101,7 +101,7 @@ Every page loads, in this order: Google Fonts (Archivo, DM Serif Display), Googl
 - **Reading column:** 46rem wide, body text 1.125rem. Headings (`h2`, `h3`), lists and normal photos (`foto`) share that column. Wide photos (`fotoancha`, 2:1) use the `.container` width.
 - **Panoramas** (`pano` shortcode): full bleed, height `clamp(15rem, 50vh, 34rem)`, swipeable left and right (touch, mouse drag, Shift + wheel, arrow keys). Each has a `focus` (0 to 100) that sets which part shows first. A small hint "Desliza para ver más" disappears on first touch.
 - **Pull quote** (`cita`), photo credit under every photo ("Foto: name. Caption").
-- **Drafts:** `draft: true` adds `noindex` and a banner "Borrador" on every page. Remove it to publish.
+- **Drafts:** `draft: true` adds `noindex` (hidden from Google). `ai: true` shows a "Versión de prueba" notice under the hero. Remove both to publish.
 - Article text sits in `data-pagefind-body`.
 
 ## Search
