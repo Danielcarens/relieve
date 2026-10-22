@@ -73,6 +73,19 @@ export default function (eleventyConfig) {
   // matter with `ratio` (width / height; default = the photo's own) and `pos`
   // (what stays centered, e.g. "50% 30%"). Two or more photos side by side go
   // in `fila`: they get the same height and add up to the same full width.
+  //
+  // Text wrapping (like Word's "Square"): foto, ficha and cita take an optional
+  // last argument, a few words: "izquierda" or "derecha" (side), 33 / 40 / 50
+  // (width as a share of the text column) and "fuera" (hang out to the outer
+  // margin of the page container). Without it the block gets its own row.
+  function wrapOf(opts, extra = "") {
+    const w = String(opts || "").toLowerCase().split(/\s+/).filter(Boolean);
+    const side = w.includes("izquierda") ? "left" : w.includes("derecha") ? "right" : "";
+    if (!side) return "";
+    const n = w.map(Number).find((x) => [33, 40, 50].includes(x)) || 40;
+    return ` wrap wrap-${side} wrap-s${n}${w.includes("fuera") ? " wrap-hang" : ""}${extra}`;
+  }
+
   function frame(p, base, sizes) {
     const r = Number(p.ratio) > 0 ? Number(p.ratio) : p.w / p.h;
     const pos = /^\d{1,3}% \d{1,3}%$/.test(p.pos || "") ? ` style="object-position: ${p.pos}"` : "";
@@ -85,9 +98,15 @@ export default function (eleventyConfig) {
 
   const SIZES_SOLO = "(min-width: 1400px) 1188px, (min-width: 1200px) 1026px, (min-width: 992px) 864px, 100vw";
 
-  eleventyConfig.addShortcode("foto", function (id) {
+  eleventyConfig.addShortcode("foto", function (id, opts) {
     const p = photo(this.ctx, id);
     const base = this.ctx.imgBase || BASE;
+    const wrap = wrapOf(opts, " wrap-photo");
+    if (wrap) {
+      return `<figure class="figure${wrap}">
+${frame(p, base, "(min-width: 768px) 520px, 100vw").html}${figcaption(p, "figure-caption")}
+</figure>`;
+    }
     return `<div class="container">
 <figure class="figure w-100 my-5">
 ${frame(p, base, SIZES_SOLO).html}${figcaption(p, "figure-caption")}
@@ -110,6 +129,26 @@ ${f.html}${figcaption(p, "figure-caption")}
 ${items.join("\n")}
 </div>
 </div>`;
+  });
+
+  // Data card (specs, rider card, park facts…). Declared once in front matter under `fichas:` and
+  // placed by id: title, optional link (`url`), optional photo (id from `photos`), rows of
+  // label / value, `tone` (gris | sin fondo) and `format` (lista | tabla).
+  eleventyConfig.addShortcode("ficha", function (id, opts) {
+    const f = this.ctx?.fichas?.[id];
+    if (!f) throw new Error(`Article card "${id}" is not declared in front matter (fichas:)`);
+    const base = this.ctx.imgBase || BASE;
+    const wrap = wrapOf(opts, " wrap-card");
+    const photoHtml = f.photo ? frame(photo(this.ctx, f.photo), base, "(min-width: 768px) 520px, 100vw").html : "";
+    const title = f.title ? `<h3 class="ficha-title">${f.url ? `<a href="${esc(f.url)}">${esc(f.title)}</a>` : esc(f.title)}</h3>` : "";
+    const rows = (f.rows || []).map((r) => f.format === "tabla"
+      ? `<tr><th scope="row">${esc(r.label)}</th><td>${esc(r.value)}</td></tr>`
+      : `<div><dt>${esc(r.label)}</dt> <dd>${esc(r.value)}</dd></div>`).join("\n");
+    const list = !rows ? "" : f.format === "tabla" ? `<table class="ficha-table"><tbody>\n${rows}\n</tbody></table>` : `<dl class="ficha-list">\n${rows}\n</dl>`;
+    const tone = f.tone === "sin fondo" ? " ficha-plain" : "";
+    return `<aside class="ficha${tone}${wrap}${wrap ? "" : " ficha-solo"}">
+${photoHtml}<div class="ficha-body">${title}${list}</div>
+</aside>`;
   });
 
   // Panorama: full-bleed, limited height, swipeable. `focus` (0-100) is the
@@ -136,8 +175,14 @@ ${figcaption(p, "figure-caption container pt-2")}
 </figure>`;
   });
 
-  // Pull quote
-  eleventyConfig.addPairedShortcode("cita", function (content) {
+  // Pull quote. Optional text wrapping like foto: {% cita "derecha 40" %}…{% endcita %}
+  eleventyConfig.addPairedShortcode("cita", function (content, opts) {
+    const wrap = wrapOf(opts, " wrap-card");
+    if (wrap) {
+      return `<figure class="pullquote-wrap${wrap}">
+<blockquote class="blockquote pullquote mb-0"><p>${esc(content.trim())}</p></blockquote>
+</figure>`;
+    }
     return `<div class="container">
 <figure class="my-5">
 <blockquote class="blockquote pullquote mb-0"><p>${esc(content.trim())}</p></blockquote>

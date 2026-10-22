@@ -70,6 +70,20 @@ photos:
     focus: 55
     alt: Siluetas negras de las crestas del cañón al anochecer, con dos árboles sin hojas contra un cielo azul oscuro.
     caption: Las crestas al anochecer.
+fichas:
+  parque:
+    title: Parque Estatal Caprock Canyons
+    tone: gris
+    format: lista
+    rows:
+      - label: Ubicación
+        value: Quitaque, condado de Briscoe, Texas
+      - label: Distancia
+        value: Unos 160 km al sureste de Amarillo
+      - label: Superficie
+        value: Unas 6.200 hectáreas
+      - label: Abrió
+        value: 1982
 sources:
   - Texas Parks and Wildlife Department (historia del parque)
   - Texas Historical Commission (sitio Folsom del lago Theo)
@@ -81,6 +95,8 @@ Es un lugar para caminar despacio y mirar lejos. Desde los bordes, el cañón se
 {% pano "pano1" %}
 
 ## Los primeros cazadores
+
+{% ficha "parque", "derecha 40 fuera" %}
 
 Mucho antes de que existiera el parque, estos cañones ya tenían visitantes. Según el Departamento de Parques y Vida Silvestre de Texas, la cultura Folsom vivió aquí hace más de 10.000 años.
 

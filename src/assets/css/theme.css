@@ -596,6 +596,63 @@ html[data-lang="en"] body [lang="es"] {
   .fila-item { flex: none; }
 }
 
+
+/* Text wrapping (Word's "Square"): a photo, quote or card floats to the left or right and the text wraps
+   around it, then goes back to full width. Shortcode options: izquierda | derecha, 33 | 40 | 50, fuera.
+   "fuera" hangs it out to the outer margin of the page container (the same edge single photos use).
+   Widths are always a share of a known width, so the text beside it never gets too narrow.
+   Phones: no wrapping, the block takes its own row (photos edge to edge). */
+.article-body { display: flow-root; --cw-inner: calc(100% - 1.5rem); }
+@media (min-width: 576px)  { .article-body { --cw-inner: 516px; } }
+@media (min-width: 768px)  { .article-body { --cw-inner: 696px; } }
+@media (min-width: 992px)  { .article-body { --cw-inner: 840px; } }
+@media (min-width: 1200px) { .article-body { --cw-inner: 1002px; } }
+@media (min-width: 1400px) { .article-body { --cw-inner: 1164px; } }
+
+.wrap-s33 { --ws: 0.33; }
+.wrap-s40 { --ws: 0.4; }
+.wrap-s50 { --ws: 0.5; }
+
+.wrap { margin-top: 0.4rem; margin-bottom: 1.5rem; }
+.wrap-photo .figure-caption { padding-inline: 0.75rem; }
+@media (min-width: 768px) {
+  .wrap-photo .figure-caption { padding-inline: 0; }
+  .wrap {
+    width: calc(min(46rem, 100% - 1.5rem) * var(--ws, 0.4));
+    --edge: max(0.75rem, (100% - 46rem) / 2);
+  }
+  .wrap-left  { float: left;  clear: left;  margin-left: var(--edge);  margin-right: 1.75rem; }
+  .wrap-right { float: right; clear: right; margin-right: var(--edge); margin-left: 1.75rem; }
+  .wrap-hang { width: calc(var(--cw-inner) * var(--ws, 0.4)); }
+  .wrap-hang.wrap-left  { margin-left: calc((100% - var(--cw-inner)) / 2); }
+  .wrap-hang.wrap-right { margin-right: calc((100% - var(--cw-inner)) / 2); }
+}
+@media (max-width: 767.98px) {
+  .wrap { width: min(46rem, 100% - 1.5rem); margin: 2rem auto; }
+  .wrap-photo { width: 100%; margin: 2rem 0; }
+}
+/* Anything that spans the width, and every section title, starts below a floating block */
+.article-body > :is(h2, .container, .pano, .pano-full, .ficha-solo) { clear: both; }
+
+/* Data cards */
+.ficha { background: var(--bs-secondary-bg); font-size: 1rem; line-height: 1.45; }
+.ficha-plain { background: transparent; }
+.ficha-solo { width: min(46rem, 100% - 1.5rem); margin: 3rem auto; }
+.ficha-body { padding: 1.25rem; }
+.ficha-plain .ficha-body { padding-inline: 0; }
+.ficha-title { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
+.ficha-title a { text-decoration: none; }
+.ficha-title a:hover { text-decoration: underline; }
+.ficha-list { margin: 0; }
+.ficha-list dt { display: inline; font-weight: 700; }
+.ficha-list dt::after { content: ":"; }
+.ficha-list dd { display: inline; margin: 0; }
+.ficha-list > div { margin-bottom: 0.15rem; }
+.ficha-table { width: 100%; border-collapse: collapse; }
+.ficha-table th, .ficha-table td { padding: 0.2rem 0.75rem 0.2rem 0; vertical-align: top; }
+.ficha-table th { font-weight: 400; white-space: nowrap; }
+.pullquote-wrap { margin-block: 0.4rem 1.5rem; }
+
 /* Photo credits and sources at the end: same column as the text */
 .article-end { width: min(46rem, 100% - 1.5rem); margin-inline: auto; }
 
