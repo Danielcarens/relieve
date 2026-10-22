@@ -395,6 +395,7 @@ p { text-wrap: pretty; }
    outlines. It takes the text color, so it works on light and dark.        */
 .wordmark { display: block; height: 2.25rem; width: auto; fill: currentColor; }
 .wordmark-lg { height: 3.5rem; }
+.footer-logo { display: block; width: min(100%, 16rem); height: auto; }
 
 /* Phones and tablets: a slimmer logo keeps the top bar short so the content
    stays the focus. */
