@@ -114,16 +114,21 @@ ${frame(p, base, SIZES_SOLO).html}${figcaption(p, "figure-caption")}
 </div>`;
   });
 
-  // Row of photos: {% fila "a", "b", "c" %}
-  eleventyConfig.addShortcode("fila", function (...ids) {
+  // Row of photos: {% fila "a", "b", "c" %}. Add "completa" as the last argument for a full-bleed row.
+  eleventyConfig.addShortcode("fila", function (...args) {
+    const full = args.includes("completa");
+    const ids = args.filter((a) => a !== "completa");
     const base = this.ctx.imgBase || BASE;
     const items = ids.map((id) => {
       const p = photo(this.ctx, id);
-      const f = frame(p, base, "(min-width: 992px) 600px, 100vw");
+      const f = frame(p, base, full ? "100vw" : "(min-width: 992px) 600px, 100vw");
       return `<figure class="fila-item figure" style="--g: ${f.r.toFixed(3)}">
 ${f.html}${figcaption(p, "figure-caption")}
 </figure>`;
     });
+    if (full) return `<div class="fila fila-bleed my-5">
+${items.join("\n")}
+</div>`;
     return `<div class="container">
 <div class="fila my-5">
 ${items.join("\n")}
