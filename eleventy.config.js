@@ -92,14 +92,15 @@ ${figcaption(p, "figure-caption")}
 
   // Panorama: full-bleed, limited height, swipeable. `focus` (0-100) is the
   // horizontal point that starts centered.
-  eleventyConfig.addShortcode("pano", function (id) {
+  eleventyConfig.addShortcode("pano", function (id, size) {
     const p = photo(this.ctx, id);
     const base = this.ctx.imgBase || BASE;
     const focus = Number.isFinite(p.focus) ? p.focus : 50;
     const ui = this.ctx.ui || {};
     const hint = esc(ui.panoHint || "Desliza para ver más");
     const label = esc(ui.panoLabel || "Foto panorámica: desliza a los lados para verla completa");
-    return `<figure class="pano my-5" data-pano data-focus="${focus}">
+    const tall = size === "alta" ? " pano-tall" : "";
+    return `<figure class="pano${tall} my-5" data-pano data-focus="${focus}">
 <div class="pano-scroll" tabindex="0" role="group" aria-label="${label}">${img(p, base, "100vw", ' class="pano-img"')}</div>
 <span class="pano-hint font-ui" aria-hidden="true"><span class="material-symbols-outlined">swap_horiz</span>${hint}</span>
 ${figcaption(p, "figure-caption container pt-2")}

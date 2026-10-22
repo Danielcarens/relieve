@@ -97,7 +97,7 @@ Quitaque, el pueblo junto al parque, ya era parada regular de diligencias en 189
 
 ## El cañón de cerca
 
-{% pano "pano2" %}
+{% pano "pano2", "alta" %}
 
 Vale la pena agacharse. A pocos centímetros, la roca es un libro de páginas rojas con una franja blanca que cruza las capas, y cada grieta muestra una época distinta.
 

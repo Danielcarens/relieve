@@ -101,6 +101,7 @@ Every page loads, in this order: preloads for Archivo and the icon font (`/asset
 - **Date:** every article has a date. It is shown only in: Latest articles on the home, featured articles (home hero and section featured) and the article page. Not on section cards, "Más artículos" cards or Opinion items.
 - **Reading column:** 46rem wide, body text 1.125rem. Headings (`h2`, `h3`), lists and normal photos (`foto`) share that column. Wide photos (`fotoancha`, 2:1) use the `.container` width.
 - **Panoramas** (`pano` shortcode): full bleed, height `clamp(15rem, 50vh, 34rem)`, swipeable left and right (touch, mouse drag, Shift + wheel, arrow keys). Each has a `focus` (0 to 100) that sets which part shows first. A small hint "Desliza para ver más" disappears on first touch.
+- **Taller panorama:** `{% pano "id", "alta" %}` raises the height to `clamp(20rem, 65vh, 44rem)` for photos with a lot of detail.
 - **Pull quote** (`cita`), photo credit under every photo ("Foto: name. Caption").
 - **Drafts:** `draft: true` adds `noindex` (hidden from Google). `ai: true` shows a "Versión de prueba" notice under the hero. Remove both to publish.
 - Article text sits in `data-pagefind-body`.
