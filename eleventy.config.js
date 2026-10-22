@@ -115,10 +115,37 @@ ${frame(p, base, SIZES_SOLO).html}${figcaption(p, "figure-caption")}
   });
 
   // Row of photos: {% fila "a", "b", "c" %}. Add "completa" as the last argument for a full-bleed row.
+  // Grids: an array inside the row is a vertical stack, an array inside that is a row again, and so on:
+  //   {% fila "alta", ["a", "b"] %}                      a tall photo beside two stacked ones
+  //   {% fila [["a", "b"], ["c", "d"]] %}                a 2 x 2 grid (one column holding two rows)
+  // Every cell grows in proportion to its aspect ratio so edges line up (see .fila-grid in theme.css).
   eleventyConfig.addShortcode("fila", function (...args) {
     const full = args.includes("completa");
-    const ids = args.filter((a) => a !== "completa");
+    const tree = args.filter((a) => a !== "completa");
     const base = this.ctx.imgBase || BASE;
+    const nested = tree.some(Array.isArray);
+    if (nested) {
+      const info = new Map();
+      const R = (n, depth) => {
+        if (!Array.isArray(n)) { const p = photo(this.ctx, n); const f = frame(p, base, "(min-width: 992px) 600px, 100vw"); info.set(n, f); return f.r; }
+        const rs = n.map((c) => R(c, depth + 1));
+        return depth % 2 === 0 ? rs.reduce((a, x) => a + x, 0) : 1 / rs.reduce((a, x) => a + 1 / x, 0);
+      };
+      // flex-grow weights must add up to 1 or the cells would not fill their row / stack
+      const cells = (arr, depth, parentRow) => {
+        const rs = arr.map((c) => R(c, depth)), w = rs.map((r) => (parentRow ? r : 1 / r)), sum = w.reduce((a, x) => a + x, 0);
+        return arr.map((c, k) => cell(c, depth, parentRow, w[k] / sum, rs[k])).join("\n");
+      };
+      const cell = (n, depth, parentRow, g, r) => {
+        const style = `--g: ${g.toFixed(4)}; --ar: ${parentRow ? r.toFixed(4) : "auto"}`;
+        if (!Array.isArray(n)) return `<figure class="fila-item figure" style="${style}">\n${info.get(n).html}\n</figure>`;
+        const isRow = depth % 2 === 0;
+        return `<div class="${isRow ? "fila fila-in" : "fila-col"}" style="${style}">\n${cells(n, depth + 1, isRow)}\n</div>`;
+      };
+      const html = `<div class="fila fila-grid${full ? " fila-bleed" : ""} my-5">\n${cells(tree, 1, true)}\n</div>`;
+      return full ? html : `<div class="container">\n${html}\n</div>`;
+    }
+    const ids = tree;
     const items = ids.map((id) => {
       const p = photo(this.ctx, id);
       const f = frame(p, base, full ? "100vw" : "(min-width: 992px) 600px, 100vw");
