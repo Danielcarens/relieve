@@ -51,7 +51,7 @@ Every page loads, in this order: Google Fonts (Archivo, DM Serif Display), Googl
 - **Pink is for fills** (`btn-primary`, `.tape`). Pink text must use the link color, which passes contrast. Don't use `.text-primary` on small text.
 - **One control height: 44px** (`--control-height: 2.75rem` in `theme.css`) for `.btn`, `.btn-sm`, button groups, `.form-control` and the menu toggler. Consistency is the owner's priority. Change the variable, never a single control.
 - **Fonts:** body text uses the system font stack. **Archivo** condensed for headlines, Archivo normal width for UI (`.font-ui`, set automatically on navbar, buttons, forms, captions). **DM Serif Display** for the logo and the biggest titles: `h1`, `.display-1` and the `.font-serif-display` class (works on any `h2`). No other font.
-- **Icons:** Google Material Symbols Outlined (`<span class="material-symbols-outlined" aria-hidden="true">name</span>`). The font link lists only the icons we use through `icon_names=` (today `search`). To add one, add its name to that list on every page. Icon-only buttons use `.btn.btn-outline-dark.btn-icon` with a bilingual `aria-label`.
+- **Icons:** Google Material Symbols Outlined (`<span class="material-symbols-outlined" aria-hidden="true">name</span>`). The font link lists only the icons we use through `icon_names=` (today `search`, `play_arrow`, `swap_horiz`). To add one, add its name to that list on every page. Icon-only buttons use `.btn.btn-outline-dark.btn-icon` with a bilingual `aria-label`.
 - **Headlines:** use `h1`–`h4`. `.display-1` only for the biggest headline on a page (article title, landing hero).
 - **Reading text** in a `.measure` block (66ch) or a `col-lg-8 col-xl-7` column.
 - **Motion is none.** No entrance animations, no hover lifts, no transitions on the search box. Hover changes color or underline only.
@@ -94,7 +94,15 @@ Every page loads, in this order: Google Fonts (Archivo, DM Serif Display), Googl
 
 **Search (`buscar.html`):** `h1` "Buscar", a status line and a results list.
 
-**Article page:** not built yet. See the article template in `style-guide.html`.
+**Article page** (built with Eleventy, `src/_includes/layouts/article.njk`):
+- **Hero:** always the photo, full bleed, **16:9** (shoot hero photos in 16:9; export 2560×1440). On phones it is cropped to 4:3. Height is capped at 85vh. From 992px the title sits over the photo on a dark gradient; below that it goes under the photo. The credit and caption go under the photo.
+- **Hero video:** the hero is never the video thumbnail. If the article has `youtube` in its front matter, a small button "Click para ver video" sits at the bottom right of the photo. Click replaces the photo with the YouTube player in the same frame (`youtube-nocookie.com`, loads nothing before the click). Without JavaScript, the button becomes a link to YouTube.
+- **Date:** every article has a date. It is shown only in: Latest articles on the home, featured articles (home hero and section featured) and the article page. Not on section cards, "Más artículos" cards or Opinion items.
+- **Reading column:** 46rem wide, body text 1.125rem. Headings (`h2`, `h3`), lists and normal photos (`foto`) share that column. Wide photos (`fotoancha`, 2:1) use the `.container` width.
+- **Panoramas** (`pano` shortcode): full bleed, height `clamp(15rem, 50vh, 34rem)`, swipeable left and right (touch, mouse drag, Shift + wheel, arrow keys). Each has a `focus` (0 to 100) that sets which part shows first. A small hint "Desliza para ver más" disappears on first touch.
+- **Pull quote** (`cita`), photo credit under every photo ("Foto: name. Caption").
+- **Drafts:** `draft: true` adds `noindex` and a banner "Borrador" on every page. Remove it to publish.
+- Article text sits in `data-pagefind-body`.
 
 ## Search
 
@@ -141,7 +149,7 @@ Every page loads, in this order: Google Fonts (Archivo, DM Serif Display), Googl
 
 - SEO: title, description, Open Graph, JSON-LD, canonical, sitemap, robots, `hreflang` (needs the domain).
 - Separate language URLs `/es/` and `/en/` before launch.
-- Article page template and Pagefind attributes.
+- Article page: built; Pagefind index and `/es/` `/en/` split still to do.
 - Check the availability of the name RELIEVE (domain, Instagram/YouTube, trademarks per country; an academic journal called "Relieve" exists).
 - Licenses: CC BY-NC-ND or BY-NC-SA for content; Bootstrap is MIT, fonts are OFL. Review data protection per country.
 - Possible: DM Serif Display on card titles; white footer instead of dark; real title and link on the hero once the article exists.

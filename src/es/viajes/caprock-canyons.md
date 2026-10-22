@@ -1,0 +1,102 @@
+---
+layout: layouts/article.njk
+permalink: /es/viajes/caprock-canyons/
+section: viajes
+title: El mirador de los primeros cazadores de Texas
+subtitle: Senderismo en el Parque Estatal Caprock Canyons, en Quitaque, Texas.
+description: Senderismo en el Parque Estatal Caprock Canyons, en Quitaque, Texas, un parque con más de 10.000 años de historia humana.
+date: 2026-10-21
+author: Daniel
+credit: Daniel Cárdenas
+draft: true
+youtube: "7EcrNEsd3-E"
+imgBase: /assets/img/caprock-10-2026/
+hero:
+  file: hero
+  w: 2560
+  h: 1440
+  alt: Vista panorámica de los cañones rojos de Caprock Canyons bajo un cielo con nubes finas, con árboles y arbustos en primer plano.
+  caption: Los cañones del parque, vistos desde el borde.
+route:
+  - { label: Lugar, value: "Quitaque, Texas" }
+  - { label: Actividad, value: Senderismo }
+  - { label: Distancia, value: Por definir }
+  - { label: Dificultad, value: Por definir }
+photos:
+  pano1:
+    file: pano-1
+    w: 3600
+    h: 699
+    focus: 50
+    alt: Panorámica desde el borde del cañón, con paredes de roca roja y vegetación verde que se extienden hasta el horizonte bajo un cielo azul.
+    caption: Vista desde el borde del cañón.
+  agujas:
+    file: agujas-roca-roja
+    w: 2400
+    h: 1598
+    alt: Muro de roca roja con dos agujas de piedra en la cima, iluminadas por la luz dorada de la tarde.
+    caption: Dos agujas de roca coronan uno de los muros del cañón.
+  noche:
+    file: tips-noche
+    w: 2400
+    h: 1598
+    alt: Letrero iluminado de una licorería de noche, con niebla y reflejos rojos de neón sobre el asfalto mojado.
+    caption: Luces de neón en una noche de niebla.
+  capas:
+    file: capas-roca-detalle
+    w: 2400
+    h: 1598
+    alt: Detalle de capas de roca roja erosionada con una franja blanca.
+    caption: A pocos centímetros, la roca se lee por capas.
+  autor:
+    file: autorretrato-mirador
+    w: 2400
+    h: 1598
+    alt: Daniel sonriendo en un mirador, con gafas sobre la gorra y una mochila con trípode, con el cañón rojo detrás.
+    caption: Un alto en el mirador.
+  cresta:
+    file: cresta-anochecer-pano
+    w: 3600
+    h: 1021
+    focus: 55
+    alt: Siluetas negras de las crestas del cañón al anochecer, con dos árboles sin hojas contra un cielo azul oscuro.
+    caption: Las crestas al anochecer.
+sources:
+  - Texas Parks and Wildlife Department (historia del parque)
+  - Texas Historical Commission (sitio Folsom del lago Theo)
+---
+Al norte de Texas, donde la llanura plana se parte de golpe en cañones rojos, hay un parque que casi nunca aparece en las listas de viaje. Caprock Canyons queda en el condado de Briscoe, a unos 160 kilómetros al sureste de Amarillo, y abarca unas 6.200 hectáreas de paredes de roca roja, mesetas y senderos.
+
+Es un lugar para caminar despacio y mirar lejos. Desde los bordes, el cañón se abre en capas: roca roja abajo, vegetación verde en el fondo y, al final, la línea recta del horizonte.
+
+{% pano "pano1" %}
+
+## Los primeros cazadores
+
+Mucho antes de que existiera el parque, estos cañones ya tenían visitantes. Según el Departamento de Parques y Vida Silvestre de Texas, la cultura Folsom vivió aquí hace más de 10.000 años.
+
+A orillas del lago Theo, un sitio arqueológico conserva su rastro. Las excavaciones de 1974 encontraron un campamento y una zona donde se procesaban bisontes, con puntas de proyectil y raspadores a unos 1,2 metros de profundidad, además de más de 500 huesos de una especie extinta de bisonte. El sitio tiene entre 10.000 y 12.000 años de antigüedad.
+
+{% fotoancha "agujas" %}
+
+{% cita %}Hace más de 10.000 años, alguien esperó bisontes en este mismo parque.{% endcita %}
+
+## Un pueblo de paso
+
+Quitaque, el pueblo junto al parque, ya era parada regular de diligencias en 1890, cuando tenía unos 30 habitantes. El parque abrió mucho después, en 1982.
+
+{% foto "noche" %}
+
+## El cañón de cerca
+
+Vale la pena agacharse. A pocos centímetros, la roca es un libro de páginas rojas con una franja blanca que cruza las capas, y cada grieta muestra una época distinta.
+
+{% foto "capas" %}
+
+## Al caer la tarde
+
+Al final del día, las crestas se vuelven siluetas contra un cielo que pasa del azul al negro. Desde arriba se entiende por qué un grupo de cazadores querría quedarse a mirar.
+
+{% pano "cresta" %}
+
+{% foto "autor" %}

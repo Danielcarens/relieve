@@ -1,0 +1,34 @@
+  <!-- NAVBAR ============================================================ -->
+  <nav class="navbar navbar-expand-lg bg-body border-bottom border-2 border-strong py-2 py-lg-3">
+    <div class="container">
+      <a class="navbar-brand" href="{{ site.liveBase }}" aria-label="RELIEVE"><svg class="wordmark" viewBox="-11 -11 3399 622" role="img" aria-label="RELIEVE"><use href="#logo-lockup"/></svg></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+              aria-controls="mainNav" aria-expanded="false" aria-label="{{ ui.menu }}">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav me-auto ms-lg-4 gap-lg-3">
+          {% for s in site.sections %}
+          <li class="nav-item"><a class="nav-link{% if s.id == section %} active{% endif %}"{% if s.id == section %} aria-current="page"{% endif %} href="{{ site.liveBase }}{{ s.href }}">{{ s[lang] }}</a></li>
+          {% endfor %}
+        </ul>
+        <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+          <form class="search-form" role="search" action="{{ site.liveBase }}buscar.html" method="get" data-search>
+            <input class="form-control search-input" type="search" name="q" placeholder="{{ ui.search }}" aria-label="{{ ui.search }}" autocomplete="off" tabindex="-1">
+            <button type="submit" class="btn btn-outline-dark btn-icon" aria-label="{{ ui.search }}" aria-expanded="false"><span class="material-symbols-outlined" aria-hidden="true">search</span></button>
+          </form>
+          <div class="btn-group" role="group" aria-label="{{ ui.language }}">
+            {% for code in ["es", "en"] %}
+              {% if code == lang %}
+              <span class="btn btn-outline-dark active" aria-current="true" lang="{{ code }}">{{ code | upper }}</span>
+              {% elif translations and translations[code] %}
+              <a class="btn btn-outline-dark" href="{{ translations[code] }}" hreflang="{{ code }}" lang="{{ code }}">{{ code | upper }}</a>
+              {% else %}
+              <span class="btn btn-outline-dark disabled" aria-disabled="true" lang="{{ code }}">{{ code | upper }}</span>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>

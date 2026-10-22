@@ -1,0 +1,27 @@
+  <!-- FOOTER ============================================================ -->
+  <footer class="bg-dark text-light py-5" data-bs-theme="dark">
+    <div class="container">
+      <div class="row gy-5 gx-lg-5">
+        <div class="col-md-6 col-lg-5">
+          <a class="d-block text-light mb-3" href="{{ site.liveBase }}" aria-label="RELIEVE"><svg class="wordmark wordmark-lg" viewBox="-11 -11 3399 622" role="img" aria-label="RELIEVE"><use href="#logo-lockup"/></svg></a>
+          <p class="mb-0">{{ ui.tagline }}</p>
+        </div>
+        <div class="col-6 col-md-3 col-lg-3 offset-lg-1">
+          <h4 class="mb-3">{{ ui.sections }}</h4>
+          <ul class="list-unstyled font-ui d-grid gap-2 mb-0">
+            {% for s in site.sections %}
+            <li><a class="link-light" href="{{ site.liveBase }}{{ s.href }}">{{ s[lang] }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="col-6 col-md-3">
+          <h4 class="mb-3">{{ ui.follow }}</h4>
+          <ul class="list-unstyled font-ui d-grid gap-2 mb-0">
+            <li><a class="link-light" href="#">Instagram</a></li>
+            <li><a class="link-light" href="#">YouTube</a></li>
+          </ul>
+        </div>
+      </div>
+      <p class="font-ui small border-top border-2 border-light mt-5 pt-3 mb-0">{{ ui.rights }}</p>
+    </div>
+  </footer>

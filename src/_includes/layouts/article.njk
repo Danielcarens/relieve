@@ -1,0 +1,69 @@
+---
+layout: layouts/base.njk
+---
+{% set base = imgBase %}
+<article>
+
+  <!-- HERO ============================================================== -->
+  <!-- Always the photo, full bleed. If the article has a video, a small
+       control plays it in place of the photo; the photo is never the video
+       thumbnail. See DESIGN.md, "Article page". -->
+  <header class="article-hero" data-hero>
+    <div class="hero-frame" data-hero-frame>
+      <img class="hero-img"
+           src="{{ base }}{{ hero.file }}-1920.jpg"
+           srcset="{{ base }}{{ hero.file }}-1280.jpg 1280w, {{ base }}{{ hero.file }}-1920.jpg 1920w, {{ base }}{{ hero.file }}-2560.jpg 2560w"
+           sizes="100vw" width="{{ hero.w }}" height="{{ hero.h }}"
+           alt="{{ hero.alt }}" fetchpriority="high" decoding="async">
+      {% if youtube %}
+      <div class="hero-controls">
+        <div class="container d-flex justify-content-end">
+          <button type="button" class="btn btn-primary btn-sm font-ui hero-play" data-video="{{ youtube }}" data-video-title="{{ ui.videoTitle }}: {{ title }}" aria-label="{{ ui.playVideoLabel }}" hidden>
+            <span class="material-symbols-outlined me-1" aria-hidden="true">play_arrow</span>{{ ui.playVideo }}
+          </button>
+          <noscript><a class="btn btn-primary btn-sm font-ui" href="https://www.youtube.com/watch?v={{ youtube }}">{{ ui.watchOnYoutube }}</a></noscript>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    <p class="hero-credit figure-caption container mb-0 pt-2">{{ ui.photo }}: {{ hero.credit or credit }}. {{ hero.caption }}</p>
+    <div class="hero-text">
+      <div class="container d-grid gap-3">
+        <span class="tape">{% for s in site.sections %}{% if s.id == section %}{{ s[lang] }}{% endif %}{% endfor %}</span>
+        <h1 class="hero-title mb-0">{{ title }}</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- INTRO + FACTS ===================================================== -->
+  <div class="container pt-4 pt-lg-5">
+    <div class="row">
+      <div class="col-xl-10 d-grid gap-4">
+        <p class="lead measure mb-0">{{ subtitle }}</p>
+        <ul class="list-inline small-meta mb-0">
+          <li class="list-inline-item me-4"><strong class="text-body">{{ ui.by }} {{ author }}</strong></li>
+          <li class="list-inline-item me-4"><time datetime="{{ date | dateISO }}">{{ date | dateLong(lang) }}</time></li>
+          <li class="list-inline-item">{{ content | readingMinutes }} {{ ui.minRead }}</li>
+        </ul>
+      </div>
+    </div>
+    {% if route %}
+    <dl class="row row-cols-2 row-cols-md-4 g-4 py-4 mt-4 mb-5 border-top border-bottom border-2 border-strong">
+      {% for r in route %}
+      <div class="col"><dt class="small-meta fw-semibold font-ui">{{ r.label }}</dt><dd class="h3 mb-0">{{ r.value }}{% if r.unit %} <small class="fs-6 text-body-secondary font-ui fw-semibold">{{ r.unit }}</small>{% endif %}</dd></div>
+      {% endfor %}
+    </dl>
+    {% endif %}
+  </div>
+
+  <!-- BODY ============================================================== -->
+  <div class="article-body" data-pagefind-body>
+    {{ content | safe }}
+  </div>
+
+  {% if sources %}
+  <div class="container pb-5">
+    <p class="small-meta measure mx-auto mb-0"><strong class="text-body">{{ ui.sources }}:</strong> {{ sources | join(" · ") }}</p>
+  </div>
+  {% endif %}
+</article>
