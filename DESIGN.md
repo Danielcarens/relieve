@@ -103,7 +103,18 @@ All sit in the reading column (`min(46rem, 100% - 1.5rem)`) unless noted. Paired
 | Quote author | `{% cita "", "Nombre" %}…{% endcita %}` (first argument = wrap options) | `figcaption.pullquote-by` with an em dash |
 | YouTube video | `{% video "id", "Descripción" %}` | container width, 16:9, thumbnail + play button; the privacy-enhanced player loads on click (site.js) |
 | Map | `{% mapa "lat,lng", "Lugar", "11" %}` | container width, OpenStreetMap embed (21:9, 4:3 on phones), link to the full map |
-| Data card on its own row | `{% ficha "id" %}` | box as wide as a single photo (`--cw-inner`); its text keeps the reading column |
+| Data card on its own row | `{% ficha "id" %}` | box as wide as a single photo (`--cw-inner`); its text keeps the reading column; edge to edge on phones (text on the 0.75rem page margin) |
+| Colour tones | ficha `tone:` / recuadro first argument: `amarillo`, `rojo`, `verde` (plus gris, sin fondo, borde, acento) | `.tone-*`: Bootstrap's subtle warning / danger / success background, border-subtle 2px, text-emphasis colour (same family as alerts) |
+| Facts row | `{% datos "Lugar", "Quitaque", "Distancia", "12 km" %}` | the stage sheet: container width, `dl.row.row-cols-2.row-cols-md-4`, 2px rules; usable anywhere, any number of times (replaces the old front-matter `route`) |
+| Panorama height | `{% pano "id", "", "60" %}` | third argument = share of the screen height (20-95) → `--pano-limit: clamp(12rem, Nvh, N×0.68rem)`; never shorter than the photo needs |
+| Spacer | `{% espacio "4" %}` | height in rem (0.5-20); old s/m/l still work |
+| Header | front matter `cabecera:` (empty = photo full bleed with the title over it, `titulo` = title on white then the photo in the page width, `texto` = no photo) | `header.article-head` for the last two |
+| AI / notice band | `ai: true` | `.notice-band.tone-amarillo`: full-bleed background, text in the `.container` (same left edge as the subtitle under it) |
+
+Grids: inside a stack the photos share its height exactly (frames without natural height) so both sides of a mosaic end on the same line; grid photos have no bottom margin; on phones the whole grid runs edge to edge.
+
+### Editor
+`editor/` holds the article editor. Locally it runs with Node (`Iniciar editor.bat`); the same interface is published at `/editor/` (copied by `.github/scripts/desplegar.sh`) and then talks to GitHub directly (see `editor/LEEME.md`). Visitor statistics: `site.goatcounter` in `src/_data/site.js` (empty = off; drafts never count).
 
 ## Page templates
 

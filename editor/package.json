@@ -1,0 +1,9 @@
+{
+  "name": "relieve-editor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Editor de artículos de RELIEVE (local)",
+  "type": "module",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "js-yaml": "4.1.0", "sharp": "0.34.5" }
+}

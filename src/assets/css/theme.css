@@ -603,6 +603,12 @@ html[data-lang="en"] body [lang="es"] {
 .fila-grid .fila-item { display: flex; flex-direction: column; min-height: 0; }
 .fila-grid .fila-item .ratio { flex: 1 1 auto; }
 .fila-bleed.fila-grid, .fila-bleed .fila-col { gap: 0.5rem; }
+/* Inside a stack the photos share the stack's height exactly (no natural height), so both sides line up */
+.fila-col > .fila-item, .fila-col > .fila-in { flex: var(--g) 1 0%; min-height: 0; }
+.fila-col .fila-item { aspect-ratio: auto; }
+.fila-col .fila-item .ratio { flex: 1 1 0%; min-height: 0; }
+.fila-col .fila-item .ratio::before { content: none; }
+.fila-grid .figure-img { margin-bottom: 0; }   /* no caption under grid photos, so no gap under them either */
 @media (max-width: 767.98px) {
   .fila { flex-direction: column; gap: 2rem; }  /* phones: every photo full bleed, one per row */
   .fila.fila-bleed { gap: 0.5rem; }
@@ -740,3 +746,33 @@ html[data-lang="en"] body [lang="es"] {
 .map-frame { background: var(--bs-secondary-bg); }
 .map-frame iframe { border: 0; }
 @media (max-width: 767.98px) { .map-frame { --bs-aspect-ratio: 75%; } }
+
+
+/* ---- Colour tones for data cards, text boxes and notices -------------------------------------------
+   Same family as Bootstrap's alerts: soft background, 2px border, darker text. Yellow = warning,
+   red = danger / important, green = tip / call to attention. */
+.tone-amarillo { --tone-bg: var(--bs-warning-bg-subtle); --tone-border: var(--bs-warning-border-subtle); --tone-text: var(--bs-warning-text-emphasis); }
+.tone-rojo     { --tone-bg: var(--bs-danger-bg-subtle);  --tone-border: var(--bs-danger-border-subtle);  --tone-text: var(--bs-danger-text-emphasis); }
+.tone-verde    { --tone-bg: var(--bs-success-bg-subtle); --tone-border: var(--bs-success-border-subtle); --tone-text: var(--bs-success-text-emphasis); }
+:is(.ficha, .recuadro, .notice-band):is(.tone-amarillo, .tone-rojo, .tone-verde) {
+  background: var(--tone-bg); color: var(--tone-text); border: 2px solid var(--tone-border);
+}
+:is(.ficha, .recuadro):is(.tone-amarillo, .tone-rojo, .tone-verde) a { color: inherit; }
+.notice-band { border-inline: 0 !important; }
+
+/* Phones: a data card runs edge to edge like the photos; its text keeps the page margins */
+@media (max-width: 767.98px) {
+  .ficha-solo, .ficha.wrap { width: 100%; margin: 2rem 0; }
+  .ficha-solo .ficha-body, .ficha.wrap .ficha-body { padding: 1.25rem 0.75rem; }
+  .ficha:is(.tone-amarillo, .tone-rojo, .tone-verde) { border-inline: 0; }
+}
+
+/* Header without the big photo: title on white, then (optionally) the photo inside the page width */
+.article-head .hero-title { max-width: 20ch; }
+.article-hero-boxed { display: block; }
+.article-hero-boxed .hero-frame { aspect-ratio: 16 / 9; max-height: none; }
+/* Phones: a grid of photos runs edge to edge as a whole (its photos keep their own size inside it) */
+@media (max-width: 767.98px) {
+  main .container > .fila-grid { margin-inline: -0.75rem; }
+  main .container .fila-grid .ratio { width: auto !important; margin-inline: 0 !important; }
+}

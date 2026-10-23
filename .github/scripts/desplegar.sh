@@ -8,6 +8,15 @@ rm -rf "$SITIO/es" "$SITIO/assets"
 cp -r "$FUENTE/_site/es" "$SITIO/es"
 cp -r "$FUENTE/_site/assets" "$SITIO/assets"
 
+# Editor web (relievemag.com/editor/): la interfaz, el lector de artículos compartido, el logo y la lista
+# de usuarios (contraseñas cifradas; ver editor/LEEME.md). No lo indexan los buscadores (meta robots).
+rm -rf "$SITIO/editor"
+mkdir -p "$SITIO/editor/lib"
+cp -r "$FUENTE/editor/public/." "$SITIO/editor/"
+cp "$FUENTE/editor/lib/article.js" "$SITIO/editor/lib/article.js"
+cp "$FUENTE/src/_includes/partials/logo-defs.njk" "$SITIO/editor/logo-defs.svg"
+if [ -f "$FUENTE/editor/acceso.json" ]; then cp "$FUENTE/editor/acceso.json" "$SITIO/editor/acceso.json"; fi
+
 # Índice de búsqueda de los artículos (sin los archivos de interfaz que el sitio no usa)
 rm -rf "$SITIO/pagefind"
 npx --yes pagefind@1.5.2 --site "$SITIO" --glob "es/**/*.html" --quiet

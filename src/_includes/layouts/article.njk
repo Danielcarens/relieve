@@ -4,11 +4,12 @@ layout: layouts/base.njk
 {% set base = imgBase %}
 <article>
 
-  <!-- HERO ============================================================== -->
-  <!-- Always the photo, full bleed. If the article has a video, a small
-       control plays it in place of the photo; the photo is never the video
-       thumbnail. See DESIGN.md, "Article page". -->
-  <header class="article-hero" data-hero>
+  <!-- HEADER ========================================================== -->
+  <!-- cabecera: "foto" (default) = photo full bleed with the title over it; "titulo" = title on white, then the
+       photo; "texto" = no photo. If the article has a video, a small control plays it in place of the photo. -->
+  {% set cab = cabecera or "foto" %}
+  {% if not hero %}{% set cab = "texto" %}{% endif %}
+  {% macro heroFrame() %}
     <div class="hero-frame" data-hero-frame>
       <img class="hero-img"
            src="{{ base }}{{ hero.file }}-1920.jpg"
@@ -26,22 +27,43 @@ layout: layouts/base.njk
       </div>
       {% endif %}
     </div>
+  {% endmacro %}
+  {% set sectionName %}{% for s in site.sections %}{% if s.id == section %}{{ s[lang] }}{% endif %}{% endfor %}{% endset %}
+  {% if cab == "foto" %}
+  <header class="article-hero" data-hero>
+    {{ heroFrame() }}
     {% if hero.caption %}<p class="hero-credit figure-caption container mb-0 pt-2">{{ hero.caption }}</p>{% endif %}
     <div class="hero-text">
       <div class="container d-grid gap-3">
-        <span class="tape">{% for s in site.sections %}{% if s.id == section %}{{ s[lang] }}{% endif %}{% endfor %}</span>
+        <span class="tape">{{ sectionName }}</span>
         <h1 class="hero-title mb-0">{{ title }}</h1>
       </div>
     </div>
   </header>
+  {% else %}
+  <header class="article-head">
+    <div class="container d-grid gap-3 pt-5">
+      <span class="tape">{{ sectionName }}</span>
+      <h1 class="hero-title mb-0">{{ title }}</h1>
+    </div>
+    {% if cab == "titulo" %}
+    <div class="container mt-4 article-hero article-hero-boxed" data-hero>
+      {{ heroFrame() }}
+      {% if hero.caption %}<p class="hero-credit figure-caption mb-0 pt-2">{{ hero.caption }}</p>{% endif %}
+    </div>
+    {% endif %}
+  </header>
+  {% endif %}
+
+  {% if ai %}
+  <!-- Notice band: full bleed background, text on the page margins -->
+  <div class="notice-band tone-amarillo mt-4 mt-lg-5" role="note">
+    <div class="container py-3"><strong>{{ ui.aiTitle }}.</strong> {{ ui.aiNotice }}</div>
+  </div>
+  {% endif %}
 
   <!-- INTRO + FACTS ===================================================== -->
   <div class="container pt-4 pt-lg-5">
-    {% if ai %}
-    <div class="alert alert-warning rounded-0 border-2 mb-4" role="note">
-      <strong>{{ ui.aiTitle }}.</strong> {{ ui.aiNotice }}
-    </div>
-    {% endif %}
     <div class="row">
       <div class="col-xl-10 d-grid gap-4">
         <p class="lead measure mb-0">{{ subtitle }}</p>

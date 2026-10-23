@@ -165,7 +165,7 @@ ${items.join("\n")}
 
   // Data card (specs, rider card, park facts…). Declared once in front matter under `fichas:` and
   // placed by id: title, optional link (`url`), optional photo (id from `photos`), rows of
-  // label / value, `tone` (gris | sin fondo) and `format` (lista | tabla).
+  // label / value, `tone` (gris | sin fondo | amarillo | rojo | verde) and `format` (lista | tabla).
   eleventyConfig.addShortcode("ficha", function (id, opts) {
     const f = this.ctx?.fichas?.[id];
     if (!f) throw new Error(`Article card "${id}" is not declared in front matter (fichas:)`);
@@ -177,7 +177,7 @@ ${items.join("\n")}
       ? `<tr><th scope="row">${esc(r.label)}</th><td>${esc(r.value)}</td></tr>`
       : `<div><dt>${esc(r.label)}</dt> <dd>${esc(r.value)}</dd></div>`).join("\n");
     const list = !rows ? "" : f.format === "tabla" ? `<table class="ficha-table"><tbody>\n${rows}\n</tbody></table>` : `<dl class="ficha-list">\n${rows}\n</dl>`;
-    const tone = f.tone === "sin fondo" ? " ficha-plain" : "";
+    const tone = f.tone === "sin fondo" ? " ficha-plain" : ["amarillo", "rojo", "verde"].includes(f.tone) ? ` tone-${f.tone}` : "";
     return `<aside class="ficha${tone}${wrap}${wrap ? "" : " ficha-solo"}">
 ${photoHtml}<div class="ficha-body">${title}${list}</div>
 </aside>`;
@@ -185,7 +185,8 @@ ${photoHtml}<div class="ficha-body">${title}${list}</div>
 
   // Panorama: full-bleed, limited height, swipeable. `focus` (0-100) is the
   // horizontal point that starts centered.
-  eleventyConfig.addShortcode("pano", function (id, size) {
+  // Optional third argument: height as a share of the screen height (25-90), e.g. {% pano "id", "", "60" %}
+  eleventyConfig.addShortcode("pano", function (id, size, alto) {
     const p = photo(this.ctx, id);
     const base = this.ctx.imgBase || BASE;
     // "completa": the whole photo at full width, natural proportions, no sliding.
@@ -200,7 +201,9 @@ ${figcaption(p, "figure-caption container pt-2")}
     const hint = esc(ui.panoHint || "Desliza para ver más");
     const label = esc(ui.panoLabel || "Foto panorámica: desliza a los lados para verla completa");
     const tall = size === "alta" ? " pano-tall" : "";
-    return `<figure class="pano${tall} my-5" data-pano data-focus="${focus}">
+    const h = Math.round(Number(alto));
+    const hStyle = h >= 20 && h <= 95 ? ` style="--pano-limit: clamp(12rem, ${h}vh, ${(h * 0.68).toFixed(1)}rem)"` : "";
+    return `<figure class="pano${tall} my-5" data-pano data-focus="${focus}"${hStyle}>
 <div class="pano-scroll" tabindex="0" role="group" aria-label="${label}">${img(p, base, "100vw", ' class="pano-img"')}</div>
 <span class="pano-hint font-ui" aria-hidden="true"><span class="material-symbols-outlined">swap_horiz</span>${hint}</span>
 ${figcaption(p, "figure-caption container pt-2")}
@@ -227,7 +230,21 @@ ${figcaption(p, "figure-caption container pt-2")}
   // ---- Text blocks (the editor's "Insertar" menu) -------------------------------------
   // Paired blocks leave a blank line around their content so Markdown keeps working inside.
   eleventyConfig.addShortcode("separador", () => `<hr class="article-rule">`);
-  eleventyConfig.addShortcode("espacio", (size) => `<div class="article-space article-space-${["s", "m", "l"].includes(size) ? size : "m"}" aria-hidden="true"></div>`);
+  // Spacer: {% espacio "4" %} (height in rem, 0.5-20) or the old s | m | l
+  eleventyConfig.addShortcode("espacio", (size) => {
+    const n = { s: 1.5, m: 3, l: 6 }[size] ?? Math.min(20, Math.max(0.5, Number(size) || 3));
+    return `<div class="article-space" style="height: ${n}rem" aria-hidden="true"></div>`;
+  });
+  // A row of facts (place, distance, difficulty…), the "stage sheet": {% datos "Lugar", "Quitaque", "Distancia", "12 km" %}
+  eleventyConfig.addShortcode("datos", (...a) => {
+    const rows = []; for (let k = 0; k + 1 < a.length; k += 2) rows.push([a[k], a[k + 1]]);
+    if (!rows.length) return "";
+    return `<div class="container">
+<dl class="row row-cols-2 row-cols-md-4 g-4 py-4 my-5 border-top border-bottom border-2 border-strong datos">
+${rows.map(([l, v]) => `<div class="col"><dt class="small-meta fw-semibold font-ui">${esc(l)}</dt><dd class="h3 mb-0">${esc(v)}</dd></div>`).join("\n")}
+</dl>
+</div>`;
+  });
   // Button: {% boton "Texto", "https://…", "secundario", "centro" %} (style primario | secundario, then optional "centro")
   eleventyConfig.addShortcode("boton", (text, url, style, align) => {
     const ext = /^https?:\/\//.test(url || "") ? ' target="_blank" rel="noopener"' : "";
@@ -235,9 +252,9 @@ ${figcaption(p, "figure-caption container pt-2")}
   });
   // Centered paragraph or title: {% centrado %}## Título{% endcentrado %}
   eleventyConfig.addPairedShortcode("centrado", (content) => `<div class="article-center">\n\n${content.trim()}\n\n</div>`);
-  // Text box: {% recuadro "gris" %}…{% endrecuadro %} (gris | borde | acento)
+  // Text box: {% recuadro "gris" %}…{% endrecuadro %} (gris | borde | acento | amarillo | rojo | verde)
   eleventyConfig.addPairedShortcode("recuadro", (content, tone) =>
-    `<aside class="recuadro recuadro-${["gris", "borde", "acento"].includes(tone) ? tone : "gris"}">\n\n${content.trim()}\n\n</aside>`);
+    `<aside class="recuadro recuadro-${["gris", "borde", "acento"].includes(tone) ? tone : "gris"}${["amarillo", "rojo", "verde"].includes(tone) ? ` tone-${tone}` : ""}">\n\n${content.trim()}\n\n</aside>`);
   // Expandable (questions, extra details): {% desplegable "Pregunta" %}…{% enddesplegable %}
   eleventyConfig.addPairedShortcode("desplegable", (content, title) =>
     `<details class="desplegable">\n<summary>${esc(title || "")}</summary>\n<div class="desplegable-body">\n\n${content.trim()}\n\n</div>\n</details>`);

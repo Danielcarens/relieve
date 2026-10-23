@@ -5,6 +5,9 @@ export default {
   name: "RELIEVE",
   url: "https://relievemag.com",
   liveBase: "https://relievemag.com/",
+  // Visitor statistics (GoatCounter, open source, no cookies). Write the account code here, e.g. "relieve"
+  // for relieve.goatcounter.com; empty = no counting.
+  goatcounter: "",
   sections: [
     { id: "viajes", es: "Viajes", en: "Travel", href: "viajes.html" },
     { id: "bici", es: "Bici", en: "Bike", href: "bici.html" },
