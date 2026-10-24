@@ -683,7 +683,7 @@ ${ph ? photoForm(f.photo) : ""}`;
 }
 // Rows of a card or a facts row: the text is written on the page; here you only add or remove rows
 const plainMd = (t) => String(t || "").replace(/\*+/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
-const rowList = (rows, del) => `<ul class="list-unstyled mb-2">${(rows || []).map((r, i) => `<li class="rowpair align-items-center"><span class="flex-grow-1 text-truncate">${esc(plainMd(r.label) || "Dato")} · <span class="text-secondary">${esc(plainMd(r.value) || "sin valor")}</span></span><button class="btn btn-outline-danger" data-do="${del}" data-i="${i}" aria-label="Quitar este dato" title="Quitar este dato">×</button></li>`).join("")}</ul>`;
+const rowList = (rows, del) => `<ul class="list-unstyled mb-2">${(rows || []).map((r, i) => `<li class="rowpair single"><span class="flex-grow-1 text-truncate">${esc(plainMd(r.label) || "Dato")} · <span class="text-secondary">${esc(plainMd(r.value) || "sin valor")}</span></span><button class="btn btn-outline-danger" data-do="${del}" data-i="${i}" aria-label="Quitar este dato" title="Quitar este dato">×</button></li>`).join("")}</ul>`;
 const STYLE_NAMES = [["p", "Párrafo"], ["h2", "Título"], ["h3", "Subtítulo"], ["ul", "Lista con viñetas"], ["ol", "Lista numerada"], ["quote", "Cita destacada"], ["callout", "Recuadro de texto"]];
 // Text box: background, frame and line are independent; none of them moves the text
 function calloutPane(b) {
@@ -693,8 +693,40 @@ function calloutPane(b) {
 <p class="hint">El marco toma el color del fondo (negro si es gris o sin fondo). La línea también cambia con un clic en el borde izquierdo del recuadro. El texto no se mueve con ninguno de los dos.</p>`;
 }
 function boxPane(b) {
-  if (!b.box) return `<p class="hint">Arrastra las barras rosas a los lados del bloque para cambiar su ancho; se pegan a los márgenes del contenido.</p>`;
-  return `<div><label class="form-label">Ancho</label><p class="hint mb-2">Del ${b.box.l}% al ${b.box.r}% del ancho del contenido (el de las fotos). En celular vuelve a la columna normal.</p><button class="btn btn-outline-dark" data-do="box-reset">Volver al ancho normal</button></div>`;
+  const normal = b.type === "datos" ? "el ancho de las fotos" : "la columna de texto", back = b.type === "datos" ? "al ancho de las fotos" : "a la columna de texto";
+  if (!b.box) return `<div><label class="form-label">Ancho</label><p class="hint">Normal: ${normal}. Arrastra las barras rosas a los lados del bloque para cambiarlo; los bordes se pegan a los márgenes de las fotos, a los de la columna de texto y al centro.</p></div>`;
+  const edge = (v, side) => v === "texto" ? "el margen de la columna de texto" : v === 0 || v === 100 ? "el margen de las fotos" : v === 50 ? "el centro" : `${side === "l" ? v : 100 - v}% ${side === "l" ? "desde el margen izquierdo" : "antes del margen derecho"} de las fotos`;
+  return `<div><label class="form-label">Ancho</label><p class="hint mb-2">Izquierda: ${edge(b.box.l, "l")}. Derecha: ${edge(b.box.r, "r")}. Doble clic en una barra rosa, o el botón, lo devuelve ${back}. En celular vuelve a la columna normal.</p><button class="btn btn-outline-dark" data-do="box-reset">Volver al ancho normal</button></div>`;
+}
+// What the selected block is, what it is for and how to add one: so the writer learns the blocks while editing
+const KINDS = {
+  p: ["Párrafo", "El texto normal del artículo.", "Enter al final de otro párrafo, o Insertar → Párrafo. Ctrl + Shift + N vuelve cualquier bloque de texto a párrafo."],
+  h2: ["Título", "Abre una sección del artículo. Siempre empieza debajo de las fotos y fichas flotantes.", "Escribe «## » al empezar un párrafo, Ctrl + Alt + 1, o Estilo → Título en la barra."],
+  h3: ["Subtítulo", "Divide una sección en partes más pequeñas.", "Escribe «### » al empezar un párrafo, Ctrl + Alt + 2, o Estilo → Subtítulo."],
+  ul: ["Lista con viñetas", "Puntos sin orden: equipo, consejos, listas cortas.", "Escribe «- » al empezar un párrafo, Ctrl + Shift + L, o el botón de viñetas de la barra."],
+  ol: ["Lista numerada", "Pasos que van en orden.", "Escribe «1. » al empezar un párrafo, o el botón de lista numerada de la barra."],
+  quote: ["Cita destacada", "Una frase grande para destacar una idea, con autor opcional. Puede flotar junto al texto.", "Escribe «> » al empezar un párrafo, o Insertar → Cita destacada."],
+  callout: ["Recuadro de texto", "Resalta un consejo, un dato o una advertencia, con fondo, marco y línea de color.", "Insertar → Recuadro de texto, o Estilo → Recuadro de texto."],
+  details: ["Desplegable", "Pregunta y respuesta que el lector abre con un clic. Varios seguidos forman unas preguntas frecuentes.", "Insertar → Desplegable."],
+  foto: ["Foto", "Una foto al ancho de las fotos, con recorte libre. Puede flotar junto al texto o ir de borde a borde.", "Arrastra la foto sobre la página, o Insertar → Foto…"],
+  pano: ["Foto", "", "Arrastra la foto sobre la página, o Insertar → Foto…"],
+  fila: ["Fila de fotos", "Varias fotos juntas con el mismo alto, que suman el ancho de una foto sola.", "Insertar → Fila o cuadrícula de fotos…, o «Poner junto a la siguiente foto» en una foto."],
+  video: ["Video de YouTube", "La miniatura del video; se carga solo cuando el lector hace clic.", "Insertar → Video de YouTube."],
+  map: ["Mapa", "Un mapa de OpenStreetMap con una marca en el lugar.", "Insertar → Mapa."],
+  datos: ["Datos en fila", "Datos grandes entre dos líneas: lugar, distancia, desnivel, dificultad…", "Insertar → Datos en fila."],
+  button: ["Botón", "Un enlace grande y visible, para reservar, comprar o ver más.", "Insertar → Botón."],
+  hr: ["Línea separadora", "Separa dos partes del artículo.", "Insertar → Línea separadora, o escribe «---» en un párrafo y pulsa Enter."],
+  space: ["Espacio en blanco", "Aire entre dos bloques; la altura se arrastra con la barra rosa.", "Insertar → Espacio en blanco."],
+  ficha: ["Ficha de datos", "Un cuadro con título, datos y foto opcional. Puede flotar junto al texto.", "Insertar → Ficha de datos."],
+  raw: ["Código HTML", "HTML o Markdown que el editor no conoce; se publica tal cual.", "Insertar → Código HTML."],
+};
+function kindHead(b) {
+  const k = KINDS[b.type]; if (!k) return "";
+  let [name, what, how] = k;
+  if (b.type === "pano") { name = b.mode === "completa" ? "Foto · ancho de pantalla" : "Foto · panorámica deslizable"; what = b.mode === "completa" ? "La foto entera, de borde a borde de la pantalla." : "De borde a borde con altura limitada; el lector la desliza a los lados."; how += " Luego elige su presentación aquí abajo."; }
+  if (b.type === "fila" && b.tree) { name = "Cuadrícula de fotos"; what = "Fotos en filas y columnas (mosaico) que encajan a la misma medida."; }
+  const tags = [b.wrap && b.wrap.side ? (b.wrap.side === "left" ? "flota a la izquierda" : "flota a la derecha") : "", b.align === "center" ? "centrado" : "", b.box ? "ancho libre" : ""].filter(Boolean);
+  return `<div class="kind"><div class="d-flex flex-wrap align-items-center gap-2"><span class="tape">${name}</span>${tags.map((t) => `<span class="kind-tag">${t}</span>`).join("")}</div><p class="hint mb-1 mt-2">${what}</p><p class="hint mb-0"><strong>Para agregar uno:</strong> ${how}</p></div><hr>`;
 }
 const choice = (b, key, opts) => `<div class="btnrow" role="group">${opts.map(([v, l]) => `<button class="btn btn-outline-dark ${(b[key] || opts[0][0]) === v ? "active" : ""}" data-do="bset" data-key="${key}" data-v="${v}">${l}</button>`).join("")}</div>`;
 const presentPane = (b) => { const cur = b.type === "foto" ? "normal" : b.mode === "completa" ? "pantalla" : "deslizable";
@@ -702,6 +734,9 @@ const presentPane = (b) => { const cur = b.type === "foto" ? "normal" : b.mode =
 <p class="hint">Normal: al ancho de las fotos, con recorte libre y ajuste de texto. Ancho de pantalla: de borde a borde, entera. Panorámica deslizable: de borde a borde con altura limitada; el lector la desliza. Las fotos muy anchas entran como panorámicas.</p></div>`; };
 function paneBlock(sel) {
   const b = ED.blocks[sel.i]; if (!b) return "";
+  return kindHead(b) + paneBlockBody(sel, b);
+}
+function paneBlockBody(sel, b) {
   if (b.type === "quote") return `${wrapPane(b)}<p class="hint">El autor se escribe debajo de la cita, en la página. El formato del texto está en la barra de arriba.</p>${b.wrap ? "" : boxPane(b)}`;
   if (textTypes.includes(b.type)) return `<p class="hint">El estilo, el formato y la alineación están en la barra de arriba, como en Word. Enter crea un párrafo nuevo; Shift+Enter, un salto de línea.</p>${boxPane(b)}`;
   if (b.type === "ul" || b.type === "ol") return `<p class="hint">Enter agrega otro punto. Enter en un punto vacío, o Backspace al inicio del primero, sale de la lista. También puedes empezar un párrafo con «- » o «1. ».</p>${boxPane(b)}`;
@@ -734,7 +769,7 @@ ${structPane(b, id)}<hr>${photoForm(id)}<hr><div class="btnrow"><button class="b
 ${b.mode !== "completa" ? fld("Altura", `<input class="form-range" type="range" min="25" max="90" step="1" data-k="panoh" value="${b.h || 50}">`, '<p class="hint">También puedes arrastrar la barra rosa bajo la foto. Es una parte del alto de la pantalla del lector.</p>') + fld("Punto de inicio", `<input class="form-range" type="range" min="0" max="100" data-k="focus" value="${Number.isFinite(p.focus) ? p.focus : 50}">`, '<p class="hint">Qué parte de la foto aparece centrada al abrirla.</p>') : ""}
 <hr>${photoForm(b.id)}<hr><div class="btnrow"><button class="btn btn-outline-dark" data-do="replace" data-id="${esc(b.id)}">Cambiar foto</button></div>`;
   }
-  if (b.type === "datos") return `<div><label class="form-label">Datos</label>${rowList(b.rows, "drow-del")}<button class="btn btn-outline-dark" data-do="drow-add">Agregar dato</button></div><p class="hint">Una fila de datos grandes entre dos líneas, como la ficha de una etapa. Los nombres y los valores se escriben directamente en la página. Se puede usar en cualquier parte del artículo y las veces que quieras. En celular se acomoda en dos columnas.</p>`;
+  if (b.type === "datos") return `<div><label class="form-label">Datos</label>${rowList(b.rows, "drow-del")}<button class="btn btn-outline-dark" data-do="drow-add">Agregar dato</button></div><p class="hint">Una fila de datos grandes entre dos líneas, como la ficha de una etapa. Los nombres y los valores se escriben directamente en la página. Se puede usar en cualquier parte del artículo y las veces que quieras. En celular se acomoda en dos columnas.</p>${boxPane(b)}`;
   return `<p class="hint">Este bloque tiene un formato que el editor no conoce. Se conserva tal cual.</p>`;
 }
 

@@ -175,7 +175,11 @@ const fichaHTML = (f, base, S, id) => {
 
 // Text box look: the same classes the site's {% recuadro %} writes
 const recuadroCls = (b) => { const f = b.fondo || "gris"; return [`fondo-${f}`, ["amarillo", "rojo", "verde"].includes(f) ? `tone-${f}` : "", b.marco ? "has-marco" : "", b.linea ? `linea-${b.linea}` : ""].filter(Boolean).join(" "); };
-const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details"];
+// Same rule as the site's {% caja %}: each edge is a share of the photos' width, or "texto" (the reading column's edge)
+const COL = "min(46rem, 100% - 1.5rem)";
+const edgeX = (v, side) => (v === "texto" ? `calc((100% ${side === "l" ? "-" : "+"} ${COL}) / 2)` : `calc((100% - var(--cw-inner)) / 2 + var(--cw-inner) * ${v} / 100)`);
+const boxVars = (x) => `--x1: ${edgeX(x.l, "l")}; --x2: ${edgeX(x.r, "r")}`;
+const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details", "datos"];
 // A floating photo, quote or card wraps the text that comes AFTER it. If nothing comes after it, say so.
 const BESIDE = ["p", "ul", "ol", "h3", "callout", "details", "button", "raw"];
 function floatHint(S, i) {
@@ -195,7 +199,7 @@ function blockHTML(b, i, S) {
   const handle = `<div class="blk-handle" draggable="true" title="Arrastra para mover">${svg("grip")}</div>`;
   const sel = S.sel && S.sel.i === i ? " is-sel" : "";
   const boxable = BOXABLE.includes(b.type) && !(b.wrap && b.wrap.side);
-  const box = boxable && b.box ? ` has-box" style="--l:${b.box.l};--r:${b.box.r}` : "";
+  const box = boxable && b.box ? ` has-box" style="${boxVars(b.box)}` : "";
   const edges = boxable ? '<div class="box-handle" data-side="l" title="Arrastra para cambiar el ancho del texto. Doble clic: ancho normal"></div><div class="box-handle" data-side="r" title="Arrastra para cambiar el ancho del texto. Doble clic: ancho normal"></div>' : "";
   const wrap = (cls, inner, extra = "") => `<div class="blk ${cls}${extra}${sel}${b.align === "center" ? " is-center" : ""}${box}" data-i="${i}">${handle}${tools}${edges}${inner}${extra.includes(" wrap ") ? floatHint(S, i) : ""}</div>`;
   const rich = (ph) => `<div class="ed-field ed-rich" contenteditable="true" spellcheck="true" data-t="${i}" data-ph="${ph}">${mdToHtml(b.text)}</div>`;
@@ -211,7 +215,7 @@ function blockHTML(b, i, S) {
     case "details": return wrap("blk-text blk-details", `<div class="desplegable ed-desplegable"><div class="ed-summary">${inl(`data-f="${i}:title"`, b.title, "Pregunta o título del desplegable", "ed-summary-text")}<span aria-hidden="true">−</span></div><div class="desplegable-body"><div class="ed-field ed-rich ed-multi" contenteditable="true" spellcheck="true" data-t="${i}" data-multi="1" data-ph="Lo que se ve al abrirlo…">${mdMulti(b.text)}</div></div></div>`);
     case "hr": return wrap("blk-text blk-hr", `<hr class="article-rule">`);
     case "space": return wrap("blk-text blk-space", `<div class="article-space ed-space" style="height:${Number(b.size) || 3}rem"><span>Espacio · ${Number(b.size) || 3} rem</span><div class="size-handle" data-size="space" title="Arrastra para cambiar la altura"></div></div>`);
-    case "datos": return wrap("blk-media blk-datos", `<div class="container"><dl class="row row-cols-2 row-cols-md-4 g-4 py-4 my-5 border-top border-bottom border-2 border-strong datos">${(b.rows || []).map((r, k) => `<div class="col"><dt class="small-meta fw-semibold font-ui">${inl(`data-f="${i}:rows.${k}.label"`, r.label, "Dato", "", "span")}</dt><dd class="h3 mb-0">${inl(`data-f="${i}:rows.${k}.value"`, r.value, "Valor", "", "span")}</dd></div>`).join("")}</dl></div>`);
+    case "datos": return wrap("blk-media blk-datos", `<div class="container"><div class="datos-wrap py-4 my-5 border-top border-bottom border-2 border-strong"><dl class="row row-cols-2 row-cols-md-4 g-4 mb-0 datos">${(b.rows || []).map((r, k) => `<div class="col"><dt class="small-meta fw-semibold font-ui">${inl(`data-f="${i}:rows.${k}.label"`, r.label, "Dato", "", "span")}</dt><dd class="h3 mb-0">${inl(`data-f="${i}:rows.${k}.value"`, r.value, "Valor", "", "span")}</dd></div>`).join("")}</dl></div></div>`);
     case "button": return wrap("blk-text blk-button", `<p class="article-cta"><span class="btn ${b.style === "secundario" ? "btn-outline-dark" : "btn-primary"} ed-btn">${plain("text", "Texto del botón", "", "span")}</span>${b.url ? "" : '<span class="ed-warn">Falta la dirección: escríbela en el panel</span>'}</p>`);
     case "map": {
       const [lat, lng] = String(b.coords || "").split(",").map(Number), ok = Number.isFinite(lat) && Number.isFinite(lng);
@@ -662,8 +666,8 @@ root.addEventListener("pointerdown", (e) => {
 });
 
 // ---- text width: drag the side edges of a paragraph, title, list or text box ----
-// Edges are a share (0-100) of the content width, the width of single photos. They snap to its two margins and to the
-// edges of the normal reading column; double-click an edge to go back to the normal column.
+// Edges are a share (0-100) of the content width, the width of single photos. They snap to its two margins (the photos'),
+// to the edges of the reading column and to the centre; double-click an edge to go back to the normal width.
 function contentBox() {
   const body = $(".article-body"), br = body.getBoundingClientRect();
   const probe = document.createElement("div"); probe.style.cssText = "position:absolute;visibility:hidden;width:var(--cw-inner)"; body.appendChild(probe);
@@ -679,21 +683,26 @@ root.addEventListener("pointerdown", (e) => {
   e.preventDefault(); h.setPointerCapture(e.pointerId);
   const blk = h.closest(".blk"), i = Number(blk.dataset.i), side = h.dataset.side, b = E().blocks[i];
   const C = contentBox(), rect = blk.getBoundingClientRect();
-  let l = b.box ? b.box.l : (rect.left - C.x0) / C.cw * 100, r = b.box ? b.box.r : (rect.right - C.x0) / C.cw * 100, moved = false;
+  // edges as numbers while dragging; an edge left on the reading column is stored as "texto"
+  let l = (rect.left - C.x0) / C.cw * 100, r = (rect.right - C.x0) / C.cw * 100, moved = false;
+  let lv = b.box ? b.box.l : null, rv = b.box ? b.box.r : null;
   A().select(i, null);
   const move = (ev) => {
     moved = true;
     let v = (ev.clientX - C.x0) / C.cw * 100, snapped = null;
-    for (const t of [0, 100, C.defL, C.defR]) if (Math.abs(v - t) * C.cw / 100 < 12) { v = t; snapped = t; break; }
-    if (side === "l") l = Math.max(0, Math.min(r - 15, v)); else r = Math.min(100, Math.max(l + 15, v));
-    blk.classList.add("has-box"); blk.style.setProperty("--l", l); blk.style.setProperty("--r", r);
+    for (const t of [0, 100, C.defL, C.defR, 50]) if (Math.abs(v - t) * C.cw / 100 < 12) { v = t; snapped = t; break; }
+    if (side === "l") { l = Math.max(0, Math.min(r - 15, v)); lv = snapped === C.defL || snapped === C.defR ? "texto" : Math.round(l * 10) / 10; }
+    else { r = Math.min(100, Math.max(l + 15, v)); rv = snapped === C.defL || snapped === C.defR ? "texto" : Math.round(r * 10) / 10; }
+    const cur = { l: lv ?? (Math.abs(l - C.defL) < 0.3 ? "texto" : Math.round(l * 10) / 10), r: rv ?? (Math.abs(r - C.defR) < 0.3 ? "texto" : Math.round(r * 10) / 10) };
+    blk.classList.add("has-box"); blk.style.cssText = boxVars(cur); blk.dataset.box = JSON.stringify(cur);
     showGuide(snapped == null ? null : C.x0 + (snapped / 100) * C.cw);
   };
   const up = () => {
     h.removeEventListener("pointermove", move); h.removeEventListener("pointerup", up); showGuide(null);
     if (!moved) return;
-    const near = (a, x) => Math.abs(a - x) < 0.6;
-    A().setBox(i, near(l, C.defL) && near(r, C.defR) ? null : { l: Math.round(l * 2) / 2, r: Math.round(r * 2) / 2 });
+    const box = JSON.parse(blk.dataset.box);
+    const normal = b.type === "datos" ? box.l === 0 && box.r === 100 : box.l === "texto" && box.r === "texto";   // a facts row is normally as wide as the photos
+    A().setBox(i, normal ? null : box);
   };
   h.addEventListener("pointermove", move); h.addEventListener("pointerup", up);
 });

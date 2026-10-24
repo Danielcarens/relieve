@@ -54,9 +54,12 @@ export function parseRecuadro(str) {
   return { fondo: w.find((x) => FONDOS.includes(x)) || (w.includes("sin") ? "sin-fondo" : "gris"), marco: w.includes("marco"), linea: LINEAS.includes(l) ? l : "" };
 }
 export const recuadroStr = (b) => [FONDOS.includes(b.fondo) ? b.fondo : "gris", b.marco ? "marco" : "", b.linea ? `linea-${b.linea}` : ""].filter(Boolean).join(" ");
-// Free width for a text block: {% caja "12 70" %}…{% endcaja %} = from 12% to 70% of the content width (the photos' width)
-const boxStr = (x) => `${Math.round(x.l * 10) / 10} ${Math.round(x.r * 10) / 10}`;
-const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details"];
+// Free width for a text block or a facts row: {% caja "12 70" %}…{% endcaja %} = from 12% to 70% of the content width
+// (the photos' width). An edge can also be "texto": the edge of the reading column, whatever the screen width.
+const edgeTok = (v) => (v === "texto" ? "texto" : String(Math.round(v * 10) / 10));
+const boxStr = (x) => `${edgeTok(x.l)} ${edgeTok(x.r)}`;
+const edgeOf = (s) => (s === "texto" ? "texto" : Number(s));
+const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details", "datos"];
 const LIST_UL = /^[-*+]\s+/, LIST_OL = /^\d+[.)]\s+/;
 
 export function parseBody(body) {
@@ -92,9 +95,10 @@ export function parseBody(body) {
       const inner = parseBody(m[1]);
       if (inner.length === 1 && ["p", "h2", "h3"].includes(inner[0].type)) blocks.push({ ...inner[0], align: "center" }); else blocks.push({ type: "raw", text: t });
     }
-    else if ((m = t.match(/^\{%\s*caja\s*"([\d.]+)\s+([\d.]+)"\s*%\}([\s\S]*?)\{%\s*endcaja\s*%\}$/))) {
-      const inner = parseBody(m[3]), l = Number(m[1]), r = Number(m[2]);
-      if (inner.length === 1 && BOXABLE.includes(inner[0].type) && r > l) blocks.push({ ...inner[0], box: { l, r } }); else blocks.push({ type: "raw", text: t });
+    else if ((m = t.match(/^\{%\s*caja\s*"([\d.]+|texto)\s+([\d.]+|texto)"\s*%\}([\s\S]*?)\{%\s*endcaja\s*%\}$/))) {
+      const inner = parseBody(m[3]), l = edgeOf(m[1]), r = edgeOf(m[2]);
+      const ok = typeof l !== "number" || typeof r !== "number" || r > l;
+      if (inner.length === 1 && BOXABLE.includes(inner[0].type) && ok) blocks.push({ ...inner[0], box: { l, r } }); else blocks.push({ type: "raw", text: t });
     }
     else if (/^\{%\s*separador\s*%\}$/.test(t)) blocks.push({ type: "hr" });
     else if ((m = t.match(/^\{%\s*espacio\s*(.*?)\s*%\}$/))) { const a = args(m[1]); blocks.push({ type: "space", size: { s: 1.5, m: 3, l: 6 }[a[0]] ?? (Number(a[0]) || 3) }); }
