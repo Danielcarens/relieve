@@ -129,12 +129,19 @@ async function showList() {
   $("#guides").innerHTML = guides.map(artItem).join("");
   $("#guides-wrap").hidden = !guides.length;
 }
+// Older drafts: text boxes had one "tone"; a card's title link was a separate field (now a link inside the title)
+function migrate(m) {
+  const T = { borde: { fondo: "sin-fondo", marco: true }, acento: { fondo: "gris", linea: "rosa" }, amarillo: { fondo: "amarillo" }, rojo: { fondo: "rojo" }, verde: { fondo: "verde" } };
+  for (const b of m.blocks) if (b.type === "callout" && !b.fondo) { Object.assign(b, { fondo: "gris", marco: false, linea: "" }, T[b.tone] || {}); delete b.tone; }
+  for (const f of Object.values(m.fichas || {})) if (f.url) { if (f.title && !/\]\(/.test(f.title)) f.title = `[${f.title}](${f.url})`; delete f.url; }
+}
 async function open(path) {
   const m = await api("/api/article?path=" + encodeURIComponent(path));
   if (Array.isArray(m.meta.route) && m.meta.route.length) {
     m.blocks.unshift({ type: "datos", rows: m.meta.route.map((r) => ({ label: r.label || "", value: [r.value, r.unit].filter(Boolean).join(" ") })) });
     delete m.meta.route; setTimeout(() => { markDirty(); toast("La ficha del recorrido ahora es un bloque «Datos en fila» al inicio del texto: puedes moverlo o repetirlo donde quieras."); }, 300);
   }
+  migrate(m);
   Object.assign(ED, { path, meta: m.meta, photos: m.photos, fichas: m.fichas || {}, blocks: m.blocks, problems: m.problems, sel: null, tab: "article", heroV: Date.now() });
   hist = []; fut = []; dirty = false; setState("Guardado"); updateUndo();
   showView("edit"); $("#crumb").textContent = ED.meta.title || "Sin título"; updateCount();
@@ -266,7 +273,7 @@ const TEXTY = ["p", "h2", "h3", "quote", "ul", "ol", "callout"];          // blo
 let lastCaret = null;                                                   // block where the cursor was last
 const BLOCK_DEFAULTS = {
   ul: () => ({ type: "ul", items: [""] }), ol: () => ({ type: "ol", items: [""] }),
-  callout: () => ({ type: "callout", tone: "gris", text: "" }), details: () => ({ type: "details", title: "", text: "" }),
+  callout: () => ({ type: "callout", fondo: "gris", marco: false, linea: "", text: "" }), details: () => ({ type: "details", title: "", text: "" }),
   hr: () => ({ type: "hr" }), space: () => ({ type: "space", size: 3 }),
   datos: () => ({ type: "datos", rows: [{ label: "Lugar", value: "" }, { label: "Distancia", value: "" }, { label: "Desnivel", value: "" }, { label: "Dificultad", value: "" }] }),
   button: () => ({ type: "button", text: "", url: "", style: "primario" }), video: () => ({ type: "video", id: "", caption: "" }),
@@ -280,8 +287,9 @@ function convertBlock(i, type) {
   const paras = textOf(b).split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean);
   let out;
   if (type === "ul" || type === "ol") out = [{ type, items: paras.length ? paras : [""] }];
-  else if (type === "callout") out = [{ type, tone: "gris", text: paras.join("\n\n") }];
+  else if (type === "callout") out = [{ type, fondo: "gris", marco: false, linea: "", text: paras.join("\n\n") }];
   else out = (paras.length ? paras : [""]).map((t) => ({ type, text: t, ...(b.align && ["p", "h2", "h3"].includes(type) ? { align: b.align } : {}) }));
+  if (b.box && type !== "quote") out.forEach((x) => { x.box = { ...b.box }; });
   mutate(() => { ED.blocks.splice(i, 1, ...out); ED.sel = { i }; ED.focus = { i }; lastCaret = i; });
 }
 function countWords() {
@@ -339,8 +347,8 @@ window.act = {
   selState(st) { for (const k of ["bold", "italic", "link"]) $(`[data-rb="${k}"]`)?.classList.toggle("active", !!st[k]); },
   select(i, id = null) {
     ED.sel = i === null ? null : { i, id };
-    if (i === null) { if (ED.tab === "block") ED.tab = "article"; } else ED.tab = "block";
-    highlight(); renderInspector();
+    if (i === null) { if (ED.tab === "block") ED.tab = "article"; } else { ED.tab = "block"; lastCaret = i; }
+    highlight(); renderInspector(); updateRibbon();
   },
   setText(i, text) { mutate(() => { ED.blocks[i].text = text; }, { typing: true }); },
   setMeta(path, value, typing) { mutate(() => setPath(ED.meta, path, value), { typing }); if (typing) $("#crumb").textContent = ED.meta.title || "Sin título"; },
@@ -383,6 +391,14 @@ window.act = {
       else if (a === "del") { b.splice(i, 1); ED.sel = null; if (!b.length) b.push({ type: "p", text: "" }); }
     });
   },
+  setBox(i, box) { mutate(() => { if (box) ED.blocks[i].box = box; else delete ED.blocks[i].box; ED.sel = { i }; }); },
+  cycleLine(i) {   // rosa -> amarillo -> verde -> rojo -> sin línea -> rosa…
+    const order = ["rosa", "amarillo", "verde", "rojo", ""];
+    mutate(() => { const b = ED.blocks[i]; b.linea = order[(order.indexOf(b.linea || "") + 1) % order.length]; ED.sel = { i }; ED.tab = "block"; });
+  },
+  setFicha(id, path, value) {
+    mutate(() => { const ks = path.split("."); let o = ED.fichas[id]; while (ks.length > 1) o = o[ks.shift()]; if (!value && ks[0] === "title") delete o.title; else o[ks[0]] = value; }, { typing: true });
+  },
   moveTo(from, at) {
     mutate(() => { const [x] = ED.blocks.splice(from, 1); const to = at > from ? at - 1 : at; ED.blocks.splice(to, 0, x); ED.sel = { i: to }; });
   },
@@ -391,7 +407,7 @@ window.act = {
       const b = ED.blocks[i];
       b.text = before.trimEnd();
       const keep = b.type === "p" ? "p" : "p";
-      ED.blocks.splice(i + 1, 0, { type: keep, text: after.trimStart() });
+      ED.blocks.splice(i + 1, 0, { type: keep, text: after.trimStart(), ...(b.box ? { box: { ...b.box } } : {}) });   // like Word: the new paragraph keeps the width
       ED.focus = { i: i + 1, caret: 0 }; ED.sel = { i: i + 1 };
     });
   },
@@ -458,11 +474,13 @@ const ytId = (v) => { const m = String(v).match(/(?:youtu\.be\/|v=|embed\/|short
 
 function wrapSelection(mark) {
   const w = cdoc().defaultView;
+  if (w.plainField) return toast(w.plainField, true);
   if (!w.hasTextSelection()) return toast("Selecciona primero el texto en la página.", true);
   w.formatText(mark === "**" ? "bold" : "italic");
 }
 function linkSelection() {
   const w = cdoc().defaultView;
+  if (w.plainField) return toast(w.plainField, true);
   const current = w.linkAt();
   if (current === null && !w.hasTextSelection()) return toast("Selecciona primero el texto del enlace en la página.", true);
   modal(`<div class="dlg"><h2>Enlace</h2><div><label class="form-label" for="l-url">Dirección</label><input class="form-control" type="text" id="l-url" placeholder="https://" value="${esc(current || "")}"></div><div class="acts"><button class="btn btn-outline-dark rounded-0" id="l-c">Cancelar</button><button class="btn btn-primary rounded-0" id="l-ok">Poner enlace</button></div></div>`, () => {
@@ -550,6 +568,9 @@ function doAction(a, d) {
     case "drow-add": return mutate(() => { bl.rows.push({ label: "", value: "" }); });
     case "drow-del": return mutate(() => { bl.rows.splice(Number(d.i), 1); });
     case "insert-photo": return mutate(() => { const p = ED.photos[d.id]; const at = sel ? sel.i + 1 : ED.blocks.length; ED.blocks.splice(at, 0, p.w / p.h > 2.2 ? { type: "pano", id: d.id, mode: "" } : { type: "foto", id: d.id }); ED.sel = { i: at }; ED.tab = "block"; });
+    case "marco": return mutate(() => { bl.marco = !bl.marco; });
+    case "linea": return act.cycleLine(sel.i);
+    case "box-reset": return act.setBox(sel.i, null);
     case "bset": return mutate(() => { if (d.v) bl[d.key] = d.v; else delete bl[d.key]; });
     case "wrap-none": return mutate(() => { delete bl.wrap; });
     case "wrap-side": return mutate(() => { bl.wrap = { side: d.side, size: bl.wrap?.size || 40, hang: bl.wrap ? bl.wrap.hang : true, ...(bl.wrap?.edge ? { edge: true } : {}) }; });
@@ -617,11 +638,9 @@ const inp = (k, v, ph = "", type = "text") => `<input class="form-control" type=
 function paneArticle() {
   const m = ED.meta, h = m.hero;
   const hero = h ? `<div class="btnrow"><button class="btn btn-outline-dark" data-do="hero-replace">Cambiar foto</button><button class="btn btn-outline-dark" data-do="hero-center">Centrar</button></div>
-    ${fld("Texto alternativo de la portada", `<textarea data-k="m.hero.alt" class="form-control ${h.alt ? "" : "invalid"}" placeholder="Describe lo que se ve en la foto">${esc(h.alt)}</textarea>`, h.alt ? "" : '<p class="hint bad">Obligatorio: describe la foto.</p>')}
-    ${fld("Descripción de la portada (opcional)", inp("m.hero.caption", h.caption))}` : `<button class="btn btn-outline-dark" data-do="hero-replace">Elegir la foto principal</button>`;
+    ${fld("Texto alternativo de la portada", `<textarea data-k="m.hero.alt" class="form-control ${h.alt ? "" : "invalid"}" placeholder="Describe lo que se ve en la foto">${esc(h.alt)}</textarea>`, h.alt ? "" : '<p class="hint bad">Obligatorio: describe la foto.</p>')}` : `<button class="btn btn-outline-dark" data-do="hero-replace">Elegir la foto principal</button>`;
   return `
 ${fld("Título", `<textarea class="form-control" data-k="m.title" rows="2">${esc(m.title)}</textarea>`)}
-${fld("Subtítulo", `<textarea class="form-control" data-k="m.subtitle" rows="2">${esc(m.subtitle)}</textarea>`)}
 ${fld("Descripción para Google", `<textarea class="form-control" data-k="m.description" rows="3" class="${m.description ? "" : "invalid"}">${esc(m.description)}</textarea>`, `<p class="hint"><span id="desc-n">${(m.description || "").length}</span> de unos 155 caracteres</p>`)}
 ${fld("Sección", `<select class="form-select" data-k="m.section">${SECTIONS.map(([k, l]) => `<option value="${k}" ${m.section === k ? "selected" : ""}>${l}</option>`).join("")}</select>`)}
 ${fld("Fecha", inp("m.date", m.date, "", "date"))}
@@ -639,7 +658,6 @@ function photoForm(id) {
   const p = ED.photos[id]; if (!p) return "";
   const cur = Number(p.ratio) > 0 ? Number(p.ratio) : 0;
   return `${fld("Texto alternativo", `<textarea data-k="p.${id}.alt" class="form-control ${p.alt ? "" : "invalid"}" placeholder="Describe lo que se ve en la foto">${esc(p.alt)}</textarea>`, `<p class="hint bad" ${p.alt ? "hidden" : ""}>Obligatorio: sirve para accesibilidad y Google.</p>`)}
-${fld("Descripción (opcional)", inp(`p.${id}.caption`, p.caption, "Se muestra bajo la foto"))}
 <div><label class="form-label">Recorte</label><div class="btnrow">${RATIOS.map(([l, v]) => `<button class="btn btn-outline-dark ${Math.abs(cur - v) < 0.01 ? "active" : ""}" data-do="ratio" data-id="${esc(id)}" data-v="${v}">${l}</button>`).join("")}</div>
 <p class="hint">Arrastra la foto para encuadrar. Arrastra la barra inferior para recortar a mano.</p><div class="btnrow"><button class="btn btn-outline-dark" data-do="pos0" data-id="${esc(id)}">Centrar</button></div></div>`;
 }
@@ -657,30 +675,38 @@ ${w ? `<div class="btnrow">${[[33, "Pequeño"], [40, "Mediano"], [50, "Grande"]]
 function fichaPane(b) {
   const f = ED.fichas[b.id]; if (!f) return "";
   const ph = f.photo && ED.photos[f.photo];
-  return `${fld("Título", inp(`f.${b.id}.title`, f.title))}
-${fld("Enlace del título (opcional)", inp(`f.${b.id}.url`, f.url, "https://"))}
-<div><label class="form-label">Datos</label>${(f.rows || []).map((r, i) => `<div class="rowpair"><input class="form-control" type="text" data-k="f.${b.id}.row.${i}.label" value="${esc(r.label)}" placeholder="Dato"><input class="form-control" type="text" data-k="f.${b.id}.row.${i}.value" value="${esc(r.value)}" placeholder="Valor"><button class="btn btn-outline-danger" data-do="frow-del" data-i="${i}" aria-label="Quitar">×</button></div>`).join("")}<button class="btn btn-outline-dark" data-do="frow-add">Agregar dato</button></div>
+  return `<div><label class="form-label">Datos</label>${rowList(f.rows, "frow-del")}<button class="btn btn-outline-dark" data-do="frow-add">Agregar dato</button><p class="hint">El título y los datos se escriben directamente en la ficha. Para enlazar el título, selecciónalo y usa el botón de enlace de la barra de arriba.</p></div>
 ${fld("Formato", `<select class="form-select" data-k="f.${b.id}.format"><option value="lista" ${f.format !== "tabla" ? "selected" : ""}>Lista (Dato: valor)</option><option value="tabla" ${f.format === "tabla" ? "selected" : ""}>Tabla de dos columnas</option></select>`)}
 ${fld("Color", `<select class="form-select" data-k="f.${b.id}.tone">${[["gris", "Gris"], ["sin fondo", "Sin fondo"], ["amarillo", "Amarillo (advertencia)"], ["rojo", "Rojo (importante)"], ["verde", "Verde (llamar la atención)"]].map(([v, l]) => `<option value="${v}" ${(f.tone || "gris") === v ? "selected" : ""}>${l}</option>`).join("")}</select>`)}
 <div><label class="form-label">Foto de la ficha (opcional)</label><div class="btnrow"><button class="btn btn-outline-dark" data-do="fphoto">${ph ? "Cambiar foto" : "Agregar foto"}</button>${ph ? '<button class="btn btn-outline-danger" data-do="fphoto-del">Quitar foto</button>' : ""}</div></div>
 ${ph ? photoForm(f.photo) : ""}`;
 }
+// Rows of a card or a facts row: the text is written on the page; here you only add or remove rows
+const plainMd = (t) => String(t || "").replace(/\*+/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+const rowList = (rows, del) => `<ul class="list-unstyled mb-2">${(rows || []).map((r, i) => `<li class="rowpair align-items-center"><span class="flex-grow-1 text-truncate">${esc(plainMd(r.label) || "Dato")} · <span class="text-secondary">${esc(plainMd(r.value) || "sin valor")}</span></span><button class="btn btn-outline-danger" data-do="${del}" data-i="${i}" aria-label="Quitar este dato" title="Quitar este dato">×</button></li>`).join("")}</ul>`;
 const STYLE_NAMES = [["p", "Párrafo"], ["h2", "Título"], ["h3", "Subtítulo"], ["ul", "Lista con viñetas"], ["ol", "Lista numerada"], ["quote", "Cita destacada"], ["callout", "Recuadro de texto"]];
-const fmtPane = (hint) => `<div><label class="form-label">Formato</label><div class="btnrow"><button class="btn btn-outline-dark" data-do="bold"><b>Negrita</b></button><button class="btn btn-outline-dark" data-do="italic"><i>Cursiva</i></button><button class="btn btn-outline-dark" data-do="link">Enlace</button><button class="btn btn-outline-dark" data-do="unlink">Quitar enlace</button></div><p class="hint">${hint}</p></div>`;
-const stylePane = (b) => fld("Estilo", `<select class="form-select" data-k="btype">${STYLE_NAMES.map(([k, l]) => `<option value="${k}" ${b.type === k ? "selected" : ""}>${l}</option>`).join("")}</select>`, '<p class="hint">Igual que la caja de estilos de la barra de arriba.</p>');
+// Text box: background, frame and line are independent; none of them moves the text
+function calloutPane(b) {
+  const L = { rosa: "Rosa", amarillo: "Amarilla", verde: "Verde", rojo: "Roja", "": "Sin línea" };
+  return `<div><label class="form-label">Fondo</label>${choice(b, "fondo", [["gris", "Gris"], ["sin-fondo", "Sin fondo"], ["amarillo", "Amarillo"], ["rojo", "Rojo"], ["verde", "Verde"]])}</div>
+<div class="btnrow mt-2"><button class="btn btn-outline-dark ${b.marco ? "active" : ""}" data-do="marco">Marco${b.marco ? ": sí" : ": no"}</button><button class="btn btn-outline-dark" data-do="linea" title="Cada clic cambia el color: rosa, amarillo, verde, rojo, sin línea">Línea: ${L[b.linea || ""]}</button></div>
+<p class="hint">El marco toma el color del fondo (negro si es gris o sin fondo). La línea también cambia con un clic en el borde izquierdo del recuadro. El texto no se mueve con ninguno de los dos.</p>`;
+}
+function boxPane(b) {
+  if (!b.box) return `<p class="hint">Arrastra las barras rosas a los lados del bloque para cambiar su ancho; se pegan a los márgenes del contenido.</p>`;
+  return `<div><label class="form-label">Ancho</label><p class="hint mb-2">Del ${b.box.l}% al ${b.box.r}% del ancho del contenido (el de las fotos). En celular vuelve a la columna normal.</p><button class="btn btn-outline-dark" data-do="box-reset">Volver al ancho normal</button></div>`;
+}
 const choice = (b, key, opts) => `<div class="btnrow" role="group">${opts.map(([v, l]) => `<button class="btn btn-outline-dark ${(b[key] || opts[0][0]) === v ? "active" : ""}" data-do="bset" data-key="${key}" data-v="${v}">${l}</button>`).join("")}</div>`;
 const presentPane = (b) => { const cur = b.type === "foto" ? "normal" : b.mode === "completa" ? "pantalla" : "deslizable";
   return `<div><label class="form-label">Presentación de la foto</label><div class="btnrow">${[["normal", "Normal"], ["pantalla", "Ancho de pantalla"], ["deslizable", "Panorámica deslizable"]].map(([v, l]) => `<button class="btn btn-outline-dark ${cur === v ? "active" : ""}" data-do="present" data-v="${v}">${l}</button>`).join("")}</div>
 <p class="hint">Normal: al ancho de las fotos, con recorte libre y ajuste de texto. Ancho de pantalla: de borde a borde, entera. Panorámica deslizable: de borde a borde con altura limitada; el lector la desliza. Las fotos muy anchas entran como panorámicas.</p></div>`; };
 function paneBlock(sel) {
   const b = ED.blocks[sel.i]; if (!b) return "";
-  if (textTypes.includes(b.type)) return `${fmtPane("Selecciona texto en la página y pulsa un botón, o usa Ctrl+B, Ctrl+I y Ctrl+K. Enter crea un párrafo nuevo; Shift+Enter, un salto de línea.")}
-${b.type !== "quote" ? `<div><label class="form-label">Alineación</label>${choice(b, "align", [["", "Izquierda"], ["center", "Centrada"]])}</div>` : ""}
-${stylePane(b)}
-${b.type === "quote" ? `${fld("Autor de la cita (opcional)", inp("bf.by", b.by, "Nombre"))}${wrapPane(b)}` : ""}`;
-  if (b.type === "ul" || b.type === "ol") return `${fmtPane("Enter agrega otro punto. Enter en un punto vacío, o Backspace al inicio del primero, sale de la lista. También puedes empezar un párrafo con «- » o «1. ».")}${stylePane(b)}`;
-  if (b.type === "callout") return `<div><label class="form-label">Apariencia</label>${choice(b, "tone", [["gris", "Fondo gris"], ["borde", "Con borde"], ["acento", "Línea rosa"], ["amarillo", "Amarillo (advertencia)"], ["rojo", "Rojo (importante)"], ["verde", "Verde (consejo)"]])}<p class="hint">Un recuadro resalta un consejo, un dato o una advertencia. Ocupa el ancho del texto.</p></div>${fmtPane("Enter crea otro párrafo dentro del recuadro.")}${stylePane(b)}`;
-  if (b.type === "details") return `${fmtPane("Escribe el título en la línea gruesa y el contenido debajo. En el sitio se abre y se cierra con un clic. Varios seguidos forman una lista de preguntas.")}`;
+  if (b.type === "quote") return `${wrapPane(b)}<p class="hint">El autor se escribe debajo de la cita, en la página. El formato del texto está en la barra de arriba.</p>${b.wrap ? "" : boxPane(b)}`;
+  if (textTypes.includes(b.type)) return `<p class="hint">El estilo, el formato y la alineación están en la barra de arriba, como en Word. Enter crea un párrafo nuevo; Shift+Enter, un salto de línea.</p>${boxPane(b)}`;
+  if (b.type === "ul" || b.type === "ol") return `<p class="hint">Enter agrega otro punto. Enter en un punto vacío, o Backspace al inicio del primero, sale de la lista. También puedes empezar un párrafo con «- » o «1. ».</p>${boxPane(b)}`;
+  if (b.type === "callout") return `${calloutPane(b)}${boxPane(b)}`;
+  if (b.type === "details") return `<p class="hint">Escribe el título en la línea gruesa y el contenido debajo. En el sitio se abre y se cierra con un clic. Varios seguidos forman una lista de preguntas.</p>${boxPane(b)}`;
   if (b.type === "button") return `${fld("Dirección del enlace", inp("bf.url", b.url, "https://…"), b.url ? "" : '<p class="hint bad">Falta la dirección.</p>')}<div><label class="form-label">Estilo</label>${choice(b, "style", [["primario", "Principal (rosa)"], ["secundario", "Secundario (borde)"]])}</div><div><label class="form-label">Alineación</label>${choice(b, "align", [["", "Izquierda"], ["center", "Centrada"]])}</div><p class="hint">El texto del botón se escribe directamente en la página.</p>`;
   if (b.type === "video") return `${fld("Enlace de YouTube", inp("bf.id", b.id ? `https://youtu.be/${b.id}` : "", "Pega el enlace del video"), '<p class="hint">Se muestra la miniatura; el video se carga solo cuando el lector hace clic.</p>')}`;
   if (b.type === "map") return `${fld("Lugar", `<input class="form-control" type="text" data-k="bf.coords" value="${esc(b.coords)}" placeholder="Pega un enlace de Google Maps o coordenadas">`, b.coords ? '<p class="hint">Coordenadas: latitud, longitud.</p>' : '<p class="hint bad">Abre el lugar en Google Maps, copia el enlace de la barra del navegador y pégalo aquí.</p>')}
@@ -708,7 +734,7 @@ ${structPane(b, id)}<hr>${photoForm(id)}<hr><div class="btnrow"><button class="b
 ${b.mode !== "completa" ? fld("Altura", `<input class="form-range" type="range" min="25" max="90" step="1" data-k="panoh" value="${b.h || 50}">`, '<p class="hint">También puedes arrastrar la barra rosa bajo la foto. Es una parte del alto de la pantalla del lector.</p>') + fld("Punto de inicio", `<input class="form-range" type="range" min="0" max="100" data-k="focus" value="${Number.isFinite(p.focus) ? p.focus : 50}">`, '<p class="hint">Qué parte de la foto aparece centrada al abrirla.</p>') : ""}
 <hr>${photoForm(b.id)}<hr><div class="btnrow"><button class="btn btn-outline-dark" data-do="replace" data-id="${esc(b.id)}">Cambiar foto</button></div>`;
   }
-  if (b.type === "datos") return `<div><label class="form-label">Datos</label>${(b.rows || []).map((r, i) => `<div class="rowpair"><input class="form-control" type="text" data-k="drow.${i}.label" value="${esc(r.label)}" placeholder="Dato"><input class="form-control" type="text" data-k="drow.${i}.value" value="${esc(r.value)}" placeholder="Valor"><button class="btn btn-outline-danger" data-do="drow-del" data-i="${i}" aria-label="Quitar">×</button></div>`).join("")}<button class="btn btn-outline-dark" data-do="drow-add">Agregar dato</button></div><p class="hint">Una fila de datos grandes entre dos líneas, como la ficha de una etapa. Se puede usar en cualquier parte del artículo y las veces que quieras. En celular se acomoda en dos columnas. También puedes escribir los valores directamente en la página.</p>`;
+  if (b.type === "datos") return `<div><label class="form-label">Datos</label>${rowList(b.rows, "drow-del")}<button class="btn btn-outline-dark" data-do="drow-add">Agregar dato</button></div><p class="hint">Una fila de datos grandes entre dos líneas, como la ficha de una etapa. Los nombres y los valores se escriben directamente en la página. Se puede usar en cualquier parte del artículo y las veces que quieras. En celular se acomoda en dos columnas.</p>`;
   return `<p class="hint">Este bloque tiene un formato que el editor no conoce. Se conserva tal cual.</p>`;
 }
 

@@ -103,20 +103,30 @@ async function importPhoto(articlePath, file, name) {
   const sw = Math.round(w / 2); await putBlob(`${base}${slug}-sm.jpg`, await jpeg(bmp, sw, Math.round((sw * h) / w)));
   return { file: slug, w, h };
 }
-// The cover is always 16:9, cropped from the original around `pos`. The original stays in this browser.
+// The cover is always 16:9, cropped from the original around `pos`. A copy of the uncropped photo (hero-source.jpg,
+// at most 2600 px wide) is published with the article, so the cover can be reframed later from any computer.
+async function repoBlob(path) {
+  const e = (await tree()).entries.get(path); if (!e) return null;
+  const b = await gh("GET", `${R}/git/blobs/${e.sha}`);
+  return new Blob([b64ToBytes(b.content)], { type: "image/jpeg" });
+}
 async function makeHero(articlePath, file, pos = "50% 50%") {
   const { meta } = await getArticle(articlePath); const dir = dirOf(meta), base = `src/assets/img/${dir}/`;
   if (file) await putBlob(`orig/${dir}/hero-source`, file);
-  const src = await kv.get("blobs", `orig/${dir}/hero-source`);
-  if (!src) throw new Error("La foto original de la portada está en la computadora donde se subió. Para reencuadrarla aquí, vuelve a elegirla con «Cambiar foto».");
-  const bmp = await decode(src.blob), W = bmp.width, H = bmp.height;
+  let src = (await kv.get("blobs", `orig/${dir}/hero-source`))?.blob || (await kv.get("blobs", `${base}hero-source.jpg`))?.blob;
+  if (!src) { src = await repoBlob(`${base}hero-source.jpg`); if (src) await putBlob(`orig/${dir}/hero-source`, src); }
+  if (!src) throw new Error("Esta portada se eligió antes de que el editor guardara la foto completa. Para encuadrarla, vuelve a elegirla con «Cambiar foto».");
+  const bmp = await decode(src), W = bmp.width, H = bmp.height;
+  if (file) { const cw0 = Math.min(2600, W); await putBlob(`${base}hero-source.jpg`, await jpeg(bmp, cw0, Math.round((cw0 * H) / W))); }
   const [px, py] = pos.split(" ").map((v) => Math.min(100, Math.max(0, parseFloat(v))) / 100);
   let cw = W, ch = H; if (W / H > 16 / 9) cw = Math.round(H * 16 / 9); else ch = Math.round(W * 9 / 16);
   const left = Math.round((W - cw) * px), top = Math.round((H - ch) * py);
   for (const w of [1280, 1920, 2560]) { const ow = Math.min(w, cw); await putBlob(`${base}hero-${w}.jpg`, await jpeg(bmp, ow, Math.round(ow * 9 / 16), left, top, cw, ch)); }
   return { file: "hero", w: 2560, h: 1440, srcW: W, srcH: H, pos };
 }
-export const heroSourceUrl = (meta) => { try { return urls.get(`orig/${dirOf(meta)}/hero-source`); } catch { return null; } };
+export const heroSourceUrl = (meta) => {
+  try { const dir = dirOf(meta); return urls.get(`orig/${dir}/hero-source`) || urls.get(`src${meta.imgBase}hero-source.jpg`) || (meta.hero && meta.hero.srcW ? `${meta.imgBase}hero-source.jpg` : null); } catch { return null; }
+};
 
 // ---- articles -------------------------------------------------------------------------------------------
 async function getArticle(path) {

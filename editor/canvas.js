@@ -112,9 +112,13 @@ function placeCaret(el, n) {   // n = visible characters from the start; undefin
   while ((node = walker.nextNode())) { if (left <= node.nodeValue.length) { r.setStart(node, left); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); return; } left -= node.nodeValue.length; }
   r.selectNodeContents(el); r.collapse(false); sel.removeAllRanges(); sel.addRange(r);
 }
-const EDITABLE = ".ed-rich, .ed-list";
+const EDITABLE = ".ed-rich, .ed-list, .ed-inline";   // where the ribbon's bold / italic / link work
 const richOf = (t) => (t && t.nodeType === 1 ? t.closest(EDITABLE) : t && t.parentElement ? t.parentElement.closest(EDITABLE) : null);
-const fieldOf = (t) => (t && t.nodeType === 1 ? t.closest("[data-f]") : null);
+const fieldOf = (t) => (t && t.nodeType === 1 ? t.closest(".ed-inline, .ed-plain[data-f]") : null);   // one-line fields (captions, authors, data…)
+const blkOf = (el) => (el && el.closest ? el.closest(".blk") : null);
+// A one-line field with formatting: what it holds as Markdown (**bold**, *italic*, [link](url))
+const inlineMd = (el) => domToMd(el).replace(/<br>/g, " ").replace(/\s+/g, " ").trim();
+const inl = (attr, value, ph, cls = "", tag = "div") => `<${tag} class="ed-plain ed-inline ${cls}" contenteditable="true" spellcheck="true" ${attr} data-ph="${esc(ph)}">${mdToHtml(value || "")}</${tag}>`;
 const blockIndex = (el) => Number(el.closest(".blk").dataset.i);
 
 // ---- grids: a row's tree may hold arrays (vertical stacks, and rows inside them) ------------------
@@ -157,16 +161,31 @@ function photoFrame(p, base, i, id, inRow = false) {
 <img src="${IMG(base, p.file, "-sm.jpg")}" class="object-fit-cover" style="object-position: ${posOf(p)}" alt="" draggable="false">
 ${inRow ? "" : `<div class="crop-handle" data-id="${esc(id)}" title="Arrastra hacia arriba o abajo para recortar"></div>`}</div>`;
 }
-const caption = (p, id) => `<textarea class="ed-field cap-field figure-caption" rows="1" data-cap="${esc(id)}" placeholder="Descripción (opcional)">${esc(p.caption || "")}</textarea>`;
+const caption = (p, id) => inl(`data-cap="${esc(id)}"`, p.caption, "Descripción (opcional)", "cap-field figure-caption");
 
 const wrapCls = (b, kind) => (b.wrap && b.wrap.side ? ` wrap wrap-${b.wrap.side} wrap-s${b.wrap.size || 40}${b.wrap.edge ? " wrap-edge" : b.wrap.hang ? " wrap-hang" : ""} ${kind}` : "");
-const fichaHTML = (f, base, S) => {
+const fichaHTML = (f, base, S, id) => {
+  const ff = (path, ph, tag = "span") => inl(`data-ff="${esc(id)}:${path}"`, path.split(".").reduce((o, k) => (o == null ? o : o[k]), f), ph, "", tag);
   const photo = f.photo && S.photos[f.photo] ? `<div class="ratio figure-img" style="--bs-aspect-ratio: ${(100 / ratioOf(S.photos[f.photo])).toFixed(3)}%"><img src="${IMG(base, S.photos[f.photo].file, "-sm.jpg")}" class="object-fit-cover" style="object-position: ${posOf(S.photos[f.photo])}" alt="" draggable="false"></div>` : "";
-  const title = f.title ? `<h3 class="ficha-title">${f.url ? `<a href="#" onclick="return false">${esc(f.title)}</a>` : esc(f.title)}</h3>` : "";
-  const rows = (f.rows || []).map((r) => f.format === "tabla" ? `<tr><th scope="row">${esc(r.label)}</th><td>${esc(r.value)}</td></tr>` : `<div><dt>${esc(r.label)}</dt> <dd>${esc(r.value)}</dd></div>`).join("");
-  const list = !rows ? '<p class="text-body-secondary mb-0">Ficha vacía: agrega datos en el panel de la derecha.</p>' : f.format === "tabla" ? `<table class="ficha-table"><tbody>${rows}</tbody></table>` : `<dl class="ficha-list">${rows}</dl>`;
+  const title = `<h3 class="ficha-title">${ff("title", "Título de la ficha")}</h3>`;
+  const rows = (f.rows || []).map((r, k) => f.format === "tabla" ? `<tr><th scope="row">${ff(`rows.${k}.label`, "Dato")}</th><td>${ff(`rows.${k}.value`, "Valor")}</td></tr>` : `<div><dt>${ff(`rows.${k}.label`, "Dato")}</dt> <dd>${ff(`rows.${k}.value`, "Valor")}</dd></div>`).join("");
+  const list = !rows ? '<p class="text-body-secondary mb-0 ed-aid">Ficha vacía: agrega datos con el botón «Agregar dato» del panel.</p>' : f.format === "tabla" ? `<table class="ficha-table"><tbody>${rows}</tbody></table>` : `<dl class="ficha-list">${rows}</dl>`;
   return `${photo}<div class="ficha-body">${title}${list}</div>`;
 };
+
+// Text box look: the same classes the site's {% recuadro %} writes
+const recuadroCls = (b) => { const f = b.fondo || "gris"; return [`fondo-${f}`, ["amarillo", "rojo", "verde"].includes(f) ? `tone-${f}` : "", b.marco ? "has-marco" : "", b.linea ? `linea-${b.linea}` : ""].filter(Boolean).join(" "); };
+const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details"];
+// A floating photo, quote or card wraps the text that comes AFTER it. If nothing comes after it, say so.
+const BESIDE = ["p", "ul", "ol", "h3", "callout", "details", "button", "raw"];
+function floatHint(S, i) {
+  let k = i + 1; while (S.blocks[k] && S.blocks[k].wrap && S.blocks[k].wrap.side) k++;   // another float goes below this one; the text after it still wraps
+  const nx = S.blocks[k], pv = S.blocks[i - 1], b = S.blocks[i];
+  if (nx && BESIDE.includes(nx.type)) return "";
+  const what = b.type === "quote" ? "la cita" : b.type === "ficha" ? "la ficha" : "la foto";
+  const up = pv && ["p", "ul", "ol", "h3"].includes(pv.type);
+  return `<div class="float-hint ed-aid">El texto rodea ${what} solo si va <strong>debajo</strong> de ella, y aquí no hay texto debajo. ${up ? `<button type="button" data-a="float-up">Subirla un párrafo</button>` : "Pon un párrafo debajo, o elige «En su propia fila» en el panel."}</div>`;
+}
 
 function blockHTML(b, i, S) {
   const base = S.meta.imgBase || "";
@@ -175,7 +194,10 @@ function blockHTML(b, i, S) {
 <button data-a="dup" title="Duplicar">${svg("dup")}</button><button data-a="del" title="Eliminar">${svg("del")}</button></div>`;
   const handle = `<div class="blk-handle" draggable="true" title="Arrastra para mover">${svg("grip")}</div>`;
   const sel = S.sel && S.sel.i === i ? " is-sel" : "";
-  const wrap = (cls, inner, extra = "") => `<div class="blk ${cls}${extra}${sel}${b.align === "center" ? " is-center" : ""}" data-i="${i}">${handle}${tools}${inner}</div>`;
+  const boxable = BOXABLE.includes(b.type) && !(b.wrap && b.wrap.side);
+  const box = boxable && b.box ? ` has-box" style="--l:${b.box.l};--r:${b.box.r}` : "";
+  const edges = boxable ? '<div class="box-handle" data-side="l" title="Arrastra para cambiar el ancho del texto. Doble clic: ancho normal"></div><div class="box-handle" data-side="r" title="Arrastra para cambiar el ancho del texto. Doble clic: ancho normal"></div>' : "";
+  const wrap = (cls, inner, extra = "") => `<div class="blk ${cls}${extra}${sel}${b.align === "center" ? " is-center" : ""}${box}" data-i="${i}">${handle}${tools}${edges}${inner}${extra.includes(" wrap ") ? floatHint(S, i) : ""}</div>`;
   const rich = (ph) => `<div class="ed-field ed-rich" contenteditable="true" spellcheck="true" data-t="${i}" data-ph="${ph}">${mdToHtml(b.text)}</div>`;
   const text = (cls, ph) => wrap(cls, rich(ph));
   const plain = (key, ph, cls = "", tag = "div") => `<${tag} class="ed-plain ${cls}" contenteditable="plaintext-only" spellcheck="true" data-f="${i}:${key}" data-ph="${ph}">${esc(key.split(".").reduce((o, k) => (o == null ? o : o[k]), b) || "")}</${tag}>`;
@@ -185,32 +207,32 @@ function blockHTML(b, i, S) {
       const items = (b.items && b.items.length ? b.items : [""]).map((x) => `<li>${mdToHtml(x)}</li>`).join("");
       return wrap("blk-text blk-list", `<${b.type} class="ed-field ed-list" contenteditable="true" spellcheck="true" data-l="${i}">${items}</${b.type}>`);
     }
-    case "callout": return wrap("blk-text blk-callout", `<aside class="recuadro recuadro-${b.tone || "gris"}${["amarillo", "rojo", "verde"].includes(b.tone) ? ` tone-${b.tone}` : ""}"><div class="ed-field ed-rich ed-multi" contenteditable="true" spellcheck="true" data-t="${i}" data-multi="1" data-ph="Texto del recuadro…">${mdMulti(b.text)}</div></aside>`);
-    case "details": return wrap("blk-text blk-details", `<div class="desplegable ed-desplegable"><div class="ed-summary">${plain("title", "Pregunta o título del desplegable", "ed-summary-text")}<span aria-hidden="true">−</span></div><div class="desplegable-body"><div class="ed-field ed-rich ed-multi" contenteditable="true" spellcheck="true" data-t="${i}" data-multi="1" data-ph="Lo que se ve al abrirlo…">${mdMulti(b.text)}</div></div></div>`);
+    case "callout": return wrap("blk-text blk-callout", `<aside class="recuadro ${recuadroCls(b)}"><div class="rq-line-hit" title="Clic: cambia el color de la línea (rosa, amarillo, verde, rojo, sin línea)"></div><div class="ed-field ed-rich ed-multi" contenteditable="true" spellcheck="true" data-t="${i}" data-multi="1" data-ph="Texto del recuadro…">${mdMulti(b.text)}</div></aside>`);
+    case "details": return wrap("blk-text blk-details", `<div class="desplegable ed-desplegable"><div class="ed-summary">${inl(`data-f="${i}:title"`, b.title, "Pregunta o título del desplegable", "ed-summary-text")}<span aria-hidden="true">−</span></div><div class="desplegable-body"><div class="ed-field ed-rich ed-multi" contenteditable="true" spellcheck="true" data-t="${i}" data-multi="1" data-ph="Lo que se ve al abrirlo…">${mdMulti(b.text)}</div></div></div>`);
     case "hr": return wrap("blk-text blk-hr", `<hr class="article-rule">`);
     case "space": return wrap("blk-text blk-space", `<div class="article-space ed-space" style="height:${Number(b.size) || 3}rem"><span>Espacio · ${Number(b.size) || 3} rem</span><div class="size-handle" data-size="space" title="Arrastra para cambiar la altura"></div></div>`);
-    case "datos": return wrap("blk-media blk-datos", `<div class="container"><dl class="row row-cols-2 row-cols-md-4 g-4 py-4 my-5 border-top border-bottom border-2 border-strong datos">${(b.rows || []).map((r, k) => `<div class="col"><dt class="small-meta fw-semibold font-ui">${plain(`rows.${k}.label`, "Dato", "", "span")}</dt><dd class="h3 mb-0">${plain(`rows.${k}.value`, "Valor", "", "span")}</dd></div>`).join("")}</dl></div>`);
+    case "datos": return wrap("blk-media blk-datos", `<div class="container"><dl class="row row-cols-2 row-cols-md-4 g-4 py-4 my-5 border-top border-bottom border-2 border-strong datos">${(b.rows || []).map((r, k) => `<div class="col"><dt class="small-meta fw-semibold font-ui">${inl(`data-f="${i}:rows.${k}.label"`, r.label, "Dato", "", "span")}</dt><dd class="h3 mb-0">${inl(`data-f="${i}:rows.${k}.value"`, r.value, "Valor", "", "span")}</dd></div>`).join("")}</dl></div>`);
     case "button": return wrap("blk-text blk-button", `<p class="article-cta"><span class="btn ${b.style === "secundario" ? "btn-outline-dark" : "btn-primary"} ed-btn">${plain("text", "Texto del botón", "", "span")}</span>${b.url ? "" : '<span class="ed-warn">Falta la dirección: escríbela en el panel</span>'}</p>`);
     case "map": {
       const [lat, lng] = String(b.coords || "").split(",").map(Number), ok = Number.isFinite(lat) && Number.isFinite(lng);
       const z = Math.min(18, Math.max(3, Number(b.zoom) || 11)), d = 180 / 2 ** z * 1.6;
       const frame = ok ? `<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${[lng - d * 1.6, lat - d, lng + d * 1.6, lat + d].map((x) => x.toFixed(5)).join(",")}&layer=mapnik&marker=${lat},${lng}" title="Mapa" loading="lazy" tabindex="-1"></iframe><div class="ed-map-shield"></div>` : `<div class="ed-video-empty">Mapa<br><small>Pega un enlace de Google Maps en el panel de la derecha</small></div>`;
-      return wrap("blk-media blk-map", `<div class="container"><figure class="article-map my-5"><div class="ratio ratio-21x9 map-frame">${frame}</div>${plain("label", "Nombre del lugar (opcional)", "figure-caption cap-field")}</figure></div>`);
+      return wrap("blk-media blk-map", `<div class="container"><figure class="article-map my-5"><div class="ratio ratio-21x9 map-frame">${frame}</div>${inl(`data-f="${i}:label"`, b.label, "Nombre del lugar (opcional)", "figure-caption cap-field")}</figure></div>`);
     }
     case "video": {
       const thumb = b.id ? `<img src="https://i.ytimg.com/vi/${esc(b.id)}/hqdefault.jpg" alt="" class="object-fit-cover" draggable="false"><span class="btn btn-primary font-ui video-play" aria-hidden="true">▶ Ver el video</span>` : `<div class="ed-video-empty">Video de YouTube<br><small>Pega el enlace en el panel de la derecha</small></div>`;
-      return wrap("blk-media blk-video", `<div class="container"><figure class="video-embed my-5"><div class="ratio ratio-16x9 video-frame">${thumb}</div>${plain("caption", "Descripción (opcional)", "figure-caption cap-field")}</figure></div>`);
+      return wrap("blk-media blk-video", `<div class="container"><figure class="video-embed my-5"><div class="ratio ratio-16x9 video-frame">${thumb}</div>${inl(`data-f="${i}:caption"`, b.caption, "Descripción (opcional)", "figure-caption cap-field")}</figure></div>`);
     }
     case "h2": return text("blk-text blk-h2", "Título de sección");
     case "h3": return text("blk-text blk-h3", "Subtítulo");
     case "quote": return b.wrap && b.wrap.side
-      ? wrap("blk-quote blk-float", rich("Cita destacada") + plain("by", "Autor (opcional)", "pullquote-by ed-by"), wrapCls(b, "wrap-card"))
-      : wrap("blk-text blk-quote", rich("Cita destacada") + plain("by", "Autor (opcional)", "pullquote-by ed-by"));
+      ? wrap("blk-quote blk-float", rich("Cita destacada") + inl(`data-f="${i}:by"`, b.by, "Autor (opcional)", "pullquote-by ed-by"), wrapCls(b, "wrap-card"))
+      : wrap("blk-text blk-quote", rich("Cita destacada") + inl(`data-f="${i}:by"`, b.by, "Autor (opcional)", "pullquote-by ed-by"));
     case "ficha": {
       const f = (S.fichas || {})[b.id];
       if (!f) return wrap("blk-text blk-raw", `<pre>Falta la ficha "${esc(b.id)}"</pre>`);
       const solo = b.wrap && b.wrap.side ? "" : " ficha-solo-blk";
-      return wrap("blk-ficha blk-media" + solo, `<aside class="ficha${f.tone === "sin fondo" ? " ficha-plain" : ["amarillo", "rojo", "verde"].includes(f.tone) ? ` tone-${f.tone}` : ""}${solo ? " ficha-solo" : ""}">${fichaHTML(f, base, S)}</aside>`, wrapCls(b, "wrap-card"));
+      return wrap("blk-ficha blk-media" + solo, `<aside class="ficha${f.tone === "sin fondo" ? " ficha-plain" : ["amarillo", "rojo", "verde"].includes(f.tone) ? ` tone-${f.tone}` : ""}${solo ? " ficha-solo" : ""}">${fichaHTML(f, base, S, b.id)}</aside>`, wrapCls(b, "wrap-card"));
     }
     case "foto": {
       const p = S.photos[b.id];
@@ -251,13 +273,17 @@ function heroHTML(S) {
   if (h) {
     const orig = h.srcW && dirMatch;   // the original lets you drag to frame it
     const src = parent.heroSrc ? parent.heroSrc(m) : orig ? `/originals/${dirMatch[1]}/hero-source.jpg?v=${S.heroV || 0}` : `${m.imgBase}${h.file}-1280.jpg?v=${S.heroV || 0}`;
-    inner = `<img src="${src}" style="object-position: ${esc(h.pos || "50% 50%")}" alt="" draggable="false"><div class="ed-hero-actions"><button class="btn btn-light btn-sm rounded-0" data-hero="replace">Cambiar foto</button></div><div class="ed-hero-hint">La portada siempre es 16:9. Arrastra para encuadrar.</div>`;
+    const hint = !h.srcW ? "La portada siempre es 16:9. Para encuadrarla de nuevo, elige la foto otra vez con «Cambiar foto»."
+      : Math.abs(h.srcW / h.srcH - 16 / 9) < 0.02 ? "Esta foto ya tiene forma 16:9: se ve completa, no hay nada que encuadrar."
+      : `La portada siempre es 16:9. Arrastra la foto ${h.srcW / h.srcH > 16 / 9 ? "a los lados" : "hacia arriba o abajo"} para encuadrarla.`;
+    inner = `<img src="${src}" style="object-position: ${esc(h.pos || "50% 50%")}" alt="" draggable="false"><div class="ed-hero-actions"><button class="btn btn-light btn-sm rounded-0" data-hero="replace">Cambiar foto</button></div><div class="ed-hero-hint">${hint}</div>`;
   } else inner = `<div class="ed-hero-empty"><div><strong>Foto principal</strong><br>Arrastra una foto aquí o haz clic para elegirla</div></div>`;
   const cab = m.cabecera || "";
-  const photo = `<div class="ed-hero-img ${h ? "" : "ed-hero-empty"}" data-hero="${h ? "img" : "pick"}">${inner}</div>`;
+  const drag = h && h.srcW && Math.abs(h.srcW / h.srcH - 16 / 9) >= 0.02;
+  const photo = `<div class="ed-hero-img ${h ? "" : "ed-hero-empty"}${drag ? " can-drag" : ""}" data-hero="${h ? "img" : "pick"}">${inner}</div>${h ? `<div class="container pt-2">${inl('data-m="hero.caption"', h.caption, "Descripción de la portada (opcional)", "figure-caption cap-field")}</div>` : ""}`;
   const titles = `<div class="container ed-head"><div class="ed-date font-ui">${esc(m.date || "")}${m.draft ? " · Borrador" : ""}${cab ? ` · Cabecera: ${cab === "texto" ? "solo título" : "título arriba"}` : ""}</div>
 <textarea class="ed-field ed-title" rows="1" data-m="title" placeholder="Título del artículo">${esc(m.title || "")}</textarea>
-<textarea class="ed-field ed-sub mt-2" rows="1" data-m="subtitle" placeholder="Subtítulo (opcional)">${esc(m.subtitle || "")}</textarea></div>`;
+${inl('data-m="subtitle"', m.subtitle, "Subtítulo (opcional)", "ed-field ed-sub mt-2")}</div>`;
   const ai = m.ai ? `<div class="notice-band tone-amarillo mt-4" role="note"><div class="container py-3"><strong>Versión de prueba.</strong> Este artículo fue escrito enteramente con inteligencia artificial, solo para probar el diseño de la revista. El texto definitivo lo escribirá el autor.</div></div>` : "";
   if (cab === "texto") return `<header class="ed-hero-wrap ed-cab-texto pt-4">${titles}</header>${ai}`;
   if (cab === "titulo") return `<header class="ed-hero-wrap ed-cab-titulo pt-4">${titles}<div class="container mt-4">${photo}</div></header>${ai}`;
@@ -289,6 +315,8 @@ function layoutPanos() {
   });
 }
 addEventListener("resize", () => { fitAll(); layoutPanos(); layoutRows(); });
+// The title box measures its height with the page's fonts: measure again once they have loaded
+if (document.fonts) { document.fonts.ready.then(fitAll); document.fonts.addEventListener("loadingdone", fitAll); }
 
 // Rows: a handle under the row changes its height; dividers between photos move the crop from one to the other.
 function layoutRows() {
@@ -353,6 +381,8 @@ root.addEventListener("click", (e) => {
   closeMenu();
   const hero = t.closest("[data-hero]");
   if (hero && (t.closest('[data-hero="replace"]') || hero.dataset.hero === "pick")) { A().pickHero(); return; }
+  if (t.closest('[data-a="float-up"]')) { A().tool("up", Number(t.closest(".blk").dataset.i)); return; }
+  if (t.closest(".rq-line-hit")) { A().cycleLine(Number(t.closest(".blk").dataset.i)); return; }
   const tool = t.closest(".blk-tools button");
   if (tool) { const i = Number(tool.closest(".blk").dataset.i); A().tool(tool.dataset.a, i); return; }
   if (!t.closest(".blk") && t.closest(".article-body") && e.clientY > ([...document.querySelectorAll(".article-body > .blk")].pop()?.getBoundingClientRect().bottom ?? Infinity)) { A().continueAtEnd(); return; }
@@ -365,7 +395,15 @@ root.addEventListener("click", (e) => {
 
 root.addEventListener("input", (e) => {
   const f = fieldOf(e.target);
-  if (f) { const [i, key] = f.dataset.f.split(":"); if (!f.textContent) f.innerHTML = ""; A().setField(Number(i), key, f.textContent.replace(/\s+/g, " ").trim()); return; }
+  if (f) {
+    if (!f.textContent) f.innerHTML = "";
+    const v = f.matches(".ed-inline") ? inlineMd(f) : f.textContent.replace(/\s+/g, " ").trim(), d = f.dataset;
+    if (d.f) { const [i, key] = d.f.split(":"); A().setField(Number(i), key, v); }
+    else if (d.cap) A().setPhoto(d.cap, { caption: v }, true);
+    else if (d.m) A().setMeta(d.m, v || undefined, true);
+    else if (d.ff) { const [id, path] = d.ff.split(":"); A().setFicha(id, path, v); }
+    return;
+  }
   const rt = richOf(e.target);
   if (rt && rt.matches(".ed-list")) {
     if (![...rt.children].some((n) => n.tagName === "LI")) { const txt = rt.textContent; rt.innerHTML = `<li>${esc(txt)}</li>`; placeCaret(rt.firstChild); }
@@ -386,7 +424,6 @@ root.addEventListener("input", (e) => {
   }
   const t = e.target; if (!(t instanceof HTMLTextAreaElement)) return; fit(t);
   if (t.dataset.m) A().setMeta(t.dataset.m, t.value, true);
-  else if (t.dataset.cap) A().setPhoto(t.dataset.cap, { caption: t.value }, true);
 });
 
 // Caret helpers for moving between blocks like in Word
@@ -458,7 +495,11 @@ root.addEventListener("paste", (e) => {
   else if (t.dataset.multi) document.execCommand("insertText", false, txt.replace(/\n\s*\n/g, "\n").replace(/[ \t]*\n[ \t]*/g, "\n")) ;
   else document.execCommand("insertText", false, txt.replace(/\s*\n\s*/g, " "));
 });
-document.addEventListener("focusin", (e) => { const t = richOf(e.target) || fieldOf(e.target); if (t && t.closest(".blk")) A().caretIn(blockIndex(t)); });
+document.addEventListener("focusin", (e) => {
+  const t = richOf(e.target) || fieldOf(e.target); if (t && t.closest(".blk")) A().caretIn(blockIndex(t));
+  // the title and the button's text take no formatting: the ribbon says so instead of formatting the last paragraph
+  if (e.target.matches && e.target.matches('textarea[data-m="title"], .ed-plain:not(.ed-inline)')) { window.lastRange = null; window.plainField = e.target.matches("textarea") ? "El título no lleva negritas, cursivas ni enlaces." : "El texto del botón no lleva formato; su enlace se escribe en el panel."; }
+});
 try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch {}
 
 // Word shortcuts (the ribbon shows them in its tooltips)
@@ -471,8 +512,8 @@ document.addEventListener("keydown", (e) => {
   else if (e.altKey && (k === "2" || e.code === "Digit2")) { e.preventDefault(); A().ribbon("h3"); }
   else if (e.shiftKey && k === "n") { e.preventDefault(); A().ribbon("p"); }
   else if (e.shiftKey && k === "l") { e.preventDefault(); A().ribbon("ul"); }
-  else if (!e.shiftKey && !e.altKey && k === "e" && t) { e.preventDefault(); A().ribbon("center"); }
-  else if (!e.shiftKey && !e.altKey && k === "l" && t) { e.preventDefault(); A().ribbon("left"); }
+  else if (!e.shiftKey && !e.altKey && k === "e" && t && !t.matches(".ed-inline")) { e.preventDefault(); A().ribbon("center"); }
+  else if (!e.shiftKey && !e.altKey && k === "l" && t && !t.matches(".ed-inline")) { e.preventDefault(); A().ribbon("left"); }
   else if (!e.shiftKey && k === "h") { e.preventDefault(); A().ribbon("find"); }
 });
 
@@ -518,7 +559,7 @@ root.addEventListener("pointerdown", (e) => {
 // Hero: drag to frame it (works on the original photo; the server re-crops when you let go)
 root.addEventListener("pointerdown", (e) => {
   const box = e.target.closest('[data-hero="img"]'); if (!box || e.target.closest("button") || e.button !== 0) return;
-  const S = E(), h = S.meta.hero, img = box.querySelector("img"); if (!h || !h.srcW) return;
+  const S = E(), h = S.meta.hero, img = box.querySelector("img"); if (!h || !box.classList.contains("can-drag")) return;
   e.preventDefault(); box.setPointerCapture(e.pointerId);
   const rect = box.getBoundingClientRect(), sx = e.clientX, sy = e.clientY;
   const [px0, py0] = (POS.test(h.pos || "") ? h.pos : "50% 50%").split(" ").map(parseFloat);
@@ -526,12 +567,13 @@ root.addEventListener("pointerdown", (e) => {
   let pos = h.pos || "50% 50%";
   const move = (ev) => {
     let px = px0, py = py0;
-    if (ir > fr) { const over = rect.height * ir - rect.width; px = px0 - ((ev.clientX - sx) / over) * 100; }
-    else { const over = rect.width / ir - rect.height; py = py0 - ((ev.clientY - sy) / over) * 100; }
+    if (ir > fr) { const over = rect.height * ir - rect.width; if (over > 1) px = px0 - ((ev.clientX - sx) / over) * 100; }
+    else { const over = rect.width / ir - rect.height; if (over > 1) py = py0 - ((ev.clientY - sy) / over) * 100; }
     pos = `${Math.round(Math.max(0, Math.min(100, px)))}% ${Math.round(Math.max(0, Math.min(100, py)))}%`;
     img.style.objectPosition = pos;
   };
-  const up = () => { box.removeEventListener("pointermove", move); box.removeEventListener("pointerup", up); A().setHeroPos(pos); };
+  box.classList.add("is-dragging");
+  const up = () => { box.classList.remove("is-dragging"); box.removeEventListener("pointermove", move); box.removeEventListener("pointerup", up); if (pos !== (h.pos || "50% 50%")) A().setHeroPos(pos); };
   box.addEventListener("pointermove", move); box.addEventListener("pointerup", up);
 });
 
@@ -574,7 +616,7 @@ window.lastRange = null;
 document.addEventListener("selectionchange", () => {
   const sel = getSelection(); if (!sel.rangeCount) return; const r = sel.getRangeAt(0), el = richOf(r.commonAncestorContainer);
   if (el) {
-    window.lastRange = { range: r.cloneRange(), el }; A().caretIn(blockIndex(el));
+    window.lastRange = { range: r.cloneRange(), el }; window.plainField = null; if (blkOf(el)) A().caretIn(blockIndex(el));
     const n = r.startContainer.nodeType === 1 ? r.startContainer : r.startContainer.parentElement;
     A().selState({ bold: document.queryCommandState("bold"), italic: document.queryCommandState("italic"), link: !!n.closest("a") });
   }
@@ -618,6 +660,44 @@ root.addEventListener("pointerdown", (e) => {
   const up = () => { h.removeEventListener("pointermove", move); h.removeEventListener("pointerup", up); if (res) A().setWrapMode(i, res.side, res.mode); };
   h.addEventListener("pointermove", move); h.addEventListener("pointerup", up);
 });
+
+// ---- text width: drag the side edges of a paragraph, title, list or text box ----
+// Edges are a share (0-100) of the content width, the width of single photos. They snap to its two margins and to the
+// edges of the normal reading column; double-click an edge to go back to the normal column.
+function contentBox() {
+  const body = $(".article-body"), br = body.getBoundingClientRect();
+  const probe = document.createElement("div"); probe.style.cssText = "position:absolute;visibility:hidden;width:var(--cw-inner)"; body.appendChild(probe);
+  const cw = probe.offsetWidth; probe.remove();
+  const col = Math.min(46 * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16), br.width - 24);
+  const x0 = br.left + (br.width - cw) / 2;
+  return { x0, cw, defL: ((br.width - col) / 2 - (br.width - cw) / 2) / cw * 100, defR: ((br.width + col) / 2 - (br.width - cw) / 2) / cw * 100 };
+}
+let guide = null;
+const showGuide = (x) => { if (!guide) { guide = document.createElement("div"); guide.className = "snap-guide"; document.body.appendChild(guide); } guide.style.left = x + "px"; guide.hidden = x == null; };
+root.addEventListener("pointerdown", (e) => {
+  const h = e.target.closest(".box-handle"); if (!h || e.button !== 0) return;
+  e.preventDefault(); h.setPointerCapture(e.pointerId);
+  const blk = h.closest(".blk"), i = Number(blk.dataset.i), side = h.dataset.side, b = E().blocks[i];
+  const C = contentBox(), rect = blk.getBoundingClientRect();
+  let l = b.box ? b.box.l : (rect.left - C.x0) / C.cw * 100, r = b.box ? b.box.r : (rect.right - C.x0) / C.cw * 100, moved = false;
+  A().select(i, null);
+  const move = (ev) => {
+    moved = true;
+    let v = (ev.clientX - C.x0) / C.cw * 100, snapped = null;
+    for (const t of [0, 100, C.defL, C.defR]) if (Math.abs(v - t) * C.cw / 100 < 12) { v = t; snapped = t; break; }
+    if (side === "l") l = Math.max(0, Math.min(r - 15, v)); else r = Math.min(100, Math.max(l + 15, v));
+    blk.classList.add("has-box"); blk.style.setProperty("--l", l); blk.style.setProperty("--r", r);
+    showGuide(snapped == null ? null : C.x0 + (snapped / 100) * C.cw);
+  };
+  const up = () => {
+    h.removeEventListener("pointermove", move); h.removeEventListener("pointerup", up); showGuide(null);
+    if (!moved) return;
+    const near = (a, x) => Math.abs(a - x) < 0.6;
+    A().setBox(i, near(l, C.defL) && near(r, C.defR) ? null : { l: Math.round(l * 2) / 2, r: Math.round(r * 2) / 2 });
+  };
+  h.addEventListener("pointermove", move); h.addEventListener("pointerup", up);
+});
+root.addEventListener("dblclick", (e) => { const h = e.target.closest(".box-handle"); if (h) A().setBox(Number(h.closest(".blk").dataset.i), null); });
 
 // ---- drag the pink bar under a panorama or a spacer to change its height ----
 root.addEventListener("pointerdown", (e) => {
