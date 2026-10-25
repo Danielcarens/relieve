@@ -9,62 +9,65 @@ subtitle: "Todas las formas de mostrar una foto, y cómo hacer que el texto las 
 description: "Guía del editor de RELIEVE: fotos."
 date: 2026-10-22
 author: Daniel
-credit: Daniel Cárdenas
+credit: Fotos de Pexels, solo para esta guía
 draft: true
-imgBase: /assets/img/caprock-10-2026/
+imgBase: /assets/img/guia-fotos/
 hero:
   file: hero
   w: 2560
   h: 1440
-  alt: Vista panorámica de los cañones rojos de Caprock Canyons bajo un cielo con nubes finas.
+  srcW: 5272
+  srcH: 2962
+  pos: 50% 50%
+  alt: Vista aérea de un volcán de laderas verdes que se eleva sobre un lago y un pueblo, bajo un cielo azul con nubes finas.
   caption: Foto de portada de ejemplo.
 photos:
   pano1:
-    file: pano-1
-    w: 6000
-    h: 1165
+    file: volcan-pano
+    w: 3600
+    h: 699
     focus: 50
-    alt: Panorámica desde el borde del cañón, con paredes de roca roja y vegetación verde que se extienden hasta el horizonte bajo un cielo azul.
-    caption: Vista desde el borde del cañón.
+    alt: Franja panorámica de un volcán de laderas azuladas con nubes cerca de la cima, vista desde el aire.
+    caption: El volcán, en formato panorámico.
   agujas:
-    file: agujas-roca-roja
-    w: 3600
-    h: 2398
+    file: plaza
+    w: 2576
+    h: 1682
     ratio: 2
-    alt: Muro de roca roja con dos agujas de piedra en la cima, iluminadas por la luz dorada de la tarde.
-    caption: Dos agujas de roca coronan uno de los muros del cañón.
+    alt: Plaza peatonal con grandes sombrillas de tela blanca, gente caminando y, al fondo, una iglesia blanca con torre y cúpula.
+    caption: Una plaza con sombrillas de tela y una iglesia blanca al fondo.
   noche:
-    file: tips-noche
-    w: 3600
-    h: 2398
-    alt: Letrero iluminado de una licorería de noche, con niebla y reflejos rojos de neón sobre el asfalto mojado.
-    caption: Luces de neón en una noche de niebla.
+    file: atardecer-salto
+    w: 2600
+    h: 1733
+    alt: Un niño salta al agua al atardecer con botes a lo lejos y otros bañistas en el agua, bajo un cielo anaranjado.
+    caption: Un salto al agua a la hora dorada.
   capas:
-    file: capas-roca-detalle
-    w: 3600
-    h: 2398
-    alt: Detalle de capas de roca roja erosionada con una franja blanca.
-    caption: A pocos centímetros, la roca se lee por capas.
+    file: cumbres-nevadas
+    w: 1500
+    h: 2000
+    alt: Vista aérea de montañas de roca oscura con nieve y glaciares en las laderas.
+    caption: Desde arriba, la montaña se lee por capas.
   pano2:
-    file: pano-2
-    w: 6000
-    h: 2569
+    file: esquina-pano
+    w: 2000
+    h: 855
     focus: 50
-    alt: Vista panorámica de los cañones rojos de Caprock Canyons bajo un cielo con nubes finas, con árboles y arbustos en primer plano.
-    caption: El cañón completo, de borde a borde.
+    alt: Esquina de un edificio antiguo de pintura rosa descascarada y rejas negras, junto a una avenida con carros y montañas al fondo.
+    caption: La esquina completa, de borde a borde.
   autor:
-    file: autorretrato-mirador
-    w: 3600
-    h: 2398
-    alt: Daniel sonriendo en un mirador, con gafas sobre la gorra y una mochila con trípode, con el cañón rojo detrás.
-    caption: Un alto en el mirador.
+    file: calle-catedral
+    w: 1717
+    h: 2576
+    alt: Calle colonial estrecha con balcones de madera, fachadas de colores y la torre rosada de una catedral al fondo; unas personas caminan por la calle.
+    caption: Una calle colonial que termina en la torre de la catedral.
   cresta:
-    file: cresta-anochecer-pano
-    w: 6000
-    h: 1702
+    file: bosque-pano
+    w: 2576
+    h: 732
     focus: 55
-    alt: Siluetas negras de las crestas del cañón al anochecer, con dos árboles sin hojas contra un cielo azul oscuro.
-    caption: Las crestas al anochecer.
+    alt: Franja panorámica de un bosque de pinos que se extiende hasta una montaña con las cumbres nevadas, bajo un cielo azul.
+    caption: El bosque y la montaña, de lado a lado.
 ---
 Las fotos se agregan con Insertar → *Foto…*, con el botón **+** entre bloques, arrastrándolas desde la computadora o pegándolas. El editor las achica, quita la ubicación GPS y pide un **texto alternativo** (la descripción para personas que no ven la foto y para Google).
 
