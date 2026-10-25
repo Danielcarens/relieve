@@ -59,7 +59,7 @@ export const recuadroStr = (b) => [FONDOS.includes(b.fondo) ? b.fondo : "gris", 
 const edgeTok = (v) => (v === "texto" ? "texto" : String(Math.round(v * 10) / 10));
 const boxStr = (x) => `${edgeTok(x.l)} ${edgeTok(x.r)}`;
 const edgeOf = (s) => (s === "texto" ? "texto" : Number(s));
-const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details", "datos", "foto", "fila"];
+const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details", "datos", "foto", "fila", "quote", "button", "hr", "video", "map", "ficha"];
 const boxable = (b) => BOXABLE.includes(b.type) && !(b.wrap && b.wrap.side) && !b.full;   // floating photos and full-bleed rows have their own width
 const LIST_UL = /^[-*+]\s+/, LIST_OL = /^\d+[.)]\s+/;
 

@@ -134,7 +134,7 @@ Un recuadro resalta un consejo, un dato o una advertencia. Insertar → *Recuadr
 
 ## Ancho libre del texto
 
-Al pasar el cursor por un párrafo, título, lista o recuadro aparecen dos barras rosas a sus lados. Arrástralas para hacer el bloque más angosto o más ancho, hasta los márgenes del contenido (el ancho de las fotos). Al acercarte, el borde se pega a los márgenes de las fotos, a los de la columna de texto o al centro; un borde pegado a la columna de texto sigue alineado con ella en cualquier pantalla. Doble clic en una barra devuelve el bloque al ancho normal. En celular todo vuelve a la columna normal.
+Al pasar el cursor por un párrafo, título, lista o recuadro aparecen dos barras rosas a sus lados. Arrástralas para hacer el bloque más angosto o más ancho, hasta los márgenes del contenido (el ancho de las fotos). Al acercarte, el borde se pega a los márgenes de las fotos, a los de la columna de texto, al centro y a los bordes de cualquier otro elemento: otros párrafos, fotos (también cada foto de una fila), recuadros, fichas, citas, datos, videos y mapas. Un borde pegado a la columna de texto sigue alineado con ella en cualquier pantalla. Todos los bloques tienen estas barras, aunque cada uno empiece con su ancho normal. Doble clic en una barra devuelve el bloque al ancho normal. En celular todo vuelve a la columna normal.
 
 {% caja "0 texto" %}
 Este párrafo empieza en el margen izquierdo de las fotos y termina donde termina la columna de texto. Sirve para dar aire a una página, alinear un texto con una foto o armar un artículo menos rígido.
