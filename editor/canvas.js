@@ -848,5 +848,6 @@ if (PREVIEW) {
   for (const ev of ["pointerdown", "click", "keydown", "input", "paste", "dragstart", "drop", "focusin"]) document.addEventListener(ev, (e) => { if (!e.target.closest || !e.target.closest(".pano-scroll")) { e.stopPropagation(); if (ev !== "pointerdown" && ev !== "focusin") e.preventDefault(); } }, true);
   const lock = () => document.querySelectorAll("[contenteditable]").forEach((n) => n.setAttribute("contenteditable", "false"));
   new MutationObserver(lock).observe(document.getElementById("root"), { childList: true, subtree: true }); lock();
+  render();   // nobody else draws this frame: the main canvas is redrawn by the editor, this copy only once
   document.querySelectorAll("textarea").forEach((t) => (t.readOnly = true));
 }
