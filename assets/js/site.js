@@ -32,27 +32,6 @@
     });
   });
 
-  /* ---- Navbar line: a flat hand-drawn line with a low mountain range right under the logo (theme.css,
-          ".navbar-ridge"). Measures where the logo starts and ends, so the range always sits right
-          under it, on phones and on desktop. ---------------------------------------------------- */
-  (function () {
-    var nav = document.querySelector(".navbar-ridge");
-    var logo = nav && nav.querySelector(".navbar-brand .wordmark");
-    if (!logo) return;
-
-    function place() {
-      var box = nav.getBoundingClientRect();
-      var rect = logo.getBoundingClientRect();
-      nav.style.setProperty("--ridge-x1", Math.round(rect.left - box.left) + "px");
-      nav.style.setProperty("--ridge-x2", Math.round(rect.right - box.left) + "px");
-    }
-
-    place();
-    window.addEventListener("resize", place);
-    window.addEventListener("load", place);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
-  })();
-
   /* ---- Article hero video: the photo stays until the reader clicks. Then
           the YouTube player replaces it in the same frame. Uses the
           privacy-enhanced domain, so YouTube gets nothing before the click. - */

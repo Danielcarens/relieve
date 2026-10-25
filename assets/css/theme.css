@@ -184,22 +184,23 @@ p { text-wrap: pretty; }
   --bs-navbar-toggler-border-radius: 0;
 }
 
-/* The navbar's bottom edge is a hand-inked line instead of a straight 2px rule: flat, with a low mountain range right
-   under the logo (the arrow and RELIEVE), then flat again. Three masks, filled with the text color:
-   relieve-ridge-llano-a.svg (ends at the logo), relieve-ridge-cadena.svg (the range, drawn to the width of the logo)
-   and relieve-ridge-llano-b.svg (starts after the logo). The flat pieces are stretched to the width they need (a nearly
-   horizontal line does not mind). site.js measures the logo and sets --ridge-x1 / --ridge-x2 (px from the left edge of
-   the navbar). Without them (no JavaScript) the first piece fills the whole width: flat all the way. All pieces are
-   flat at their ends so they join.
+/* The navbar's bottom edge is not a plain border but a line that comes alive near the logo: a straight 2px line (the
+   same as every other rule on the site) that, closer to the logo, starts to waver by hand, turns into a low mountain
+   range right under the arrow and RELIEVE, and calms down again on the other side. Five masks filled with the text
+   color: a straight 2px bar, the left piece (relieve-ridge-izq.svg), the range (relieve-ridge-cadena.svg), the right
+   piece (relieve-ridge-der.svg) and another straight bar. The pieces next to the range are 440px wide at most and end
+   perfectly straight, with the strokes exactly 2px, so they join the bars without a seam; on narrow screens they
+   shrink to the room there is. ridge.js measures the logo and sets the position (--r*-x) and width (--r*-w) of each
+   piece; without JavaScript only the first bar is drawn, across the whole width. The tiles are 56 units tall and shown
+   --ridge-h (1.75rem = 28px) tall, so 4 units are exactly 2px.
    The navbar keeps --ridge-h of free space at the bottom for the peaks; to go back to the plain rule, replace
    `navbar-ridge` with `border-bottom border-2 border-strong` in partials/navbar.njk. */
 .navbar-ridge {
-  --ridge-h: 1.5rem;
+  --ridge-h: 1.75rem;
   position: relative;
   border-bottom: 0 !important;
   padding-bottom: var(--ridge-h) !important;
 }
-@media (min-width: 992px) { .navbar-ridge { --ridge-h: 1.75rem; } }
 .navbar-ridge::after {
   content: "";
   position: absolute;
@@ -208,16 +209,14 @@ p { text-wrap: pretty; }
   bottom: 0;
   height: var(--ridge-h);
   background-color: var(--bs-body-color);
-  --rx1: var(--ridge-x1, 100vw);
-  --rx2: var(--ridge-x2, 100vw);
-  -webkit-mask-image: url("../img/relieve-ridge-llano-a.svg"), url("../img/relieve-ridge-cadena.svg"), url("../img/relieve-ridge-llano-b.svg");
-  mask-image: url("../img/relieve-ridge-llano-a.svg"), url("../img/relieve-ridge-cadena.svg"), url("../img/relieve-ridge-llano-b.svg");
+  -webkit-mask-image: linear-gradient(#000, #000), url("../img/relieve-ridge-izq.svg"), url("../img/relieve-ridge-cadena.svg"), url("../img/relieve-ridge-der.svg"), linear-gradient(#000, #000);
+  mask-image: linear-gradient(#000, #000), url("../img/relieve-ridge-izq.svg"), url("../img/relieve-ridge-cadena.svg"), url("../img/relieve-ridge-der.svg"), linear-gradient(#000, #000);
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
-  -webkit-mask-size: var(--rx1) 100%, calc(var(--rx2) - var(--rx1)) 100%, calc(100vw - var(--rx2)) 100%;
-  mask-size: var(--rx1) 100%, calc(var(--rx2) - var(--rx1)) 100%, calc(100vw - var(--rx2)) 100%;
-  -webkit-mask-position: 0 bottom, var(--rx1) bottom, var(--rx2) bottom;
-  mask-position: 0 bottom, var(--rx1) bottom, var(--rx2) bottom;
+  -webkit-mask-size: var(--rl-s, 100vw) 2px, var(--rl-w, 0px) 100%, var(--rc-w, 0px) 100%, var(--rr-w, 0px) 100%, var(--rs-w, 0px) 2px;
+  mask-size: var(--rl-s, 100vw) 2px, var(--rl-w, 0px) 100%, var(--rc-w, 0px) 100%, var(--rr-w, 0px) 100%, var(--rs-w, 0px) 2px;
+  -webkit-mask-position: 0 bottom, var(--rl-x, 0px) bottom, var(--rc-x, 0px) bottom, var(--rr-x, 0px) bottom, var(--rs-x, 0px) bottom;
+  mask-position: 0 bottom, var(--rl-x, 0px) bottom, var(--rc-x, 0px) bottom, var(--rr-x, 0px) bottom, var(--rs-x, 0px) bottom;
   pointer-events: none;
 }
 
