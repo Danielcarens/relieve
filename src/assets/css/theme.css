@@ -276,6 +276,10 @@ p { text-wrap: pretty; }
 }
 :is(.btn-quiet, .navbar .btn-outline-dark).active { box-shadow: inset 0 -2px 0 var(--bs-body-color); }
 :is(.btn-quiet, .navbar .btn-outline-dark).active:hover { background-color: var(--bs-secondary-bg); }
+/* ES/EN: no bar; the current language in black, the other in a lighter grey (4.6:1 on white) */
+.navbar .btn-group > .btn[lang] { color: #6b7773; opacity: 1; }
+.navbar .btn-group > .btn[lang].active { color: var(--bs-body-color); box-shadow: none; }
+.navbar .btn-group > a.btn[lang]:hover { color: var(--bs-body-color); }
 
 /* Icon-only button (Google Material Symbols). Square, same height as every control. */
 .btn-icon { width: var(--control-height); padding: 0; }

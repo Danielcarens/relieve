@@ -86,7 +86,7 @@ Every page loads, in this order: preloads for Archivo and the icon font (`/asset
 | Article | `h1.display-1`, `.lead`, `col-lg-8 col-xl-7` text columns, `figure.figure.w-100`, `blockquote.blockquote.pullquote` |
 | Image next to text | `.row.align-items-center` with two `.col-lg-6` (add `order-lg-2` to alternate) |
 | Buttons | `.btn.btn-primary` (main action), `.btn.btn-outline-dark` (theme-aware ghost, for a secondary button inside an article), `.btn-quiet` (no box: bars and menus) |
-| Language switch | `.btn-group` with two `.btn-outline-dark` buttons carrying `data-set-lang` (shown without a box: the current language has a bar under it) |
+| Language switch | `.btn-group` with two `.btn-outline-dark` buttons carrying `data-set-lang` (no box and no bar: the current language in black, the other in a lighter grey) |
 
 ### Article text blocks (shortcodes; the editor's "Insertar" menu writes them)
 
