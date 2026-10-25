@@ -33,7 +33,8 @@ body { background: var(--bs-body-bg); }
 .ed-rich a { text-decoration: underline; }
 .ed-title { font-family: var(--font-serif-display); font-size: clamp(2.75rem, 1.8rem + 4.2vw, 5rem); line-height: 1; letter-spacing: -0.01em; }
 .ed-sub { font-size: 1.25rem; }
-.ed-date { font-size: .9rem; opacity: .7; margin-bottom: .75rem; }
+.ed-date { font-size: .8rem; opacity: .7; }
+.ed-byline { cursor: pointer; } .ed-byline:hover { text-decoration: underline dotted; }
 
 .article-body { padding-bottom: 8rem; }
 .blk { position: relative; }
@@ -86,7 +87,7 @@ body.is-file-drag .drop-overlay { display: grid; }
 
 /* Text wrapping in the canvas: the same classes as the site (theme.css), applied to the block wrapper */
 .article-body > :is(.blk-media:not(.wrap), .blk-pano, .blk-h2, .ficha-solo-blk) { clear: both; }
-.blk.wrap { z-index: 1; }
+.blk.wrap { z-index: 7; }   /* above the "+" bars of the blocks it floats beside, so clicks on it reach the photo */
 .blk-quote.wrap .ed-field { font-size: clamp(1.9rem, 1.2rem + 2.2vw, 2.6rem); }
 .blk-ficha { margin-block: 0; }
 .blk-ficha.ficha-solo-blk { width: var(--cw-inner); margin: 3rem auto; }
@@ -161,6 +162,25 @@ body.is-file-drag .drop-overlay { display: grid; }
 .blk:hover > .box-handle, .blk.is-sel > .box-handle { display: block; }
 .blk.has-box::after { content: ""; position: absolute; inset: 0; outline: 1px dashed rgba(var(--bs-primary-rgb), .45); pointer-events: none; }
 @media (max-width: 767.98px) { .box-handle { display: none !important; } .blk.has-box::after { content: none; } }
+/* Resize handles of a selected photo (Word-style): sides = width, top / bottom = height, corners = both */
+.ratio > .rz { position: absolute; width: 12px; height: 12px; background: var(--bs-body-bg); border: 2px solid var(--bs-primary); z-index: 7; display: none; touch-action: none; }
+.blk.is-sel .rz { display: block; }
+.ratio > .rz { inset: auto; }   /* Bootstrap stretches every child of .ratio */
+.ratio > .rz-l, .ratio > .rz-r { top: calc(50% - 6px); cursor: ew-resize; } .ratio > .rz-l { left: -6px; } .ratio > .rz-r { right: -6px; }
+.ratio > .rz-t, .ratio > .rz-b { left: calc(50% - 6px); cursor: ns-resize; } .ratio > .rz-t { top: -6px; } .ratio > .rz-b { bottom: -6px; }
+.ratio > .rz-tl { left: -6px; top: -6px; cursor: nwse-resize; } .ratio > .rz-br { right: -6px; bottom: -6px; cursor: nwse-resize; }
+.ratio > .rz-tr { right: -6px; top: -6px; cursor: nesw-resize; } .ratio > .rz-bl { left: -6px; bottom: -6px; cursor: nesw-resize; }
+.blk-media .ratio:has(.rz) { overflow: visible; }
+.blk-media .ratio:has(.rz) > img { overflow: hidden; }
+/* a floating photo keeps its outer side for the pink bar (side and position); its inner side resizes it */
+.wrap-left .rz-l, .wrap-left .rz-tl, .wrap-left .rz-bl, .wrap-right .rz-r, .wrap-right .rz-tr, .wrap-right .rz-br { display: none !important; }
+@media (max-width: 767.98px) { .rz-l, .rz-r, .rz-tl, .rz-tr, .rz-bl, .rz-br { display: none !important; } }
+/* single photos and rows: as wide as the photos' column, so their edges and handles sit on its margins */
+@media (min-width: 768px) {
+  .blk-photo, .blk-row { width: var(--cw-inner); margin-inline: auto; }
+  .blk-photo > .container, .blk-row > .container { max-width: none; padding-inline: 0; }
+}
+
 /* Facts row: as wide as single photos (its lines and text start at their edges); the side handles change it */
 .blk-datos { width: var(--cw-inner); margin-inline: auto; }
 .blk-datos > .container { max-width: none; padding-inline: 0; }
@@ -189,4 +209,4 @@ body.is-file-drag .drop-overlay { display: grid; }
 .is-preview .ed-rich:empty::before, .is-preview .ed-field::placeholder { opacity: 0; }
 .is-preview .ed-space { outline: 0; }
 .is-preview .ed-hero-img, .is-preview .blk-media .ratio { cursor: default; }
-.is-preview .ed-hero-zoom { display: none; }
+.is-preview .ed-hero-zoom, .is-preview .rz { display: none !important; }

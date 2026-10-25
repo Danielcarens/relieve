@@ -155,15 +155,18 @@ function patchGrid(row, tree, ratios) {   // ratios: { id: ratio }; updates the 
   row.querySelectorAll("[data-n]").forEach((el) => { const v = vars[Number(el.dataset.n)]; el.style.cssText = cellStyle(v); if (el.dataset.item) el.querySelector(".ratio").style.setProperty("--bs-aspect-ratio", (100 / ratios[el.dataset.item]).toFixed(3) + "%"); });
 }
 
+// Word-style handles around a selected photo: the sides change its width, top and bottom its height (the crop),
+// the corners both. Edges snap to the edges of the other photos (also each photo of a row), the margins and the text column.
+const RZ = ["l", "r", "t", "b", "tl", "tr", "bl", "br"].map((k) => `<div class="rz rz-${k}" data-rz="${k}"></div>`).join("");
 function photoFrame(p, base, i, id, inRow = false) {
   const r = ratioOf(p);
   return `<div class="ratio figure-img" data-id="${esc(id)}" style="--bs-aspect-ratio: ${(100 / r).toFixed(3)}%">
 <img src="${IMG(base, p.file, "-sm.jpg")}" class="object-fit-cover" style="object-position: ${posOf(p)}" alt="" draggable="false">
-${inRow ? "" : `<div class="crop-handle" data-id="${esc(id)}" title="Arrastra hacia arriba o abajo para recortar"></div>`}</div>`;
+${inRow ? "" : RZ}</div>`;
 }
 const caption = (p, id) => inl(`data-cap="${esc(id)}"`, p.caption, "Descripción (opcional)", "cap-field figure-caption");
 
-const wrapCls = (b, kind) => (b.wrap && b.wrap.side ? ` wrap wrap-${b.wrap.side} wrap-s${b.wrap.size || 40}${b.wrap.edge ? " wrap-edge" : b.wrap.hang ? " wrap-hang" : ""} ${kind}` : "");
+const wrapCls = (b, kind) => (b.wrap && b.wrap.side ? ` wrap wrap-${b.wrap.side}${[33, 40, 50].includes(b.wrap.size || 40) ? ` wrap-s${b.wrap.size || 40}` : ""}${b.wrap.edge ? " wrap-edge" : b.wrap.hang ? " wrap-hang" : ""} ${kind}` : "");
 const fichaHTML = (f, base, S, id) => {
   const ff = (path, ph, tag = "span") => inl(`data-ff="${esc(id)}:${path}"`, path.split(".").reduce((o, k) => (o == null ? o : o[k]), f), ph, "", tag);
   const photo = f.photo && S.photos[f.photo] ? `<div class="ratio figure-img" style="--bs-aspect-ratio: ${(100 / ratioOf(S.photos[f.photo])).toFixed(3)}%"><img src="${IMG(base, S.photos[f.photo].file, "-sm.jpg")}" class="object-fit-cover" style="object-position: ${posOf(S.photos[f.photo])}" alt="" draggable="false"></div>` : "";
@@ -179,7 +182,7 @@ const recuadroCls = (b) => { const f = b.fondo || "gris"; return [`fondo-${f}`, 
 const COL = "min(46rem, 100% - 1.5rem)";
 const edgeX = (v, side) => (v === "texto" ? `calc((100% ${side === "l" ? "-" : "+"} ${COL}) / 2)` : `calc((100% - var(--cw-inner)) / 2 + var(--cw-inner) * ${v} / 100)`);
 const boxVars = (x) => `--x1: ${edgeX(x.l, "l")}; --x2: ${edgeX(x.r, "r")}`;
-const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details", "datos"];
+const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details", "datos", "foto", "fila"];
 // A floating photo, quote or card wraps the text that comes AFTER it. If nothing comes after it, say so.
 const BESIDE = ["p", "ul", "ol", "h3", "callout", "details", "button", "raw"];
 function floatHint(S, i) {
@@ -198,10 +201,11 @@ function blockHTML(b, i, S) {
 <button data-a="dup" title="Duplicar">${svg("dup")}</button><button data-a="del" title="Eliminar">${svg("del")}</button></div>`;
   const handle = `<div class="blk-handle" draggable="true" title="Arrastra para mover">${svg("grip")}</div>`;
   const sel = S.sel && S.sel.i === i ? " is-sel" : "";
-  const boxable = BOXABLE.includes(b.type) && !(b.wrap && b.wrap.side);
-  const box = boxable && b.box ? ` has-box" style="${boxVars(b.box)}` : "";
-  const edges = boxable ? '<div class="box-handle" data-side="l" title="Arrastra para cambiar el ancho del texto. Doble clic: ancho normal"></div><div class="box-handle" data-side="r" title="Arrastra para cambiar el ancho del texto. Doble clic: ancho normal"></div>' : "";
-  const wrap = (cls, inner, extra = "") => `<div class="blk ${cls}${extra}${sel}${b.align === "center" ? " is-center" : ""}${box}" data-i="${i}">${handle}${tools}${edges}${inner}${extra.includes(" wrap ") ? floatHint(S, i) : ""}</div>`;
+  const boxable = BOXABLE.includes(b.type) && !(b.wrap && b.wrap.side) && !b.full;
+  const style = [boxable && b.box ? boxVars(b.box) : "", b.wrap && b.wrap.side && ![33, 40, 50].includes(b.wrap.size || 40) ? `--ws: ${b.wrap.size / 100}` : ""].filter(Boolean).join("; ");
+  const what = b.type === "fila" ? "de la fila" : b.type === "datos" ? "de los datos" : "del texto";
+  const edges = boxable && b.type !== "foto" ? `<div class="box-handle" data-side="l" title="Arrastra para cambiar el ancho ${what}. Doble clic: ancho normal"></div><div class="box-handle" data-side="r" title="Arrastra para cambiar el ancho ${what}. Doble clic: ancho normal"></div>` : "";
+  const wrap = (cls, inner, extra = "") => `<div class="blk ${cls}${extra}${sel}${b.align === "center" ? " is-center" : ""}${boxable && b.box ? " has-box" : ""}"${style ? ` style="${style}"` : ""} data-i="${i}">${handle}${tools}${edges}${inner}${extra.includes(" wrap ") ? floatHint(S, i) : ""}</div>`;
   const rich = (ph) => `<div class="ed-field ed-rich" contenteditable="true" spellcheck="true" data-t="${i}" data-ph="${ph}">${mdToHtml(b.text)}</div>`;
   const text = (cls, ph) => wrap(cls, rich(ph));
   const plain = (key, ph, cls = "", tag = "div") => `<${tag} class="ed-plain ${cls}" contenteditable="plaintext-only" spellcheck="true" data-f="${i}:${key}" data-ph="${ph}">${esc(key.split(".").reduce((o, k) => (o == null ? o : o[k]), b) || "")}</${tag}>`;
@@ -242,17 +246,17 @@ function blockHTML(b, i, S) {
       const p = S.photos[b.id];
       if (!p) return wrap("blk-text blk-raw", `<pre>Falta la foto "${esc(b.id)}"</pre>`);
       if (b.wrap && b.wrap.side) return wrap("blk-media blk-float", `<figure class="figure ${p.alt ? "" : "alt-missing"}" style="position:relative;margin:0">${photoFrame(p, base, i, b.id)}${caption(p, b.id)}<div class="edge-handle" title="Arrastra hacia el borde de la pantalla (o al otro lado) para cambiar de lado y de posición"></div></figure>`, wrapCls(b, "wrap-photo"));
-      return wrap("blk-media", `<div class="container"><figure class="figure w-100 my-5 ${p.alt ? "" : "alt-missing"}" style="position:relative">${photoFrame(p, base, i, b.id)}${caption(p, b.id)}</figure></div>`);
+      return wrap("blk-media blk-photo", `<div class="container"><figure class="figure w-100 my-5 ${p.alt ? "" : "alt-missing"}" style="position:relative">${photoFrame(p, base, i, b.id)}${caption(p, b.id)}</figure></div>`);
     }
     case "fila": {
-      if (b.tree) return wrap("blk-media", b.full ? gridHTML(b, S, base, i) : `<div class="container">${gridHTML(b, S, base, i)}</div>`);
+      if (b.tree) return wrap("blk-media" + (b.full ? "" : " blk-row"), b.full ? gridHTML(b, S, base, i) : `<div class="container">${gridHTML(b, S, base, i)}</div>`);
       const items = b.ids.map((id) => {
         const p = S.photos[id]; if (!p) return "";
         const si = S.sel && S.sel.i === i && S.sel.id === id ? " is-sel-item" : "";
         return `<figure class="fila-item figure${si} ${p.alt ? "" : "alt-missing"}" data-item="${esc(id)}" style="--g: ${ratioOf(p).toFixed(3)}">${photoFrame(p, base, i, id, true)}${caption(p, id)}</figure>`;
       }).join("");
       const rowHtml = `<div class="fila${b.full ? " fila-bleed" : ""} my-5" data-row>${items}<div class="row-handle" title="Arrastra hacia arriba o abajo para cambiar la altura de la fila"></div></div>`;
-      return wrap("blk-media", b.full ? rowHtml : `<div class="container">${rowHtml}</div>`);
+      return wrap("blk-media" + (b.full ? "" : " blk-row"), b.full ? rowHtml : `<div class="container">${rowHtml}</div>`);
     }
     case "pano": {
       const p = S.photos[b.id];
@@ -300,14 +304,19 @@ function heroHTML(S) {
   const tape = `<span class="tape">${esc((parent.SECTION_NAMES || {})[m.section] || m.section || "Sección")}</span>`;
   const title = `<textarea class="ed-field ed-title" rows="1" data-m="title" placeholder="Título del artículo">${esc(m.title || "")}</textarea>`;
   const label = { debajo: "título debajo de la foto", titulo: "título arriba", texto: "solo título" }[cab];
-  const date = `<div class="ed-date font-ui">${esc(m.date || "")}${m.draft ? " · Borrador" : ""}${label ? ` · Cabecera: ${label}` : ""}</div>`;
-  const sub = inl('data-m="subtitle"', m.subtitle, "Subtítulo (opcional)", "ed-field ed-sub mt-2");
+  // Under the header, as on the site: the subtitle (big, light) and the byline (author, date, reading time; automatic)
+  const fecha = m.date ? new Intl.DateTimeFormat("es-419", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(m.date)) : "Sin fecha";
+  const words = S.blocks.reduce((n, b) => n + String((b.items || []).join(" ") + " " + (b.text || "") + " " + (b.title || "")).replace(/[*#>\[\]()]/g, " ").split(/\s+/).filter(Boolean).length, 0);
+  const byline = `<ul class="list-inline small-meta mb-0 ed-byline" data-byline title="El autor y la fecha se cambian en la pestaña Artículo; el tiempo de lectura se calcula solo"><li class="list-inline-item me-4"><strong class="text-body">Por ${esc(m.author || "—")}</strong></li><li class="list-inline-item me-4">${esc(fecha)}</li><li class="list-inline-item">${Math.max(1, Math.round(words / 200))} min de lectura</li></ul>`;
+  const aid = m.draft || label ? `<div class="ed-date font-ui">${[m.draft ? "Borrador" : "", label ? `Cabecera: ${label}` : ""].filter(Boolean).join(" · ")}</div>` : "";
+  const sub = inl('data-m="subtitle"', m.subtitle, "Subtítulo (opcional): una o dos frases que resumen el artículo", "lead measure mb-0 ed-sub");
+  const intro = `<div class="container pt-4 pt-lg-5"><div class="row"><div class="col-xl-10 d-grid gap-4">${sub}${byline}${aid}</div></div></div>`;
   const ai = m.ai ? `<div class="notice-band tone-amarillo mt-4" role="note"><div class="container py-3"><strong>Versión de prueba.</strong> Este artículo fue escrito enteramente con inteligencia artificial, solo para probar el diseño de la revista. El texto definitivo lo escribirá el autor.</div></div>` : "";
-  const head = (withTitle) => `<div class="container ed-head">${date}${withTitle ? `<div class="d-grid gap-3 ed-titles">${tape}${title}</div>` : ""}${sub}</div>`;
-  if (cab === "texto") return `<header class="ed-hero-wrap ed-cab-texto pt-4">${head(true)}</header>${ai}`;
-  if (cab === "titulo") return `<header class="ed-hero-wrap ed-cab-titulo pt-4"><div class="container ed-head pb-0"><div class="d-grid gap-3 ed-titles">${tape}${title}</div></div><div class="container mt-4">${photo}</div>${caption}<div class="container ed-head">${date}${sub}</div></header>${ai}`;
-  if (cab === "debajo" || !h) return `<header class="ed-hero-wrap ed-cab-debajo">${photo}${caption}${head(true)}</header>${ai}`;
-  return `<header class="ed-hero-wrap ed-cab-foto"><div class="ed-hero-stack">${photo}<div class="ed-hero-text"><div class="container d-grid gap-3">${tape}${title}</div></div></div>${caption}${head(false)}</header>${ai}`;
+  const titles = (pad) => `<div class="container d-grid gap-3 ed-titles ${pad}">${tape}${title}</div>`;
+  if (cab === "texto") return `<header class="ed-hero-wrap ed-cab-texto">${titles("pt-5")}</header>${ai}${intro}`;
+  if (cab === "titulo") return `<header class="ed-hero-wrap ed-cab-titulo">${titles("pt-5")}<div class="container mt-4">${photo}</div>${caption}</header>${ai}${intro}`;
+  if (cab === "debajo" || !h) return `<header class="ed-hero-wrap ed-cab-debajo">${photo}${caption}${titles("pt-4")}</header>${ai}${intro}`;
+  return `<header class="ed-hero-wrap ed-cab-foto"><div class="ed-hero-stack">${photo}<div class="ed-hero-text"><div class="container d-grid gap-3">${tape}${title}</div></div></div>${caption}</header>${ai}${intro}`;
 }
 
 function render() {
@@ -369,10 +378,13 @@ root.addEventListener("pointerdown", (e) => {
   e.preventDefault(); const cap = e.target; cap.setPointerCapture(e.pointerId);
   A().select(Number(row.closest(".blk").dataset.i), null);
   const sx = e.clientX, sy = e.clientY; let cur = r0;
+  const xsRow = dv ? photoEdges(row) : [];
   const move = (ev) => {
     if (rh) { const k = h0 / Math.max(40, h0 + (ev.clientY - sy)); cur = r0.map((r) => clampR(r * k)); }
     else {
-      const k = Number(dv.dataset.k); const dx = ev.clientX - sx;
+      const k = Number(dv.dataset.k); let dx = ev.clientX - sx;
+      const edge = items[k].querySelector(".ratio").getBoundingClientRect().left + widths[k] + dx;   // where the gap would be
+      for (const t of xsRow) if (Math.abs(edge - t) < 10) { dx += t - edge; break; }
       const wi = Math.max(h0 * 0.4, widths[k] + dx), wj = Math.max(h0 * 0.4, widths[k + 1] - dx);
       cur = r0.slice(); cur[k] = clampR(wi / h0); cur[k + 1] = clampR(wj / h0);
     }
@@ -401,6 +413,7 @@ root.addEventListener("click", (e) => {
   closeMenu();
   const hero = t.closest("[data-hero]");
   if (hero && (t.closest('[data-hero="replace"]') || hero.dataset.hero === "pick")) { A().pickHero(); return; }
+  if (t.closest("[data-byline]")) { A().focusArticle("m.author"); return; }
   if (t.closest('[data-a="float-up"]')) { A().tool("up", Number(t.closest(".blk").dataset.i)); return; }
   if (t.closest(".rq-line-hit")) { A().cycleLine(Number(t.closest(".blk").dataset.i)); return; }
   const tool = t.closest(".blk-tools button");
@@ -540,6 +553,7 @@ document.addEventListener("keydown", (e) => {
 // ---- dragging inside photos: move the crop, or resize it ------------------------------
 root.addEventListener("pointerdown", (e) => {
   if (e.button !== 0) return;
+  if (e.target.closest(".rz")) return;   // the resize handles have their own drag
   const handle = e.target.closest(".crop-handle");
   const frame = e.target.closest(".blk-media .ratio");
   if (!frame) return;
@@ -711,7 +725,7 @@ root.addEventListener("pointerdown", (e) => {
   const move = (ev) => {
     moved = true;
     let v = (ev.clientX - C.x0) / C.cw * 100, snapped = null;
-    for (const t of [0, 100, C.defL, C.defR, 50]) if (Math.abs(v - t) * C.cw / 100 < 12) { v = t; snapped = t; break; }
+    for (const t of [0, 100, C.defL, C.defR, 50, ...photoEdges(blk).map((x) => (x - C.x0) / C.cw * 100)]) if (Math.abs(v - t) * C.cw / 100 < 12) { v = t; snapped = t; break; }
     if (side === "l") { l = Math.max(0, Math.min(r - 15, v)); lv = snapped === C.defL || snapped === C.defR ? "texto" : Math.round(l * 10) / 10; }
     else { r = Math.min(100, Math.max(l + 15, v)); rv = snapped === C.defL || snapped === C.defR ? "texto" : Math.round(r * 10) / 10; }
     const cur = { l: lv ?? (Math.abs(l - C.defL) < 0.3 ? "texto" : Math.round(l * 10) / 10), r: rv ?? (Math.abs(r - C.defR) < 0.3 ? "texto" : Math.round(r * 10) / 10) };
@@ -722,12 +736,66 @@ root.addEventListener("pointerdown", (e) => {
     h.removeEventListener("pointermove", move); h.removeEventListener("pointerup", up); showGuide(null);
     if (!moved) return;
     const box = JSON.parse(blk.dataset.box);
-    const normal = b.type === "datos" ? box.l === 0 && box.r === 100 : box.l === "texto" && box.r === "texto";   // a facts row is normally as wide as the photos
+    const normal = ["datos", "fila", "foto"].includes(b.type) ? box.l === 0 && box.r === 100 : box.l === "texto" && box.r === "texto";   // facts and photos are normally as wide as the photos
     A().setBox(i, normal ? null : box);
   };
   h.addEventListener("pointermove", move); h.addEventListener("pointerup", up);
 });
 root.addEventListener("dblclick", (e) => { const h = e.target.closest(".box-handle"); if (h) A().setBox(Number(h.closest(".blk").dataset.i), null); });
+
+// ---- resize a photo by its handles ----------------------------------------------------------
+// Left and right edges of the other photos on the page (each photo of a row too), in page coordinates
+function photoEdges(except) {
+  const xs = [];
+  document.querySelectorAll(".article-body .ratio").forEach((r) => { if (except && except.contains(r)) return; const b = r.getBoundingClientRect(); if (b.width) xs.push(b.left, b.right); });
+  return xs;
+}
+const photoHeights = (except) => [...document.querySelectorAll(".article-body .ratio")].filter((r) => !(except && except.contains(r))).map((r) => r.getBoundingClientRect().height).filter(Boolean);
+root.addEventListener("pointerdown", (e) => {
+  const h = e.target.closest(".rz"); if (!h || e.button !== 0) return;
+  e.preventDefault(); e.stopPropagation(); h.setPointerCapture(e.pointerId);
+  const blk = h.closest(".blk"), i = Number(blk.dataset.i), S = E(), b = S.blocks[i], frame = h.closest(".ratio"), p = S.photos[b.id];
+  const k = h.dataset.rz, hx = k.includes("l") ? "l" : k.includes("r") ? "r" : null, vy = k.includes("t") ? "t" : k.includes("b") ? "b" : null;
+  const C = contentBox(), rect = frame.getBoundingClientRect(), r0 = ratioOf(p), sx = e.clientX, sy = e.clientY;
+  const float = b.wrap && b.wrap.side ? b.wrap : null;
+  const xs = [C.x0, C.x0 + C.cw, C.x0 + C.cw / 2, C.x0 + C.defL / 100 * C.cw, C.x0 + C.defR / 100 * C.cw, ...photoEdges(blk)];
+  const hs = photoHeights(blk);
+  // a floating photo's width is a share of the text column (or of the photos' width when it hangs out); "borde" adds the margin
+  const col = C.defR / 100 * C.cw - C.defL / 100 * C.cw, edgePx = float && float.edge ? rect.width - col * (float.size || 40) / 100 : 0;
+  A().select(i, null);
+  let L = rect.left, R = rect.right, H = rect.height, out = null;
+  const move = (ev) => {
+    let snapX = null;
+    if (hx) {
+      let x = (hx === "l" ? rect.left : rect.right) + (ev.clientX - sx);
+      for (const t of xs) if (Math.abs(x - t) < 10) { x = t; snapX = t; break; }
+      if (hx === "l") L = Math.min(x, R - 120); else R = Math.max(x, L + 120);
+    }
+    const W = R - L;
+    if (vy) {
+      H = Math.max(60, rect.height + (vy === "b" ? 1 : -1) * (ev.clientY - sy));
+      for (const t of hs) if (Math.abs(H - t) < 8) { H = t; break; }
+    } else H = W / r0;   // only the width: the photo keeps its shape
+    const ratio = Math.round(Math.max(0.4, Math.min(5, W / H)) * 1000) / 1000;
+    frame.style.setProperty("--bs-aspect-ratio", (100 / ratio).toFixed(3) + "%");
+    if (float) {
+      const base = float.hang ? C.cw : col, size = Math.round(Math.max(15, Math.min(70, ((W - edgePx) / base) * 100)));
+      blk.style.setProperty("--ws", size / 100); out = { ratio, size };
+    } else {
+      const l = Math.max(0, (L - C.x0) / C.cw * 100), r = Math.min(100, (R - C.x0) / C.cw * 100);
+      const tok = (v, side) => (Math.abs(v - (side === "l" ? C.defL : C.defR)) < 0.3 ? "texto" : Math.round(v * 10) / 10);
+      const box = { l: tok(l, "l"), r: tok(r, "r") };
+      if (hx) { blk.classList.add("has-box"); blk.style.cssText = boxVars(box); }
+      out = { ratio, box: hx ? box : undefined };
+    }
+    showGuide(snapX);
+  };
+  const up = () => {
+    h.removeEventListener("pointermove", move); h.removeEventListener("pointerup", up); showGuide(null);
+    if (out) { if (out.box && out.box.l === 0 && out.box.r === 100) out.box = null; A().setPhotoFrame(i, out); }
+  };
+  h.addEventListener("pointermove", move); h.addEventListener("pointerup", up);
+});
 
 // ---- drag the pink bar under a panorama or a spacer to change its height ----
 root.addEventListener("pointerdown", (e) => {

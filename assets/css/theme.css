@@ -747,7 +747,8 @@ html[data-lang="en"] body [lang="es"] {
 .caja > h2 { margin-top: 3.5rem; margin-bottom: 1rem; font-size: clamp(2rem, 1.4rem + 1.8vw, 2.75rem); }
 .caja > :is(ul, ol) { padding-left: 1.5rem; margin-bottom: 1.25rem; }
 .article-body > .caja:has(> h2, > .article-center > h2, > .container) { clear: both; }
-.caja > .container { max-width: none; padding-inline: 0; }   /* facts row ({% datos %}) at the width of the box */
+@media (min-width: 768px) { .caja > .container { max-width: none; padding-inline: 0; } }   /* photo, row of photos or facts row at the width of the box */
+@media (max-width: 767.98px) { .article-body > .caja:has(> .container) { width: 100%; margin-inline: 0; } }   /* phones: as without the box (photos edge to edge) */
 .datos-wrap { overflow: hidden; }   /* the row's gutters stay inside the two lines */
 .article-body > .caja { width: min(46rem, 100% - 1.5rem); margin-inline: auto; }
 @media (min-width: 768px) {
