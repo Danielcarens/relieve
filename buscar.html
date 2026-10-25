@@ -83,7 +83,9 @@
 
 
   <main id="main">
-    <section class="container pt-4 pt-md-5 pb-5">
+    
+<div data-pagefind-body hidden></div>
+<section class="container pt-4 pt-md-5 pb-5">
   <h1 class="mb-4">Buscar</h1>
   <p class="lead mb-5" id="search-status" aria-live="polite"></p>
   <ol class="list-unstyled mb-0" id="search-results"></ol>
@@ -108,7 +110,11 @@ else {
       const p = document.createElement("p"); p.className = "mb-0"; p.innerHTML = d.excerpt;
       li.append(h, p); list.append(li);
     }
-  } catch (e) { show("La búsqueda no está disponible en este momento. Inténtalo de nuevo en unos minutos."); }
+  } catch (e) {
+    // No index at all means nothing is published yet (drafts are not searchable)
+    const none = await fetch("/pagefind/pagefind.js", { method: "HEAD" }).then((r) => r.status === 404).catch(() => false);
+    show(none ? `No encontramos resultados para «${q}».` : "La búsqueda no está disponible en este momento. Inténtalo de nuevo en unos minutos.");
+  }
 }
 </script>
 
