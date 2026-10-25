@@ -184,9 +184,12 @@ p { text-wrap: pretty; }
   --bs-navbar-toggler-border-radius: 0;
 }
 
-/* The navbar's bottom edge is a mountain ridge instead of a straight 2px rule. It is a mask (relieve-ridge.svg,
-   a 4000 x 60 tile drawn as a hand-inked outline: soft curves, a stroke of slightly varying width, flat at both ends
-   so tiles join) filled with the text color, so it follows the theme.
+/* The navbar's bottom edge is a hand-inked line instead of a straight 2px rule: flat, with a low mountain range right
+   under the menu links (from the first to the last link), then flat again. Three masks, filled with the text color:
+   relieve-ridge-llano-a.svg (6000 x 60, ends at the first link), relieve-ridge-cadena.svg (the range, stretched to the
+   width of the links) and relieve-ridge-llano-b.svg (starts at the last link). site.js measures the links and sets
+   --ridge-x1 / --ridge-x2 (px from the left edge of the navbar). Without them, or below 992px where the links fold
+   into the menu, the line is flat all the way. All tiles are flat at their ends so the pieces join.
    The navbar keeps --ridge-h of free space at the bottom for the peaks; to go back to the plain rule, replace
    `navbar-ridge` with `border-bottom border-2 border-strong` in partials/navbar.njk. */
 .navbar-ridge {
@@ -204,8 +207,16 @@ p { text-wrap: pretty; }
   bottom: 0;
   height: var(--ridge-h);
   background-color: var(--bs-body-color);
-  -webkit-mask: url("../img/relieve-ridge.svg") repeat-x left bottom / auto 100%;
-  mask: url("../img/relieve-ridge.svg") repeat-x left bottom / auto 100%;
+  --rx1: var(--ridge-x1, 100vw);
+  --rx2: var(--ridge-x2, 100vw);
+  -webkit-mask-image: url("../img/relieve-ridge-llano-a.svg"), url("../img/relieve-ridge-cadena.svg"), url("../img/relieve-ridge-llano-b.svg");
+  mask-image: url("../img/relieve-ridge-llano-a.svg"), url("../img/relieve-ridge-cadena.svg"), url("../img/relieve-ridge-llano-b.svg");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: auto 100%, calc(var(--rx2) - var(--rx1)) 100%, auto 100%;
+  mask-size: auto 100%, calc(var(--rx2) - var(--rx1)) 100%, auto 100%;
+  -webkit-mask-position: calc(var(--rx1) - var(--ridge-h) * 100) bottom, var(--rx1) bottom, var(--rx2) bottom;
+  mask-position: calc(var(--rx1) - var(--ridge-h) * 100) bottom, var(--rx1) bottom, var(--rx2) bottom;
   pointer-events: none;
 }
 
