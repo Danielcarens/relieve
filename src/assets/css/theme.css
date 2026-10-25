@@ -452,6 +452,7 @@ p { text-wrap: pretty; }
 /* Containers are 10% narrower than Bootstrap's from the lg breakpoint up, so
    cards, images and text blocks read slightly smaller. Navbar, hero and
    sections all share these widths, so their edges stay aligned.            */
+html { scrollbar-gutter: stable; }   /* the page's column stays put whether or not the scrollbar shows (and matches the editor's) */
 @media (min-width: 992px)  { .container { max-width: 864px; } }
 @media (min-width: 1200px) { .container { max-width: 1026px; } }
 @media (min-width: 1400px) { .container { max-width: 1188px; } }
