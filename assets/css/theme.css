@@ -185,12 +185,12 @@ p { text-wrap: pretty; }
 }
 
 /* The navbar's bottom edge is a hand-inked line instead of a straight 2px rule: flat, with a low mountain range right
-   under the menu links (from the first to the last link), then flat again. Three masks, filled with the text color:
-   relieve-ridge-llano-a.svg (ends at the first link), relieve-ridge-cadena.svg (the range, stretched to the width of
-   the links) and relieve-ridge-llano-b.svg (starts at the last link). The flat pieces are stretched to the width they
-   need (a nearly horizontal line does not mind). site.js measures the links and sets --ridge-x1 / --ridge-x2 (px from
-   the left edge of the navbar). Without them, or below 992px where the links fold into the menu, the first piece fills
-   the whole width: flat all the way. All pieces are flat at their ends so they join.
+   under the logo (the arrow and RELIEVE), then flat again. Three masks, filled with the text color:
+   relieve-ridge-llano-a.svg (ends at the logo), relieve-ridge-cadena.svg (the range, drawn to the width of the logo)
+   and relieve-ridge-llano-b.svg (starts after the logo). The flat pieces are stretched to the width they need (a nearly
+   horizontal line does not mind). site.js measures the logo and sets --ridge-x1 / --ridge-x2 (px from the left edge of
+   the navbar). Without them (no JavaScript) the first piece fills the whole width: flat all the way. All pieces are
+   flat at their ends so they join.
    The navbar keeps --ridge-h of free space at the bottom for the peaks; to go back to the plain rule, replace
    `navbar-ridge` with `border-bottom border-2 border-strong` in partials/navbar.njk. */
 .navbar-ridge {
