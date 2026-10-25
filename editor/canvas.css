@@ -58,7 +58,7 @@ body { background: var(--bs-body-bg); }
 .blk-quote .ed-field { font-family: var(--font-display); font-stretch: 68%; font-weight: 800; font-size: clamp(2.25rem, 1.4rem + 3.2vw, 3.75rem); line-height: .98; }
 .blk-raw pre { background: var(--bs-secondary-bg); padding: .75rem; white-space: pre-wrap; font-size: .85rem; }
 
-.blk-tools { position: absolute; right: -.35rem; top: -2.4rem; display: none; gap: 1px; z-index: 5; background: var(--bs-body-color); padding: 2px; }
+.blk-tools { position: absolute; right: -.35rem; top: -2.4rem; display: none; gap: 1px; z-index: 8; background: var(--bs-body-color); padding: 2px; }
 .blk:hover > .blk-tools, .blk.is-sel > .blk-tools { display: flex; }
 .blk-media > .blk-tools, .blk-pano > .blk-tools { right: .75rem; top: .5rem; }
 .blk-tools button, .blk-handle { border: 0; background: transparent; color: var(--bs-body-bg); width: 2rem; height: 2rem; display: grid; place-items: center; padding: 0; cursor: pointer; }
@@ -82,7 +82,10 @@ body { background: var(--bs-body-bg); }
 .figure-caption { cursor: text; min-height: 1.2em; }
 .cap-field { font-size: .875rem; color: var(--bs-secondary-color); }
 
-.ins { height: 0; position: relative; z-index: 6; }
+/* The "+" bars make room for floating photos (flow-root: beside a float they get narrower instead of running under it),
+   so their button stays in the free part of the text column and is never hidden by the photo */
+.ins { height: 0; position: relative; z-index: 6; display: flow-root; }
+.ins.is-open, .blk:has(> .ins.is-open) { z-index: 40; }   /* an open menu goes over everything, floating photos too */
 .ins button { position: absolute; left: 50%; top: -.9rem; transform: translateX(-50%); width: 1.8rem; height: 1.8rem; border-radius: 0; border: 2px solid var(--bs-primary); background: var(--bs-body-bg); color: var(--bs-primary); font: 700 1.1rem/1 sans-serif; opacity: 0; cursor: pointer; padding: 0; display: grid; place-items: center; }
 .ins:hover button, .ins.is-open button { opacity: 1; }
 .ins::before { content: ""; position: absolute; left: 0; right: 0; top: -1.2rem; height: 1.2rem; }  /* above the bar: never covers text */
@@ -90,13 +93,20 @@ body { background: var(--bs-body-bg); }
 .ins-menu { position: absolute; left: 50%; top: 1.1rem; transform: translateX(-50%); background: var(--bs-body-bg); border: 2px solid var(--bs-body-color); z-index: 20; min-width: 14rem; font-family: var(--font-display); }
 .ins-menu button { position: static; transform: none; opacity: 1; width: 100%; height: auto; border: 0; border-radius: 0; background: var(--bs-body-bg); color: var(--bs-body-color); text-align: left; padding: .55rem .9rem; font: 600 .95rem/1.2 var(--font-display); display: block; }
 .ins-menu button:hover { background: var(--bs-secondary-bg); }
-.drop-overlay { position: fixed; inset: 0; background: rgba(var(--bs-body-color-rgb), .6); color: var(--bs-body-bg); display: none; place-items: center; font: 800 1.5rem var(--font-display); z-index: 50; pointer-events: none; }
-body.is-file-drag .drop-overlay { display: grid; }
+/* Dragging photos from the computer: a short note at the top; the page stays visible so the pink marks can be seen */
+.drop-overlay { position: fixed; left: 50%; top: .75rem; transform: translateX(-50%); background: var(--bs-body-color); color: var(--bs-body-bg); display: none; padding: .5rem .9rem; font: 700 .9rem/1.2 var(--font-display); z-index: 60; pointer-events: none; white-space: nowrap; }
+body.is-file-drag .drop-overlay { display: block; }
+/* Where a dragged photo will land: a pink line (beside or between photos, between blocks) or a dashed box (floating) */
+.drop-ind { position: fixed; z-index: 70; pointer-events: none; background: var(--bs-primary); border-radius: 3px; box-shadow: 0 0 0 2px var(--bs-body-bg); }
+.drop-ind.is-box { background: rgba(var(--bs-primary-rgb), .12); border: 3px dashed var(--bs-primary); border-radius: 0; box-shadow: none; }
+.drop-tag { position: absolute; left: 50%; top: calc(100% + 8px); transform: translateX(-50%); white-space: nowrap; background: var(--bs-primary); color: #fff; font: 700 .8rem/1 var(--font-display); padding: .4rem .6rem; }
+.drop-ind.is-box .drop-tag { top: .6rem; }
 .blk-dragging { opacity: .35; }
 .empty-hint { text-align: center; padding: 3rem 1rem; opacity: .6; font-family: var(--font-display); }
 
-/* Text wrapping in the canvas: the same classes as the site (theme.css), applied to the block wrapper */
-.article-body > :is(.blk-media:not(.wrap), .blk-pano, .blk-h2, .ficha-solo-blk) { clear: both; }
+/* Text wrapping in the canvas: the same classes as the site (theme.css), applied to the block wrapper. What starts below
+   a floating block on the site starts below it here too: titles, photos, mosaics, quotes in their own row, lines, spaces. */
+.article-body > :is(.blk-media:not(.wrap), .blk-pano, .blk-h2, .ficha-solo-blk, .blk-hr, .blk-space, .blk-quote:not(.wrap)) { clear: both; }
 .blk.wrap { z-index: 7; }   /* above the "+" bars of the blocks it floats beside, so clicks on it reach the photo */
 .blk-quote.wrap .ed-field { font-size: clamp(1.9rem, 1.2rem + 2.2vw, 2.6rem); }
 .blk-ficha { margin-block: 0; }
@@ -107,9 +117,21 @@ body.is-file-drag .drop-overlay { display: grid; }
 .row-handle::after { content: ""; width: 4rem; height: 5px; background: var(--bs-primary); border-radius: 3px; }
 .fila { position: relative; }
 .blk-media:hover .row-handle, .blk-media.is-sel .row-handle { display: grid; }
-.divider { position: absolute; top: 0; width: 16px; cursor: ew-resize; z-index: 4; display: none; }
-.divider::after { content: ""; position: absolute; left: 6px; top: 0; bottom: 0; width: 4px; background: var(--bs-primary); opacity: .85; }
+/* Bars between the photos of a mosaic: side to side (dv-v) they share the width, stacked (dv-h) the height */
+.divider { position: absolute; z-index: 5; display: none; touch-action: none; }
+.divider.dv-v { width: 16px; cursor: ew-resize; }
+.divider.dv-h { height: 16px; cursor: ns-resize; }
+.divider::after { content: ""; position: absolute; background: var(--bs-primary); opacity: .85; border-radius: 2px; }
+.divider.dv-v::after { left: 6px; top: 0; bottom: 0; width: 4px; }
+.divider.dv-h::after { top: 6px; left: 0; right: 0; height: 4px; }
+.divider:hover::after { opacity: 1; box-shadow: 0 0 0 2px var(--bs-body-bg); }
 .blk-media:hover .divider, .blk-media.is-sel .divider { display: block; }
+/* Each photo of a mosaic has its own handle to drag it somewhere else; the mosaic's own handle sits above it */
+.item-grip { position: absolute; left: .5rem; top: .5rem; width: 2rem; height: 2rem; display: none; place-items: center; background: var(--bs-body-color); color: var(--bs-body-bg); cursor: grab; z-index: 6; }
+.item-grip svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.fila-item:hover > .item-grip, .fila-item.is-sel-item > .item-grip { display: grid; }
+.blk-mosaic > .blk-handle { left: 0; top: -2.4rem; }
+.fila-item.blk-dragging { opacity: .35; }
 .blk-ficha > .blk-tools, .blk-quote.wrap > .blk-tools { right: 0; top: -2.4rem; }
 .blk.wrap > .box-handle[data-float] { display: none; } .blk.wrap:hover > .box-handle[data-float], .blk.wrap.is-sel > .box-handle[data-float] { display: block; }
 .blk-ficha > .blk-handle, .blk-quote.wrap > .blk-handle { left: 0; top: -2.4rem; background: var(--bs-body-color); color: var(--bs-body-bg); }
@@ -167,7 +189,7 @@ body.is-file-drag .drop-overlay { display: grid; }
 @media (min-width: 768px) {
   .blk.has-box { width: calc(var(--x2) - var(--x1)); margin-left: var(--x1); margin-right: 0; }
 }
-.box-handle { position: absolute; top: 0; bottom: 0; width: 12px; cursor: ew-resize; z-index: 6; display: none; touch-action: none; }
+.box-handle { position: absolute; top: 0; bottom: 0; width: 12px; cursor: ew-resize; z-index: 8; display: none; touch-action: none; }
 .box-handle[data-side="l"] { left: -12px; } .box-handle[data-side="r"] { right: -12px; }   /* outside the text: never covers it or the line of a text box */
 .box-handle::after { content: ""; position: absolute; left: 4px; top: 50%; height: min(3rem, 100%); transform: translateY(-50%); width: 4px; background: var(--bs-primary); border-radius: 2px; }
 .blk:hover > .box-handle, .blk.is-sel > .box-handle { display: block; }
@@ -199,7 +221,11 @@ body.is-file-drag .drop-overlay { display: grid; }
 .blk-datos > .blk-tools { right: 0; top: .6rem; }
 .datos-wrap { overflow: hidden; }
 .snap-guide { position: fixed; top: 0; bottom: 0; width: 0; border-left: 1px solid var(--bs-primary); z-index: 60; pointer-events: none; }
-.blk-handle { z-index: 7; }
+.snap-guide.snap-guide-h { left: 0; right: 0; bottom: auto; width: auto; height: 0; border-left: 0; border-top: 1px solid var(--bs-primary); }
+.blk-handle { z-index: 8; }
+/* "+" under a floating photo: adds below it (the text beside it stays where it is) */
+.ins.ins-under { position: absolute; left: 0; right: 0; bottom: -.8rem; z-index: 8; }
+.blk.wrap:hover > .ins-under button, .blk.wrap.is-sel > .ins-under button { opacity: 1; }
 
 /* Text box: click the left edge to change the line's colour */
 .blk-callout .recuadro { position: relative; }
@@ -207,13 +233,13 @@ body.is-file-drag .drop-overlay { display: grid; }
 .rq-line-hit:hover { background: rgba(var(--bs-primary-rgb), .15); }
 
 /* A floating block with no text after it */
-.float-hint { position: absolute; left: 0; right: 0; top: calc(100% + .3rem); z-index: 7; background: var(--bs-body-bg); border: 2px dashed var(--bs-primary); padding: .4rem .6rem; font: 500 .8rem/1.35 var(--font-display); color: var(--bs-body-color); }
+.float-hint { position: absolute; left: 0; right: 0; top: calc(100% + 1.9rem); z-index: 7; background: var(--bs-body-bg); border: 2px dashed var(--bs-primary); padding: .4rem .6rem; font: 500 .8rem/1.35 var(--font-display); color: var(--bs-body-color); }
 .float-hint button { border: 0; background: var(--bs-primary); color: #fff; font: 700 .8rem var(--font-display); padding: .2rem .5rem; margin-left: .25rem; cursor: pointer; }
 .ed-inline { cursor: text; }
 .ed-inline a { text-decoration: underline; }
 
 /* Preview: no editing aids */
-.is-preview .blk-tools, .is-preview .blk-handle, .is-preview .ins, .is-preview .crop-handle, .is-preview .row-handle, .is-preview .divider, .is-preview .size-handle, .is-preview .edge-handle,
+.is-preview .blk-tools, .is-preview .blk-handle, .is-preview .ins, .is-preview .item-grip, .is-preview .drop-ind, .is-preview .crop-handle, .is-preview .row-handle, .is-preview .divider, .is-preview .size-handle, .is-preview .edge-handle,
 .is-preview .ed-hero-actions, .is-preview .ed-aid, .is-preview .box-handle, .is-preview .rq-line-hit, .is-preview .blk.has-box::after, .is-preview .ed-hero-hint, .is-preview .ed-warn, .is-preview .ed-space span, .is-preview .ed-date, .is-preview .ed-plain:empty, .is-preview .alt-missing::after { display: none !important; }
 .is-preview .blk.is-sel::before, .is-preview .is-sel-item .ratio { outline: 0 !important; border: 0 !important; content: none !important; }
 .is-preview .ed-field, .is-preview .ed-list { border-bottom-color: transparent !important; }

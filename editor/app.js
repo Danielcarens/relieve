@@ -9,7 +9,7 @@ const PANO_MODES = [["", "Deslizable"], ["alta", "Deslizable, más alta"], ["com
 window.INSERT_MENU = [
   ["", "Texto"], ["p", "Párrafo"], ["h2", "Título"], ["h3", "Subtítulo"], ["ul", "Lista con viñetas"], ["ol", "Lista numerada"],
   ["quote", "Cita destacada"], ["callout", "Recuadro de texto"], ["details", "Desplegable (pregunta y respuesta)"],
-  ["", "Fotos y video"], ["foto", "Foto…"], ["fila", "Fila o cuadrícula de fotos…"], ["video", "Video de YouTube"], ["map", "Mapa"],
+  ["", "Fotos y video"], ["foto", "Foto…"], ["fila", "Mosaico de fotos…"], ["video", "Video de YouTube"], ["map", "Mapa"],
   ["", "Diseño"], ["datos", "Datos en fila (lugar, distancia…)"], ["button", "Botón"], ["hr", "Línea separadora"], ["space", "Espacio en blanco"], ["ficha", "Ficha de datos"], ["raw", "Código HTML"],
 ];
 const ED = window.ED = { path: null, meta: null, photos: {}, fichas: {}, blocks: [], sel: null, tab: "article", problems: [], heroV: 0, cfg: {} };
@@ -111,6 +111,7 @@ function highlight() {
 
 // ---- views --------------------------------------------------------------------------
 function showView(v) {
+  navFollow(0);   // every view starts with the bar in sight
   for (const id of ["view-list", "view-edit", "view-panel"]) $("#" + id).hidden = id !== "view-" + v;
   $("#tools").hidden = v !== "edit"; $("#ribbon").hidden = v !== "edit"; $("#nav-crumb").hidden = v !== "edit";
   if (MODE === "web" && web && web.session.token) $("#web-tools").hidden = v === "edit";   // Usuarios / Salir only outside an article: the bar keeps the site's width
@@ -174,6 +175,19 @@ const setBusy = (sel, b) => { const el = $(sel); el.disabled = b; };
 function setDevice(d) { device = d; $("#stage").classList.toggle("is-phone", d === "phone"); $("#dev-phone").classList.toggle("active", d === "phone"); $("#dev-desktop").classList.toggle("active", d === "desktop"); setTimeout(() => frame().contentWindow.render && frame().contentWindow.render(), 60); }
 $("#dev-desktop").onclick = () => setDevice("desktop"); $("#dev-phone").onclick = () => setDevice("phone"); setDevice("desktop");
 $("#undo").onclick = undo; $("#redo").onclick = redo;
+
+// ---- the top bar scrolls away with the page, like the site's: the page gets the whole screen -------------------
+// The page (or the list) scrolls inside its own box; the bar follows its first pixels and the box grows into the room it
+// leaves. The ribbon stays on top. ZOOM: the editor is drawn at 90 % (ui.css), the page's pixels are that much smaller.
+const ZOOM = 0.9, navEl = $(".navbar-ridge");
+function navFollow(y = 0, room = 0) {
+  const h = navEl.offsetHeight, m = room < h * 1.5 ? 0 : Math.round(Math.min(Math.max(0, y), h));
+  const v = m ? -m + "px" : ""; if (navEl.style.marginTop !== v) navEl.style.marginTop = v;
+}
+function canvasScroll() { const w = frame().contentWindow, d = w.document.documentElement; navFollow(w.scrollY * ZOOM, (d.scrollHeight - w.innerHeight) * ZOOM); }
+function hookCanvasScroll() { try { frame().contentWindow.addEventListener("scroll", canvasScroll, { passive: true }); } catch {} }
+frame().addEventListener("load", hookCanvasScroll); hookCanvasScroll();
+document.querySelectorAll("main.list-view").forEach((m) => m.addEventListener("scroll", () => { if (!m.hidden) navFollow(m.scrollTop * ZOOM, (m.scrollHeight - m.clientHeight) * ZOOM); }, { passive: true }));
 
 // ---- Buscar y reemplazar (Ctrl+H) -------------------------------------------------------------
 function textSlots() {   // every piece of article text the writer typed: [object, key]
@@ -271,6 +285,7 @@ async function addPhotos(files, at, as) {
 
 // ---- actions called by the canvas -----------------------------------------------------------
 const textTypes = ["p", "h2", "h3", "quote"];
+const NEEDS_CLEAR = ["p", "h3", "ul", "ol", "callout", "details", "button", "raw"];   // blocks that would sit beside a floating photo
 const TEXTY = ["p", "h2", "h3", "quote", "ul", "ol", "callout"];          // blocks the ribbon's "Estilo" can turn into each other
 let lastCaret = null, heroTimer = null;                                                   // block where the cursor was last
 const BLOCK_DEFAULTS = {
@@ -309,7 +324,7 @@ function updateRibbon() {
 }
 function insertAfterCurrent(type) { const i = lastCaret ?? ED.sel?.i; act.add(type, i == null ? ED.blocks.length : i + 1); }
 window.act = {
-  caretIn(i) { if (i === lastCaret && ED.sel?.i === i) return; lastCaret = i; if (ED.sel?.i !== i) { ED.sel = { i }; ED.tab = "block"; highlight(); renderInspector(); } updateRibbon(); },
+  caretIn(i) { if (i === lastCaret && ED.sel?.i === i) { updateRibbon(); return; } lastCaret = i; if (ED.sel?.i !== i) { ED.sel = { i }; ED.tab = "block"; highlight(); renderInspector(); } updateRibbon(); },
   setField(i, key, value, rerender) {
     mutate(() => {
       const ks = String(key).split("."); let o = ED.blocks[i]; while (ks.length > 1) o = o[ks.shift()];
@@ -363,7 +378,11 @@ window.act = {
     if (typing) renderInspectorSoft();
   },
   setRatios(map) { mutate(() => { for (const [id, r] of Object.entries(map)) if (ED.photos[id]) ED.photos[id].ratio = r; }); },
-  add(type, at) {
+  add(type, at, opts = {}) {
+    // From the "+" under a floating photo: what goes there must start below the photo. Titles, photos, mosaics, quotes,
+    // lines and spaces do it by themselves; anything else gets a small space (that clears the photo) in front of it.
+    const pre = opts.under && NEEDS_CLEAR.includes(type) ? [{ type: "space", size: 1.5 }] : [];
+    const at0 = at; at += pre.length;
     if (type === "ficha") {
       mutate(() => {
         let n = 1; while (ED.fichas["ficha-" + n]) n++;
@@ -373,17 +392,59 @@ window.act = {
         ED.sel = { i: at }; ED.tab = "block";
       });
     } else if (textTypes.includes(type)) {
-      mutate(() => { ED.blocks.splice(at, 0, { type, text: "" }); ED.focus = { i: at, caret: 0 }; ED.sel = { i: at }; ED.tab = "block"; lastCaret = at; });
+      mutate(() => { ED.blocks.splice(at0, 0, ...pre, { type, text: "" }); ED.focus = { i: at, caret: 0 }; ED.sel = { i: at }; ED.tab = "block"; lastCaret = at; });
     } else if (BLOCK_DEFAULTS[type]) {
       mutate(() => {
-        ED.blocks.splice(at, 0, BLOCK_DEFAULTS[type]()); ED.sel = { i: at }; ED.tab = "block"; lastCaret = at;
+        ED.blocks.splice(at0, 0, ...pre, BLOCK_DEFAULTS[type]()); ED.sel = { i: at }; ED.tab = "block"; lastCaret = at;
         if (["ul", "ol", "callout", "details", "button"].includes(type)) ED.focus = { i: at, caret: 0, field: type === "details" || type === "button" };
       });
     } else if (type === "foto") pickFiles(true).then((f) => addPhotos(f, at));
-    else if (type === "fila") pickFiles(true).then((f) => f.length < 2 ? toast("Elige dos o más fotos para la fila.", true) : addPhotos(f, at, "fila"));
+    else if (type === "fila") pickFiles(true).then((f) => f.length < 2 ? toast("Elige dos o más fotos para el mosaico.", true) : addPhotos(f, at, "fila"));
     else if (type === "pano") pickFiles(true).then((f) => addPhotos(f, at, "pano"));
   },
   dropFiles(files, at) { addPhotos(files, at); },
+  // Photos dropped from the computer on a photo of the page: they join it as a mosaic, on the side where they fell
+  async dropFilesOn(files, t) {
+    if (!files.length) return;
+    const key = ED.blocks[t.i];   // the block may move while the photos are processed: find it again by itself
+    toast(`Procesando ${files.length} foto${files.length > 1 ? "s" : ""}…`, false, 2500);
+    const made = [];
+    try { for (const f of files) made.push(await newPhoto(f)); } catch (e) { toast("No se pudo procesar la foto: " + e.message, true, 9000); if (!made.length) return; }
+    let i = ED.blocks.indexOf(key); if (i < 0 && ["foto", "fila"].includes(ED.blocks[t.i]?.type)) i = t.i;
+    mutate(() => {
+      for (const m of made) ED.photos[m.id] = m.photo;
+      if (i < 0) { ED.blocks.push(...made.map((m) => ({ type: "foto", id: m.id }))); return; }
+      putNode(i, insertNode(nodeOfBlock(ED.blocks[i]), t.ref, t.side, made.map((m) => m.id)));
+      ED.sel = { i, id: made[0].id }; ED.tab = "block";
+    });
+    toast("Listo: la foto entró al mosaico. Escribe su texto alternativo en el panel de la derecha.");
+  },
+  // A photo of the page dragged by its handle: onto another photo (mosaic), beside the text (floating) or between blocks
+  movePhoto(src, t) {
+    const sb = ED.blocks[src.i]; if (!sb) return;
+    const id = src.id || sb.id;
+    if (t.kind === "mosaic" && t.i === src.i && (t.ref === id || (sb.type === "foto"))) return;   // onto itself
+    mutate(() => {
+      const wasWrap = sb.type === "foto" ? sb.wrap : null;
+      // 1. take the photo out of where it was (a single photo block goes away; a mosaic keeps the others)
+      let removed;
+      if (sb.type === "foto") { ED.blocks.splice(src.i, 1); removed = true; }
+      else removed = !putNode(src.i, removeNode(nodeOfBlock(sb), id));
+      const fix = (k) => (removed && k > src.i ? k - 1 : k);
+      // 2. put it in its new place
+      if (t.kind === "mosaic") {
+        const i = fix(t.i), tb = ED.blocks[i];
+        if (!tb || !(tb.type === "foto" || tb.type === "fila")) return;
+        putNode(i, insertNode(nodeOfBlock(tb), t.ref, t.side, [id]));
+        ED.sel = { i, id: ED.blocks[i].type === "fila" ? id : null };
+      } else {
+        const at = Math.min(fix(t.at), ED.blocks.length), nb = { type: "foto", id };
+        if (t.side === "left" || t.side === "right") { nb.wrap = { side: t.side, size: wasWrap?.size || 40, hang: t.mode === "hang" }; if (t.mode === "edge") nb.wrap.edge = true; }
+        ED.blocks.splice(at, 0, nb); ED.sel = { i: at };
+      }
+      ED.tab = "block";
+    });
+  },
   tool(a, i) {
     mutate(() => {
       const b = ED.blocks;
@@ -574,14 +635,16 @@ function doAction(a, d) {
     case "ratio": return act.setPhoto(d.id, { ratio: Number(d.v) }, false, true);
     case "pos0": return act.setPhoto(d.id, { pos: "" }, false, true);
     case "pick-item": ED.sel = { i: sel.i, id: d.id }; highlight(); return renderInspector();
-    case "join": return mutate(() => { const nx = ED.blocks[sel.i + 1]; const tA = bl.type === "foto" ? [bl.id] : treeOf(bl), tB = nx.type === "foto" ? [nx.id] : treeOf(nx); const nb = { type: "fila", ids: [] }; setTree(nb, [...tA, ...tB]); ED.blocks.splice(sel.i, 2, nb); ED.sel = { i: sel.i }; });
-    case "stack": return stackWith(bl, ED.sel.id && bl.ids.includes(ED.sel.id) ? ED.sel.id : bl.ids[0], Number(d.dir));
-    case "ungroup": return ungroup(bl, ED.sel.id && bl.ids.includes(ED.sel.id) ? ED.sel.id : bl.ids[0]);
+    case "join": return mutate(() => {   // this photo or mosaic and the next one become one mosaic, side by side
+      const nx = ED.blocks[sel.i + 1]; const a = nodeOfBlock(bl), b2 = nodeOfBlock(nx);
+      putNode(sel.i, { d: "r", k: [a, b2] }); ED.blocks.splice(sel.i + 1, 1); ED.sel = { i: sel.i };
+    });
+    case "swap": return swapLeaf(sel.i, d.id, Number(d.dir));
     case "grid": return makeGrid(bl, Number($("#grid-cols").value));
     case "ungrid": return mutate(() => { delete bl.tree; });
     case "split-row": return mutate(() => { ED.blocks.splice(sel.i, 1, ...bl.ids.map((id) => ({ type: "foto", id }))); ED.sel = { i: sel.i }; });
-    case "out-row": return mutate(() => { const t = treeOf(bl), pa = pathOf(t, d.id); arrAt(t, pa).splice(pa[pa.length - 1], 1); setTree(bl, t); const nb = { type: "foto", id: d.id }; if (bl.ids.length === 1) ED.blocks.splice(sel.i, 1, { type: "foto", id: bl.ids[0] }, nb); else ED.blocks.splice(sel.i + 1, 0, nb); ED.sel = null; });
-    case "row-add": return pickFiles(true).then(async (files) => { if (!files.length) return; const made = []; for (const f of files) made.push(await newPhoto(f)); mutate(() => { const t = treeOf(bl); for (const m of made) { ED.photos[m.id] = m.photo; t.push(m.id); } setTree(bl, t); }); });
+    case "out-row": return mutate(() => { const left = putNode(sel.i, removeNode(nodeOfBlock(bl), d.id)); ED.blocks.splice(left ? sel.i + 1 : sel.i, 0, { type: "foto", id: d.id }); ED.sel = { i: left ? sel.i + 1 : sel.i }; });
+    case "row-add": return pickFiles(true).then(async (files) => { if (!files.length) return; const made = []; for (const f of files) made.push(await newPhoto(f)); mutate(() => { for (const m of made) ED.photos[m.id] = m.photo; putNode(sel.i, insertNode(nodeOfBlock(bl), "root", "right", made.map((m) => m.id))); ED.sel = { i: sel.i, id: made[0].id }; }); });
     case "replace": return pickFiles(false).then(async ([f]) => { if (!f) return; try { const m = await newPhoto(f); mutate(() => { const old = ED.photos[d.id]; ED.photos[m.id] = { ...m.photo, alt: old.alt, caption: old.caption }; if (bl.type === "fila") { const sw = (t) => t.map((x) => (Array.isArray(x) ? sw(x) : x === d.id ? m.id : x)); const t = sw(treeOf(bl)); setTree(bl, t); } else bl.id = m.id; if (ED.sel) ED.sel.id = bl.type === "fila" ? m.id : null; }); } catch (er) { toast(er.message, true); } });
     case "present": return mutate(() => {   // one "Foto" block, three ways to show it
       const id = bl.id, h = bl.h;
@@ -609,48 +672,84 @@ function doAction(a, d) {
     case "src-del": return mutate(() => { ED.meta.sources.splice(Number(d.i), 1); if (!ED.meta.sources.length) delete ED.meta.sources; });
   }
 }
-// ---- photo rows and grids: b.ids = every photo; b.tree (only when nested) = the layout, arrays alternate stack / row ----
+// ---- photo mosaics ("fila" in the file): b.ids = every photo; b.tree (only when nested) = the layout --------------
+// In the file the layout is nested arrays that alternate: the outer array is a row, an array inside it a column (photos
+// stacked), an array inside that a row again… To edit it, the tree is turned into explicit nodes { d: "r" | "c", k: [...] }
+// (leaves are photo ids), changed, tidied (no group of one, no row inside a row) and turned back.
 const treeOf = (b) => JSON.parse(JSON.stringify(b.tree || b.ids));
 const flatT = (t) => t.flatMap((c) => (Array.isArray(c) ? flatT(c) : [c]));
-function normTree(t) {
-  return t.map((c) => (Array.isArray(c) ? normTree(c) : c)).filter((c) => !Array.isArray(c) || c.length > 0).map((c) => (Array.isArray(c) && c.length === 1 && !Array.isArray(c[0]) ? c[0] : c));
+const toNode = (arr, depth = 0) => ({ d: depth % 2 === 0 ? "r" : "c", k: arr.map((c) => (Array.isArray(c) ? toNode(c, depth + 1) : c)) });
+function tidy(n) {
+  if (typeof n === "string") return n;
+  const out = [];
+  for (const c of n.k.map(tidy)) { if (c == null) continue; if (typeof c !== "string" && c.d === n.d) out.push(...c.k); else out.push(c); }
+  return !out.length ? null : out.length === 1 ? out[0] : { d: n.d, k: out };
 }
-function setTree(b, t) { t = normTree(t); b.ids = flatT(t); if (t.some(Array.isArray)) b.tree = t; else delete b.tree; }
-function pathOf(t, id, path = []) {
-  for (let k = 0; k < t.length; k++) { if (t[k] === id) return [...path, k]; if (Array.isArray(t[k])) { const r = pathOf(t[k], id, [...path, k]); if (r) return r; } }
+const fromNode = (n) => n.k.map((c) => (typeof c === "string" ? c : fromNode(c)));
+function nodeToTree(n) {   // explicit node -> the file's nested arrays (the outer array is always a row)
+  n = tidy(n);
+  if (n == null) return [];
+  if (typeof n === "string") return [n];
+  return n.d === "r" ? fromNode(n) : [fromNode(n)];
+}
+function setTree(b, t) { t = nodeToTree(toNode(t)); b.ids = flatT(t); if (t.some(Array.isArray)) b.tree = t; else delete b.tree; }
+// Where a photo is: its group and its place in it ({ parent: null } when the photo is the whole mosaic)
+function findLeaf(n, id, parent = null, j = -1) {
+  if (n === id) return { parent, j };
+  if (typeof n === "string") return null;
+  for (let k = 0; k < n.k.length; k++) { const r = findLeaf(n.k[k], id, n, k); if (r) return r; }
   return null;
 }
-const arrAt = (t, path) => path.slice(0, -1).reduce((a, k) => a[k], t);
+// Put new photos on one side of a photo (ref = its id) or of the whole mosaic (ref = "root").
+// side: left | right | top | bottom. Several new photos keep their order.
+function insertNode(root, ref, side, ids) {
+  let cur = ref, sd = side;
+  for (const id of ids) {
+    const dir = sd === "left" || sd === "right" ? "r" : "c", before = sd === "left" || sd === "top";
+    const place = (node) => (node && typeof node !== "string" && node.d === dir ? (before ? node.k.unshift(id) : node.k.push(id), node) : { d: dir, k: before ? [id, node] : [node, id] });
+    const f = cur === "root" ? null : findLeaf(root, cur);
+    if (!f || !f.parent) root = place(root);
+    else if (f.parent.d === dir) f.parent.k.splice(before ? f.j : f.j + 1, 0, id);
+    else f.parent.k[f.j] = { d: dir, k: before ? [id, cur] : [cur, id] };
+    cur = id; sd = dir === "r" ? "right" : "bottom";   // the next one goes after this one
+  }
+  return root;
+}
+function removeNode(root, id) { const f = findLeaf(root, id); if (!f) return root; if (!f.parent) return null; f.parent.k.splice(f.j, 1); return tidy(root); }
+// A mosaic block's layout as a node (a single photo block counts as a mosaic of one)
+const nodeOfBlock = (b) => (b.type === "foto" ? b.id : tidy(toNode(treeOf(b))));
+// Write a node back into block i: a mosaic, a single photo (one left) or nothing (none left). Returns false if removed.
+function putNode(i, node) {
+  const b = ED.blocks[i], keep = { ...(b.box ? { box: b.box } : {}), ...(b.full ? { full: true } : {}) };
+  node = tidy(node);
+  if (node == null) { ED.blocks.splice(i, 1); return false; }
+  if (typeof node === "string") { ED.blocks[i] = { type: "foto", id: node, ...(b.box ? { box: b.box } : {}), ...(b.type === "foto" && b.wrap ? { wrap: b.wrap } : {}) }; return true; }
+  const nb = { type: "fila", ids: [], ...keep }; setTree(nb, nodeToTree(node)); ED.blocks[i] = nb; return true;
+}
 function rOfTree(n, r, depth = 0) {
   if (!Array.isArray(n)) return r(n);
   const rs = n.map((c) => rOfTree(c, r, depth + 1));
   return depth % 2 === 0 ? rs.reduce((a, x) => a + x, 0) : 1 / rs.reduce((a, x) => a + 1 / x, 0);
 }
 const rowR = (b) => rOfTree(treeOf(b), (id) => ratioOfP(ED.photos[id]));
-function stackWith(b, id, dir) {
-  const t = treeOf(b), path = pathOf(t, id), arr = arrAt(t, path), idx = path[path.length - 1], j = idx + dir;
-  if (j < 0 || j >= arr.length) return toast("No hay otra foto de ese lado.", true);
-  const sib = arr[j];
-  if (Array.isArray(sib)) { dir > 0 ? sib.unshift(id) : sib.push(id); arr.splice(idx, 1); }
-  else arr.splice(Math.min(idx, j), 2, dir > 0 ? [id, sib] : [sib, id]);
-  mutate(() => setTree(b, t));
-}
-function ungroup(b, id) {
-  const t = treeOf(b), path = pathOf(t, id); if (path.length < 2) return toast("Esa foto no está en un grupo.", true);
-  const arr = arrAt(t, path), parent = arrAt(t, path.slice(0, -1)), at = path[path.length - 2];
-  const k = path[path.length - 1]; arr.splice(k, 1); parent.splice(k === 0 ? at : at + 1, 0, id);
-  mutate(() => setTree(b, t));
+// Swap a photo with its neighbour in the same row (or column) of the mosaic: dir -1 = before, +1 = after
+function swapLeaf(i, id, dir) {
+  const root = nodeOfBlock(ED.blocks[i]), f = findLeaf(root, id);
+  if (!f || !f.parent || !f.parent.k[f.j + dir]) return toast(dir < 0 ? "Ya es la primera de su grupo." : "Ya es la última de su grupo.", true);
+  const k = f.parent.k; [k[f.j], k[f.j + dir]] = [k[f.j + dir], k[f.j]];
+  mutate(() => { putNode(i, root); ED.sel = { i, id }; });
 }
 function makeGrid(b, cols) {
   const ids = b.ids.slice(); cols = Math.max(1, Math.min(6, Math.round(cols) || 2));
-  if (ids.length <= cols) return toast("Hay pocas fotos para ese número de columnas.", true);
+  if (ids.length <= cols) return mutate(() => { delete b.tree; });   // everything fits in one row
   const rows = []; for (let k = 0; k < ids.length; k += cols) rows.push(ids.slice(k, k + cols));
   mutate(() => setTree(b, [rows]));
 }
+const RMIN = 0.2, RMAX = 8;   // the narrowest and the widest crop a photo of a mosaic can get
 function setRowHeight(alto) {            // alto = height as a percentage of the row width
   const b = ED.blocks[ED.sel.i]; const sum = rowR(b);
   const target = 100 / alto, k = target / sum;
-  mutate(() => { for (const id of b.ids) ED.photos[id].ratio = Math.round(Math.max(0.4, Math.min(5, ratioOfP(ED.photos[id]) * k)) * 1000) / 1000; }, { typing: true });
+  mutate(() => { for (const id of b.ids) ED.photos[id].ratio = Math.round(Math.max(RMIN, Math.min(RMAX, ratioOfP(ED.photos[id]) * k)) * 1000) / 1000; }, { typing: true });
   frame().contentWindow.render && frame().contentWindow.render();
 }
 const ratioOfP = (p) => (Number(p.ratio) > 0 ? Number(p.ratio) : p.w / p.h);
@@ -693,7 +792,7 @@ function wrapPane(b) {
 <button class="btn btn-outline-dark ${w && w.side === "right" ? "active" : ""}" data-do="wrap-side" data-side="right">Flotar a la derecha</button></div>
 ${w ? `<div class="btnrow">${[[33, "Pequeño"], [40, "Mediano"], [50, "Grande"]].map(([v, l]) => `<button class="btn btn-outline-dark ${w.size === v ? "active" : ""}" data-do="wrap-size" data-v="${v}">${l}</button>`).join("")}</div><p class="hint">Ancho: ${w.size || 40} % de la columna de texto${w.hang ? " (del ancho de las fotos, porque sobresale)" : ""}.${b.type === "foto" ? " También se cambia arrastrando el cuadrito rosa del lado interior de la foto." : " También se cambia arrastrando la barra rosa de su lado interior."}</p>
 <div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="c-hang" data-k="whang" ${w.hang ? "checked" : ""}><label class="form-check-label" for="c-hang">Sobresale hasta el margen exterior</label></div>${b.type === "foto" ? `<div class="form-check"><input class="form-check-input" type="checkbox" id="c-edge" data-k="wedge" ${w.edge ? "checked" : ""}><label class="form-check-label" for="c-edge">Hasta el borde de la pantalla</label></div><p class="hint">También puedes arrastrar la barra rosa del lado de la foto hacia el borde de la pantalla.</p>` : ""}` : ""}
-<p class="hint">Como el "Cuadrado" de Word: el texto rodea el elemento y después vuelve a todo el ancho. Los títulos y las fotos grandes siempre empiezan debajo. En celular cada elemento ocupa su propia fila.</p></div>`;
+${b.type === "foto" ? '<p class="hint">También puedes arrastrar la foto por su manija ✥ (arriba a la izquierda) y soltarla a un lado de un párrafo: flota de ese lado; más afuera, sobresale hasta el margen o llega al borde de la pantalla. Soltada entre dos párrafos, al centro, vuelve a su propia fila.</p>' : ""}<p class="hint">Como el "Cuadrado" de Word: el texto rodea el elemento y después vuelve a todo el ancho. Los títulos y las fotos grandes siempre empiezan debajo. En celular cada elemento ocupa su propia fila.</p></div>`;
 }
 function fichaPane(b) {
   const f = ED.fichas[b.id]; if (!f) return "";
@@ -734,7 +833,7 @@ const KINDS = {
   details: ["Desplegable", "Pregunta y respuesta que el lector abre con un clic. Varios seguidos forman unas preguntas frecuentes.", "Insertar → Desplegable."],
   foto: ["Foto", "Una foto al ancho de las fotos, con recorte libre. Puede flotar junto al texto o ir de borde a borde.", "Arrastra la foto sobre la página, o Insertar → Foto…"],
   pano: ["Foto", "", "Arrastra la foto sobre la página, o Insertar → Foto…"],
-  fila: ["Fila de fotos", "Varias fotos juntas con el mismo alto, que suman el ancho de una foto sola.", "Insertar → Fila o cuadrícula de fotos…, o «Poner junto a la siguiente foto» en una foto."],
+  fila: ["Mosaico de fotos", "Varias fotos juntas, en una fila o en filas y columnas, que encajan al ancho de una foto sola. Cada foto tiene su tamaño y su recorte.", "Arrastra una foto desde tu computadora y suéltala sobre otra foto de la página, o Insertar → Mosaico de fotos…"],
   video: ["Video de YouTube", "La miniatura del video; se carga solo cuando el lector hace clic.", "Insertar → Video de YouTube."],
   map: ["Mapa", "Un mapa de OpenStreetMap con una marca en el lugar.", "Insertar → Mapa."],
   datos: ["Datos en fila", "Datos grandes entre dos líneas: lugar, distancia, desnivel, dificultad…", "Insertar → Datos en fila."],
@@ -748,7 +847,6 @@ function kindHead(b) {
   const k = KINDS[b.type]; if (!k) return "";
   let [name, what, how] = k;
   if (b.type === "pano") { name = b.mode === "completa" ? "Foto · ancho de pantalla" : "Foto · panorámica deslizable"; what = b.mode === "completa" ? "La foto entera, de borde a borde de la pantalla." : "De borde a borde con altura limitada; el lector la desliza a los lados."; how += " Luego elige su presentación aquí abajo."; }
-  if (b.type === "fila" && b.tree) { name = "Cuadrícula de fotos"; what = "Fotos en filas y columnas (mosaico) que encajan a la misma medida."; }
   const tags = [b.wrap && b.wrap.side ? (b.wrap.side === "left" ? "flota a la izquierda" : "flota a la derecha") : "", b.align === "center" ? "centrado" : "", b.box ? "ancho libre" : ""].filter(Boolean);
   return `<div class="kind"><div class="d-flex flex-wrap align-items-center gap-2"><span class="tape">${name}</span>${tags.map((t) => `<span class="kind-tag">${t}</span>`).join("")}</div><p class="hint mb-1 mt-2">${what}</p><p class="hint mb-0"><strong>Para agregar uno:</strong> ${how}</p></div><hr>`;
 }
@@ -778,14 +876,16 @@ ${fld("Nombre del lugar (opcional)", inp("bf.label", b.label, "Caprock Canyons")
   if (b.type === "ficha") return `${wrapPane(b)}${b.wrap ? "" : `<hr>${boxPane(b)}`}<hr>${fichaPane(b)}`;
   if (b.type === "foto") {
     const nx = ED.blocks[sel.i + 1]; const canJoin = nx && (nx.type === "foto" || nx.type === "fila");
-    return `${presentPane(b)}<hr>${wrapPane(b)}${b.wrap ? "" : `<hr>${boxPane(b)}`}<p class="hint">Los cuadritos rosas alrededor de la foto cambian su tamaño: los lados, el ancho; arriba y abajo, el alto (el recorte); las esquinas, las dos cosas. Sus bordes se pegan a los de las otras fotos, a los márgenes y a la columna de texto.</p><hr>${photoForm(b.id)}<hr><div class="btnrow">${canJoin && !b.wrap ? '<button class="btn btn-outline-dark" data-do="join">Poner junto a la siguiente foto</button>' : ""}<button class="btn btn-outline-dark" data-do="replace" data-id="${esc(b.id)}">Cambiar foto</button></div>${canJoin ? '<p class="hint">Las fotos de una fila tienen el mismo alto y suman el ancho de una foto sola.</p>' : ""}`;
+    return `${presentPane(b)}<hr>${wrapPane(b)}${b.wrap ? "" : `<hr>${boxPane(b)}`}<p class="hint">Los cuadritos rosas alrededor de la foto cambian su tamaño: los lados, el ancho; arriba y abajo, el alto (el recorte); las esquinas, las dos cosas. Sus bordes se pegan a los de las otras fotos, a los márgenes y a la columna de texto.</p><hr>${photoForm(b.id)}<hr><div class="btnrow">${canJoin && !b.wrap ? '<button class="btn btn-outline-dark" data-do="join">Hacer un mosaico con la siguiente</button>' : ""}<button class="btn btn-outline-dark" data-do="replace" data-id="${esc(b.id)}">Cambiar foto</button></div><p class="hint">${MOVE_HINT}</p>`;
   }
   if (b.type === "fila") {
     const id = sel.id && b.ids.includes(sel.id) ? sel.id : b.ids[0];
     const nx = ED.blocks[sel.i + 1]; const canJoin = nx && (nx.type === "foto" || nx.type === "fila");
     const alto = Math.round(100 / rowR(b));
-    return `${b.full ? "" : `${boxPane(b)}<hr>`}<div class="form-check"><input class="form-check-input" type="checkbox" id="c-full" data-k="rowfull" ${b.full ? "checked" : ""}><label class="form-check-label" for="c-full">Ancho completo de la pantalla</label></div>${fld("Altura de la fila", `<input class="form-range" type="range" min="14" max="80" step="1" data-k="rowh" value="${alto}">`, '<p class="hint">También puedes arrastrar la barra rosa bajo la fila. En filas simples, arrastra las barras entre fotos para repartir el ancho.</p>')}<hr><div><label class="form-label">Fotos de la fila</label><div class="thumbs">${b.ids.map((x) => `<button class="thumb ${x === id ? "on" : ""} ${ED.photos[x]?.alt ? "" : "miss"}" data-do="pick-item" data-id="${esc(x)}"><img src="${imgSrc(ED.meta.imgBase, ED.photos[x]?.file, "-sm.jpg")}" alt=""><span>${ED.photos[x]?.alt ? "Foto " + (b.ids.indexOf(x) + 1) : "Falta texto alternativo"}</span></button>`).join("")}</div></div>
-${structPane(b, id)}<hr>${photoForm(id)}<hr><div class="btnrow"><button class="btn btn-outline-dark" data-do="row-add">Agregar foto a la fila</button>${canJoin ? '<button class="btn btn-outline-dark" data-do="join">Unir con la siguiente</button>' : ""}<button class="btn btn-outline-dark" data-do="out-row" data-id="${esc(id)}">Sacar esta foto de la fila</button><button class="btn btn-outline-dark" data-do="replace" data-id="${esc(id)}">Cambiar esta foto</button><button class="btn btn-outline-dark" data-do="split-row">Separar todas</button></div>`;
+    return `${b.full ? "" : `${boxPane(b)}<hr>`}<div class="form-check"><input class="form-check-input" type="checkbox" id="c-full" data-k="rowfull" ${b.full ? "checked" : ""}><label class="form-check-label" for="c-full">Ancho completo de la pantalla</label></div>${fld("Altura del mosaico", `<input class="form-range" type="range" min="14" max="160" step="1" data-k="rowh" value="${Math.min(160, alto)}">`, '<p class="hint">También puedes arrastrar la barra rosa bajo el mosaico.</p>')}
+<p class="hint"><strong>Tamaño de cada foto:</strong> arrastra las barras rosas que aparecen entre las fotos; reparten el espacio entre las dos fotos (o grupos) que separan, y se pegan a los bordes de las demás. <strong>Recorte:</strong> arrastra dentro de una foto para encuadrarla.</p>
+<hr><div><label class="form-label">Fotos del mosaico</label><div class="thumbs">${b.ids.map((x) => `<button class="thumb ${x === id ? "on" : ""} ${ED.photos[x]?.alt ? "" : "miss"}" data-do="pick-item" data-id="${esc(x)}"><img src="${imgSrc(ED.meta.imgBase, ED.photos[x]?.file, "-sm.jpg")}" alt=""><span>${ED.photos[x]?.alt ? "Foto " + (b.ids.indexOf(x) + 1) : "Falta texto alternativo"}</span></button>`).join("")}</div></div>
+${structPane(b, id)}<hr>${photoForm(id)}<hr><div class="btnrow"><button class="btn btn-outline-dark" data-do="row-add">Agregar fotos al mosaico</button>${canJoin ? '<button class="btn btn-outline-dark" data-do="join">Unir con el siguiente</button>' : ""}<button class="btn btn-outline-dark" data-do="out-row" data-id="${esc(id)}">Sacar esta foto del mosaico</button><button class="btn btn-outline-dark" data-do="replace" data-id="${esc(id)}">Cambiar esta foto</button><button class="btn btn-outline-dark" data-do="split-row">Separar todas</button></div>`;
   }
   if (b.type === "pano") {
     const p = ED.photos[b.id] || {};
@@ -797,18 +897,18 @@ ${b.mode !== "completa" ? fld("Altura", `<input class="form-range" type="range" 
   return `<p class="hint">Este bloque tiene un formato que el editor no conoce. Se conserva tal cual.</p>`;
 }
 
+// Order of the selected photo and quick layouts. Building the mosaic by hand is done by dragging photos on the page.
 function structPane(b, id) {
-  const t = treeOf(b), path = pathOf(t, id); if (!path) return "";
-  const arr = arrAt(t, path), idx = path[path.length - 1], inRow = (path.length - 1) % 2 === 0;
-  const lbl = inRow ? ["la izquierda", "la derecha", "Apilar con la foto de"] : ["arriba", "abajo", "Poner junto a la foto de"];
-  const btn = (dir, ok, text) => (ok ? `<button class="btn btn-outline-dark" data-do="stack" data-dir="${dir}">${text}</button>` : "");
-  return `<div><label class="form-label">Estructura (cuadrículas)</label><div class="btnrow">
-${btn(-1, idx > 0, `${lbl[2]} ${lbl[0]}`)}${btn(1, idx < arr.length - 1, `${lbl[2]} ${lbl[1]}`)}
-${path.length > 1 ? '<button class="btn btn-outline-dark" data-do="ungroup">Sacar del grupo</button>' : ""}
-${b.tree ? '<button class="btn btn-outline-dark" data-do="ungrid">Volver a fila simple</button>' : ""}</div>
-<div class="d-flex gap-2 align-items-center mt-2"><input class="form-control" type="number" min="1" max="6" value="2" id="grid-cols" aria-label="Columnas"><button class="btn btn-outline-dark" data-do="grid">Ordenar todas en cuadrícula</button></div>
-<p class="hint">Apilar pone una foto encima de otra; una foto alta junto a dos apiladas da un mosaico. "Ordenar en cuadrícula" reparte todas las fotos en filas de N columnas. Cada foto conserva su recorte: para cambiar el reparto de espacio usa los recortes (Original, 3:2, 16:9…).</p></div>`;
+  const f = findLeaf(nodeOfBlock(b), id); if (!f) return "";
+  const inRow = !f.parent || f.parent.d === "r", n = f.parent ? f.parent.k.length : 1;
+  const swap = (dir, ok, text) => (ok ? `<button class="btn btn-outline-dark" data-do="swap" data-id="${esc(id)}" data-dir="${dir}">${text}</button>` : "");
+  return `<div><label class="form-label">Organizar</label><div class="btnrow">
+${swap(-1, f.j > 0, inRow ? "← Pasar a la izquierda" : "↑ Pasar arriba")}${swap(1, f.j < n - 1, inRow ? "Pasar a la derecha →" : "Pasar abajo ↓")}
+${b.tree ? '<button class="btn btn-outline-dark" data-do="ungrid">Todas en una fila</button>' : ""}</div>
+<div class="d-flex flex-wrap gap-2 align-items-center mt-2"><button class="btn btn-outline-dark" data-do="grid">Ordenar en cuadrícula de</button><input class="form-control" style="width: 4.5rem" type="number" min="1" max="6" value="2" id="grid-cols" aria-label="Columnas"><span class="hint m-0">columnas</span></div>
+<p class="hint">${MOVE_HINT}</p></div>`;
 }
+const MOVE_HINT = "Para armar un mosaico, arrastra una foto desde tu computadora, o la manija ✥ de otra foto de la página, y suéltala sobre una foto: entra a la izquierda, a la derecha, arriba o abajo de esa foto según el lado donde la sueltes; cerca del borde del mosaico, entra arriba, abajo o a un lado de todas. Una línea rosa muestra dónde va a quedar. Arrastrada junto a un párrafo, la foto flota a ese lado del texto.";
 
 function panePhotos() {
   const used = usedIds(); const ids = Object.keys(ED.photos);
