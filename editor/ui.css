@@ -89,6 +89,12 @@ main > .container { padding-inline: calc(var(--bs-gutter-x, 1.5rem) * .5 / .9); 
 .art:hover { background: var(--bs-secondary-bg); }
 .art:first-child { border-top: 0; }
 .art h2 { text-wrap: balance; }
+/* Status tags (list and panel): the same height, type and alignment as the buttons beside them, and the site's colours:
+   yellow = the yellow text box (pending, AI text), red = error, green = done, dark = draft */
+.ed-tag { display: inline-flex; align-items: center; height: var(--control-height); padding: 0 1rem; font-family: var(--font-display); font-weight: 700; font-size: 1rem; line-height: 1; white-space: nowrap; }
+.ed-tag:is(.tone-amarillo, .tone-rojo, .tone-verde) { background: var(--tone-bg); color: var(--tone-text); }
+.ed-tag.is-dark { background: var(--bs-body-color); color: var(--bs-body-bg); }
+.ed-tag-sm { height: 1.75rem; padding: 0 .6rem; font-size: .85rem; vertical-align: middle; }
 @media (max-width: 575.98px) { .art { grid-template-columns: 6rem 1fr; } .art > :last-child { grid-column: 2; } }
 #grid-cols { width: 5rem; flex: none; }
 .form-range::-webkit-slider-thumb { background: var(--bs-primary); } .form-range::-moz-range-thumb { background: var(--bs-primary); }
