@@ -110,7 +110,7 @@ async function repoBlob(path) {
   const b = await gh("GET", `${R}/git/blobs/${e.sha}`);
   return new Blob([b64ToBytes(b.content)], { type: "image/jpeg" });
 }
-async function makeHero(articlePath, file, pos = "50% 50%") {
+async function makeHero(articlePath, file, pos = "50% 50%", zoom = 1) {
   const { meta } = await getArticle(articlePath); const dir = dirOf(meta), base = `src/assets/img/${dir}/`;
   if (file) await putBlob(`orig/${dir}/hero-source`, file);
   let src = (await kv.get("blobs", `orig/${dir}/hero-source`))?.blob || (await kv.get("blobs", `${base}hero-source.jpg`))?.blob;
@@ -119,10 +119,11 @@ async function makeHero(articlePath, file, pos = "50% 50%") {
   const bmp = await decode(src), W = bmp.width, H = bmp.height;
   if (file) { const cw0 = Math.min(2600, W); await putBlob(`${base}hero-source.jpg`, await jpeg(bmp, cw0, Math.round((cw0 * H) / W))); }
   const [px, py] = pos.split(" ").map((v) => Math.min(100, Math.max(0, parseFloat(v))) / 100);
-  let cw = W, ch = H; if (W / H > 16 / 9) cw = Math.round(H * 16 / 9); else ch = Math.round(W * 9 / 16);
+  const z = Math.min(4, Math.max(1, Number(zoom) || 1));   // zoom: 1 = the largest 16:9 crop, 2 = half as wide…
+  const cw = Math.round((W / H > 16 / 9 ? H * 16 / 9 : W) / z), ch = Math.round(cw * 9 / 16);
   const left = Math.round((W - cw) * px), top = Math.round((H - ch) * py);
   for (const w of [1280, 1920, 2560]) { const ow = Math.min(w, cw); await putBlob(`${base}hero-${w}.jpg`, await jpeg(bmp, ow, Math.round(ow * 9 / 16), left, top, cw, ch)); }
-  return { file: "hero", w: 2560, h: 1440, srcW: W, srcH: H, pos };
+  return { file: "hero", w: 2560, h: 1440, srcW: W, srcH: H, pos, ...(z > 1 ? { zoom: z } : {}) };
 }
 export const heroSourceUrl = (meta) => {
   try { const dir = dirOf(meta); return urls.get(`orig/${dir}/hero-source`) || urls.get(`src${meta.imgBase}hero-source.jpg`) || (meta.hero && meta.hero.srcW ? `${meta.imgBase}hero-source.jpg` : null); } catch { return null; }
@@ -220,7 +221,7 @@ export async function handle(method, url, body) {
       return { path };
     }
     case "POST /api/photo": return q.get("kind") === "hero" ? makeHero(q.get("article"), body, q.get("pos") || "50% 50%") : importPhoto(q.get("article"), body, q.get("name") || "foto.jpg");
-    case "POST /api/hero-pos": return makeHero(q.get("article"), null, q.get("pos") || "50% 50%");
+    case "POST /api/hero-pos": return makeHero(q.get("article"), null, q.get("pos") || "50% 50%", q.get("zoom") || 1);
     case "POST /api/sync": treeCache = null; return { ok: true };
     case "POST /api/publish": return publish(JSON.parse(body));
     case "POST /api/discard": { const { path } = JSON.parse(body); await kv.del("drafts", path); return { ok: true }; }

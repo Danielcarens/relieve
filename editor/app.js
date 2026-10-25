@@ -16,6 +16,7 @@ const ED = window.ED = { path: null, meta: null, photos: {}, fichas: {}, blocks:
 let hist = [], fut = [], lastType = 0, saveTimer = null, saving = false, dirty = false, device = "desktop";
 const frame = () => $("#canvas");
 window.imgSrc = (base, file, suf) => (MODE === "web" && web && web.pendingUrl(`src${base}${file}${suf}`)) || `${base}${file}${suf}`;
+window.SECTION_NAMES = Object.fromEntries(SECTIONS);
 window.heroSrc = (m) => {
   const h = m.hero, dir = (/\/assets\/img\/([^/]+)\//.exec(m.imgBase || "") || [])[1];
   if (MODE === "web") return (web && web.heroSourceUrl(m)) || window.imgSrc(m.imgBase, h.file, "-1280.jpg");
@@ -270,7 +271,7 @@ async function addPhotos(files, at, as) {
 // ---- actions called by the canvas -----------------------------------------------------------
 const textTypes = ["p", "h2", "h3", "quote"];
 const TEXTY = ["p", "h2", "h3", "quote", "ul", "ol", "callout"];          // blocks the ribbon's "Estilo" can turn into each other
-let lastCaret = null;                                                   // block where the cursor was last
+let lastCaret = null, heroTimer = null;                                                   // block where the cursor was last
 const BLOCK_DEFAULTS = {
   ul: () => ({ type: "ul", items: [""] }), ol: () => ({ type: "ol", items: [""] }),
   callout: () => ({ type: "callout", fondo: "gris", marco: false, linea: "", text: "" }), details: () => ({ type: "details", title: "", text: "" }),
@@ -450,9 +451,12 @@ window.act = {
   },
   pickHero() { pickFiles(false).then((f) => f[0] && setHeroFile(f[0])); },
   setHeroFile(f) { setHeroFile(f); },
-  async setHeroPos(pos) {
-    mutate(() => { ED.meta.hero.pos = pos; });
-    try { await post("/api/hero-pos?" + new URLSearchParams({ article: ED.path, pos }), {}); } catch (e) { toast(e.message, true); }
+  // Framing the cover: the page shows the change at once; the 16:9 files are cut again a moment after the last change
+  setHeroPos(pos, zoom, live) {   // live: while dragging the slider, move the photo without redrawing the page
+    mutate(() => { const h = ED.meta.hero; h.pos = pos; if (zoom != null) { if (zoom > 1) h.zoom = zoom; else delete h.zoom; } }, { typing: !!live });
+    if (live) { const w = frame().contentWindow; w.layoutHero && w.layoutHero(); }
+    clearTimeout(heroTimer);
+    heroTimer = setTimeout(async () => { const h = ED.meta.hero; try { await post("/api/hero-pos?" + new URLSearchParams({ article: ED.path, pos: h.pos || "50% 50%", zoom: h.zoom || 1 }), {}); } catch (e) { toast(e.message, true); } }, 700);
   },
   undoKey(e) { e.key.toLowerCase() === "z" && !e.shiftKey ? undo() : redo(); },
 };
@@ -460,7 +464,7 @@ async function setHeroFile(file) {
   toast("Procesando la foto principal…", false, 2500);
   try {
     const r = await upload(file, "hero", "50% 50%");
-    mutate(() => { ED.meta.hero = { ...(ED.meta.hero || {}), file: r.file, w: r.w, h: r.h, srcW: r.srcW, srcH: r.srcH, pos: r.pos, alt: ED.meta.hero?.alt || "", caption: ED.meta.hero?.caption || "" }; ED.heroV = Date.now(); ED.tab = "article"; });
+    mutate(() => { ED.meta.hero = { ...(ED.meta.hero || {}), file: r.file, w: r.w, h: r.h, srcW: r.srcW, srcH: r.srcH, pos: r.pos, alt: ED.meta.hero?.alt || "", caption: ED.meta.hero?.caption || "" }; delete ED.meta.hero.zoom; ED.heroV = Date.now(); ED.tab = "article"; });
     toast("Foto principal lista. Arrástrala para encuadrarla.");
   } catch (e) { toast("No se pudo procesar: " + e.message, true, 9000); }
 }
@@ -518,6 +522,7 @@ $("#insp").addEventListener("input", (e) => {
   else if (k === "focus") { act.setPhoto(ED.blocks[ED.sel.i].id, { focus: Number(t.value) }, true); }
   else if (k.startsWith("f.")) { const [, id, f, idx, sub] = k.split("."); mutate(() => { const fi = ED.fichas[id]; if (f === "row") fi.rows[idx][sub] = t.value; else if (t.value) fi[f] = t.value; else delete fi[f]; }, { typing: true }); }
   else if (k === "rowh") { setRowHeight(Number(t.value)); }
+  else if (k === "herozoom") { act.setHeroPos(ED.meta.hero.pos || "50% 50%", Number(t.value) / 100, true); const hn = t.parentElement.querySelector(".hint"); if (hn) hn.firstChild.textContent = `${t.value} %. `; }
   else if (k.startsWith("drow.")) { const [, r, f] = k.split("."); act.setField(ED.sel.i, `rows.${r}.${f}`, t.value); renderInspectorSoft(); }
   else if (k === "panoh") { act.setField(ED.sel.i, "h", Number(t.value)); renderInspectorSoft(); }
   else if (k === "spaceh") { act.setField(ED.sel.i, "size", Number(t.value)); renderInspectorSoft(); }
@@ -638,6 +643,7 @@ const inp = (k, v, ph = "", type = "text") => `<input class="form-control" type=
 function paneArticle() {
   const m = ED.meta, h = m.hero;
   const hero = h ? `<div class="btnrow"><button class="btn btn-outline-dark" data-do="hero-replace">Cambiar foto</button><button class="btn btn-outline-dark" data-do="hero-center">Centrar</button></div>
+    ${h.srcW ? fld("Acercar la portada", `<input class="form-range" type="range" min="100" max="300" step="5" data-k="herozoom" value="${Math.round((h.zoom || 1) * 100)}">`, `<p class="hint">${Math.round((h.zoom || 1) * 100)} %. Acércala y arrastra la foto en la página para elegir el recorte; también con los botones + y − sobre la foto.</p>`) : '<p class="hint">Para encuadrar o acercar esta portada, elige la foto otra vez con «Cambiar foto».</p>'}
     ${fld("Texto alternativo de la portada", `<textarea data-k="m.hero.alt" class="form-control ${h.alt ? "" : "invalid"}" placeholder="Describe lo que se ve en la foto">${esc(h.alt)}</textarea>`, h.alt ? "" : '<p class="hint bad">Obligatorio: describe la foto.</p>')}` : `<button class="btn btn-outline-dark" data-do="hero-replace">Elegir la foto principal</button>`;
   return `
 ${fld("Título", `<textarea class="form-control" data-k="m.title" rows="2">${esc(m.title)}</textarea>`)}
@@ -647,7 +653,7 @@ ${fld("Fecha", inp("m.date", m.date, "", "date"))}
 ${fld("Video de YouTube", inp("m.youtube", m.youtube, "Pega el enlace o el código"), '<p class="hint">Se reproduce al hacer clic sobre la portada.</p>')}
 <div class="form-check"><input class="form-check-input" type="checkbox" id="c-draft" data-k="m.draft" ${m.draft ? "checked" : ""}><label class="form-check-label" for="c-draft">Borrador (Google no lo indexará)</label></div>
 <div class="form-check"><input class="form-check-input" type="checkbox" id="c-ai" data-k="m.ai" ${m.ai ? "checked" : ""}><label class="form-check-label" for="c-ai">Mostrar aviso de texto escrito con IA</label></div>
-<hr>${fld("Cabecera", `<select class="form-select" data-k="m.cabecera">${[["", "Foto grande con el título encima"], ["titulo", "Título arriba y la foto debajo"], ["texto", "Solo el título, sin foto"]].map(([v, l]) => `<option value="${v}" ${(m.cabecera || "") === v ? "selected" : ""}>${l}</option>`).join("")}</select>`)}
+<hr>${fld("Cabecera", `<select class="form-select" data-k="m.cabecera">${[["", "Foto grande con el título encima"], ["debajo", "Foto grande con el título debajo"], ["titulo", "Título arriba y la foto debajo"], ["texto", "Solo el título, sin foto"]].map(([v, l]) => `<option value="${v}" ${(m.cabecera || "") === v ? "selected" : ""}>${l}</option>`).join("")}</select>`)}
 ${hero}<hr>
 ${fld("Crédito de las fotos", inp("m.credit", m.credit))}
 ${fld("Autor", inp("m.author", m.author))}

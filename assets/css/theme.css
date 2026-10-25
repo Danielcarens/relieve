@@ -518,6 +518,8 @@ html[data-lang="en"] body [lang="es"] {
 
   .hero-title { max-width: 20ch; }
   .article-hero.is-playing .hero-text { display: none; }
+  /* cabecera: debajo — the title stays under the photo at every width */
+  .hero-below .hero-text { grid-row: 3; align-self: auto; padding: 1.5rem 0 0; color: inherit; background: none; pointer-events: auto; }
 }
 
 /* Panorama: full bleed with a limited height. The photo fills the height and
