@@ -45,14 +45,11 @@
       if (!wide.matches || !links.length) {
         nav.style.removeProperty("--ridge-x1");
         nav.style.removeProperty("--ridge-x2");
-        nav.style.removeProperty("--ridge-xl");
         return;
       }
       var box = nav.getBoundingClientRect();
       var first = links[0].getBoundingClientRect();
       var last = links[links.length - 1].getBoundingClientRect();
-      var tile = (parseFloat(getComputedStyle(nav, "::after").height) || 28) * 100;   // the flat tile is 100 x as wide as it is tall
-      nav.style.setProperty("--ridge-xl", Math.round(first.left - box.left - tile) + "px");
       nav.style.setProperty("--ridge-x1", Math.round(first.left - box.left) + "px");
       nav.style.setProperty("--ridge-x2", Math.round(last.right - box.left) + "px");
     }
