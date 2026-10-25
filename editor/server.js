@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFile, execFileSync, spawn } from "node:child_process";
 import { parseArticle, serializeArticle, problems, articleStats } from "./lib/article.js";
-import { importPhoto, makeHero } from "./lib/photos.js";
+import { importPhoto, makeHero, slugify } from "./lib/photos.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const CONFIG_FILE = path.join(HERE, "config.json");
@@ -54,6 +54,14 @@ const imgDirOf = (meta) => {
   if (!m) throw new Error("El artículo no tiene carpeta de imágenes (imgBase)");
   return m[1];
 };
+
+// The cover's file name. Normally "hero"; when another article uses the same image folder and the same name
+// (guides copied from an article, for example), this one gets "hero-<file name>" so changing it does not change the other.
+function heroNameFor(rel, meta) {
+  const prev = (meta.hero && meta.hero.file) || "hero";
+  const clash = listArticles().some((a) => a.path !== rel && a.hero === `${meta.imgBase}${prev}-1280.jpg`);
+  return { prev, name: clash ? `hero-${slugify(path.basename(rel, ".md"))}` : prev };
+}
 
 function listArticles() {
   const out = [], root = path.join(SITE, "src");
@@ -114,13 +122,14 @@ const api = {
     const dirName = imgDirOf(meta);
     const buf = await readBody(req);
     const imgDir = path.join(SITE, "src", "assets", "img", dirName), origDir = path.join(ORIG, dirName);
-    if (q.get("kind") === "hero") return await makeHero({ buf, imgDir, origDir, pos: q.get("pos") || "50% 50%" });
+    if (q.get("kind") === "hero") return await makeHero({ buf, imgDir, origDir, pos: q.get("pos") || "50% 50%", ...heroNameFor(rel, meta) });
     return await importPhoto({ buf, name: q.get("name") || "foto.jpg", imgDir, origDir });
   },
   async "POST /api/hero-pos"(req, res, q) {
-    const { meta } = parseArticle(fs.readFileSync(articlePath(q.get("article")), "utf8"));
+    const rel = q.get("article");
+    const { meta } = parseArticle(fs.readFileSync(articlePath(rel), "utf8"));
     const dirName = imgDirOf(meta);
-    return await makeHero({ imgDir: path.join(SITE, "src", "assets", "img", dirName), origDir: path.join(ORIG, dirName), pos: q.get("pos"), zoom: q.get("zoom") });
+    return await makeHero({ imgDir: path.join(SITE, "src", "assets", "img", dirName), origDir: path.join(ORIG, dirName), pos: q.get("pos"), zoom: q.get("zoom"), ...heroNameFor(rel, meta) });
   },
   async "GET /api/dashboard"() {
     const imgRoot = path.join(SITE, "src", "assets", "img"), imgByDir = {}; let images = 0, texts = 0;
@@ -190,8 +199,8 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname.startsWith("/assets/")) { const f = safeJoin(path.join(SITE, "src"), url.pathname); return f ? send(res, f) : (res.writeHead(403), res.end()); }
     if (url.pathname.startsWith("/originals/")) {   // the cover's original; if it was chosen on another computer, the copy in the repo
       let f = safeJoin(ORIG, url.pathname.slice("/originals".length)); if (!f) { res.writeHead(403); return res.end(); }
-      const m = url.pathname.match(/^\/originals\/([^/]+)\/hero-source\.jpg$/);
-      if (!fs.existsSync(f) && m) f = safeJoin(path.join(SITE, "src", "assets", "img"), `/${m[1]}/hero-source.jpg`);
+      const m = url.pathname.match(/^\/originals\/([^/]+)\/(hero[a-z0-9-]*-source)\.jpg$/);
+      if (!fs.existsSync(f) && m) f = safeJoin(path.join(SITE, "src", "assets", "img"), `/${m[1]}/${m[2]}.jpg`);
       return send(res, f);
     }
     if (url.pathname.startsWith("/preview/")) {

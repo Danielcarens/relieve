@@ -33,18 +33,22 @@ function findOriginal(origDir, base) {
 }
 
 // The hero is always 16:9: crop it from the original around `pos` ("50% 40%"), `zoom` times closer.
-// A copy of the uncropped photo (hero-source.jpg, at most 2600 px wide) goes into the article's image folder, so the
+// A copy of the uncropped photo (<name>-source.jpg, at most 2600 px wide) goes into the article's image folder, so the
 // cover can be reframed later from any computer or from the web editor, not only where it was first chosen.
-export async function makeHero({ buf, imgDir, origDir, pos = "50% 50%", zoom = 1 }) {
+// `name` is the cover's file name ("hero", or "hero-<article>" when another article shares the folder);
+// `prev` is the name it had before, whose original is used when the cover is only reframed under a new name.
+export async function makeHero({ buf, imgDir, origDir, pos = "50% 50%", zoom = 1, name = "hero", prev = "hero" }) {
   fs.mkdirSync(imgDir, { recursive: true });
   fs.mkdirSync(origDir, { recursive: true });
-  const repoCopy = path.join(imgDir, "hero-source.jpg");
+  const srcName = `${name}-source`, repoCopy = path.join(imgDir, `${srcName}.jpg`);
   if (buf) {
-    for (const f of fs.readdirSync(origDir)) if (path.parse(f).name === "hero-source") fs.unlinkSync(path.join(origDir, f));
-    fs.writeFileSync(path.join(origDir, "hero-source.jpg"), buf);   // same name whatever the format; sharp reads by content
+    for (const f of fs.readdirSync(origDir)) if (path.parse(f).name === srcName) fs.unlinkSync(path.join(origDir, f));
+    fs.writeFileSync(path.join(origDir, `${srcName}.jpg`), buf);   // same name whatever the format; sharp reads by content
   }
-  const src = findOriginal(origDir, "hero-source");
-  const from = src ? path.join(origDir, src) : fs.existsSync(repoCopy) ? repoCopy : null;
+  const candidates = [[findOriginal(origDir, srcName), origDir], [fs.existsSync(repoCopy) ? `${srcName}.jpg` : null, imgDir],
+    [findOriginal(origDir, `${prev}-source`), origDir], [fs.existsSync(path.join(imgDir, `${prev}-source.jpg`)) ? `${prev}-source.jpg` : null, imgDir]];
+  const hit = buf ? candidates[0] : candidates.find(([f]) => f);
+  const from = hit && hit[0] ? path.join(hit[1], hit[0]) : null;
   if (!from) throw new Error("No hay foto original de la portada. Elígela otra vez con «Cambiar foto».");
   const rot = await sharp(from).rotate().toBuffer();
   const { width, height } = await sharp(rot).metadata();
@@ -55,7 +59,7 @@ export async function makeHero({ buf, imgDir, origDir, pos = "50% 50%", zoom = 1
   const left = Math.round((width - cw) * px), top = Math.round((height - ch) * py);
   const crop = await sharp(rot).extract({ left, top, width: cw, height: ch }).toBuffer();
   for (const w of [1280, 1920, 2560]) {
-    await sharp(crop).resize({ width: w, withoutEnlargement: true }).jpeg(JPG).toFile(path.join(imgDir, `hero-${w}.jpg`));
+    await sharp(crop).resize({ width: w, withoutEnlargement: true }).jpeg(JPG).toFile(path.join(imgDir, `${name}-${w}.jpg`));
   }
-  return { file: "hero", w: 2560, h: 1440, srcW: width, srcH: height, pos, ...(z > 1 ? { zoom: z } : {}) };
+  return { file: name, w: 2560, h: 1440, srcW: width, srcH: height, pos, ...(z > 1 ? { zoom: z } : {}) };
 }
