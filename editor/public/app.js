@@ -532,7 +532,7 @@ $("#insp").addEventListener("click", (e) => {
 });
 $("#insp").addEventListener("input", (e) => {
   const t = e.target, k = t.dataset.k; if (!k) return;
-  if (k.startsWith("m.")) { const v = t.type === "checkbox" ? t.checked : t.value; act.setMeta(k.slice(2), v || undefined, t.type !== "checkbox"); if (k === "m.description") $("#desc-n").textContent = t.value.length; if (k === "m.date" || k === "m.author") { const w = frame().contentWindow; w.render && w.render(); } if (t.type === "checkbox") renderInspector(); }
+  if (k.startsWith("m.")) { const v = t.type === "checkbox" ? t.checked : t.value; act.setMeta(k.slice(2), v || undefined, t.type !== "checkbox"); if (k === "m.description") $("#desc-n").textContent = t.value.length; if (k === "m.date" || k === "m.author" || k === "m.youtube") { const w = frame().contentWindow; w.render && w.render(); } if (t.type === "checkbox") renderInspector(); }
   else if (k.startsWith("p.")) { const [, id, f] = k.split("."); act.setPhoto(id, { [f]: t.value }, true); t.classList.toggle("invalid", f === "alt" && !t.value.trim()); const h = t.parentElement.querySelector(".hint.bad"); if (h && f === "alt") h.hidden = !!t.value.trim(); }
   else if (k === "bt") { act.setText(ED.sel.i, t.value); renderInspectorSoft(); }
   else if (k.startsWith("route.") || k.startsWith("src.")) { editList(k, t.value); }

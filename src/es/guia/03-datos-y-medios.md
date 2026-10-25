@@ -11,6 +11,7 @@ date: 2026-10-23
 author: Daniel
 credit: Daniel Cárdenas
 draft: true
+youtube: "tcLQtHLJq3Q"
 imgBase: /assets/img/caprock-10-2026/
 hero:
   file: hero
@@ -133,6 +134,10 @@ El texto sigue al lado de la ficha hasta que se termina. En celular, la ficha oc
 Insertar → *Video de YouTube* y pega el enlace en el panel. El lector ve la miniatura; el video se carga solo cuando hace clic (así la página es más rápida y YouTube no rastrea a quien no lo mira).
 
 {% video "tcLQtHLJq3Q", "E-moto test: Arctic Leopard, de Brando Blasco" %}
+
+### Video en la portada
+
+El video también puede ir en la portada: en el panel de la derecha, pestaña **Artículo**, pega el enlace en **Video de YouTube** (debajo de **Fecha**). Sobre la foto de portada aparece el botón **Ver el video**, abajo a la derecha; al pulsarlo, el video se reproduce en el lugar de la foto. Esta guía lo tiene puesto: mira su portada. Para quitarlo, borra el enlace.
 
 ## Mapa
 
