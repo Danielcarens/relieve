@@ -25,5 +25,7 @@ if [ -f "$FUENTE/editor/acceso.json" ]; then cp "$FUENTE/editor/acceso.json" "$S
 
 # Índice de búsqueda de los artículos (sin los archivos de interfaz que el sitio no usa)
 rm -rf "$SITIO/pagefind"
-npx --yes pagefind@1.5.2 --site "$SITIO" --glob "{es/**/*.html,buscar.html}" --quiet
+# Pagefind termina con error cuando no hay nada que indexar (todos los artículos son borradores): eso no es un fallo,
+# el buscador simplemente dice que no hay resultados.
+npx --yes pagefind@1.5.2 --site "$SITIO" --glob "{es/**/*.html,buscar.html}" --quiet || echo "Buscador: todavía no hay artículos publicados para indexar"
 rm -f "$SITIO"/pagefind/pagefind-ui.* "$SITIO"/pagefind/pagefind-modular-ui.* "$SITIO"/pagefind/pagefind-component-ui.* "$SITIO"/pagefind/pagefind-highlight.js "$SITIO"/pagefind/pagefind.css
