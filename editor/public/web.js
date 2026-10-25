@@ -152,8 +152,6 @@ const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(
 
 async function publish({ message, path, force }) {
   const d = await kv.get("drafts", path); if (!d) throw new Error("Este artículo no tiene cambios sin publicar.");
-  const t = await tree(true), cur = t.entries.get(path);
-  if (!force && d.baseSha && cur && cur.sha !== d.baseSha) throw Object.assign(new Error("Otra persona publicó cambios en este mismo artículo después de que lo abriste."), { conflict: true });
   const dir = dirOf(d.model.meta), items = [];
   const text = serializeArticle(d.model);
   const mdBlob = await gh("POST", `${R}/git/blobs`, { content: text, encoding: "utf-8" });
@@ -164,14 +162,22 @@ async function publish({ message, path, force }) {
     const r = await gh("POST", `${R}/git/blobs`, { content: b64, encoding: "base64" });
     items.push({ path: k, mode: "100644", type: "blob", sha: r.sha });
   }
-  const newTree = await gh("POST", `${R}/git/trees`, { base_tree: t.treeSha, tree: items });
+  // Only this article and its photos change, on top of the newest version of everything else. If someone else
+  // (another writer, or a change to the site) lands in the same second, GitHub refuses the update: start again
+  // from the newest version, a few times.
   const who = session.name ? ` (${session.name}, editor web)` : " (editor web)";
-  const commit = await gh("POST", `${R}/git/commits`, { message: `${(message || "Actualiza artículo").trim()}${who}`, tree: newTree.sha, parents: [t.commit] });
-  await gh("PATCH", `${R}/git/refs/heads/${REPO.branch}`, { sha: commit.sha, force: false });
-  await kv.del("drafts", path);
-  for (const k of imgKeys) { await kv.del("blobs", k); }
-  treeCache = null;
-  return { ok: true, sha: commit.sha, files: items.length };
+  for (let attempt = 1; ; attempt++) {
+    const t = await tree(true), cur = t.entries.get(path);
+    if (!force && d.baseSha && cur && cur.sha !== d.baseSha) throw Object.assign(new Error("Otra persona publicó cambios en este mismo artículo después de que lo abriste."), { conflict: true });
+    const newTree = await gh("POST", `${R}/git/trees`, { base_tree: t.treeSha, tree: items });
+    const commit = await gh("POST", `${R}/git/commits`, { message: `${(message || "Actualiza artículo").trim()}${who}`, tree: newTree.sha, parents: [t.commit] });
+    try { await gh("PATCH", `${R}/git/refs/heads/${REPO.branch}`, { sha: commit.sha, force: false }); }
+    catch (e) { if ((e.status === 422 || e.status === 409) && attempt < 4) { treeCache = null; await new Promise((r) => setTimeout(r, 800 * attempt)); continue; } throw e; }
+    await kv.del("drafts", path);
+    for (const k of imgKeys) { await kv.del("blobs", k); }
+    treeCache = null;
+    return { ok: true, sha: commit.sha, files: items.length };
+  }
 }
 
 // ---- dashboard data (same shape as the local server's) ------------------------------------------------------
