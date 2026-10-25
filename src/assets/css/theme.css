@@ -392,6 +392,15 @@ p { text-wrap: pretty; }
   color: #fff;
 }
 
+/* Several tapes in a row (.tapes): only the first has a straight left end. Each next one starts with a cut
+   parallel to the end of the one before, so they read as pieces of the same strip. */
+.tapes { display: flex; flex-wrap: wrap; align-items: flex-start; row-gap: 0.5rem; }
+.tape + .tape {
+  padding-left: 1.3rem;
+  clip-path: polygon(0.7rem 0, 100% 0, calc(100% - 0.7rem) 100%, 0 100%);
+}
+.tapes > .tape + .tape { margin-left: -0.35rem; }   /* the same 0.35rem gap all along the diagonal */
+
 [data-bs-theme="dark"] .tape-secondary { color: #141a16; }
 
 /* Image placeholder. Replace with a real <img class="object-fit-cover"> */

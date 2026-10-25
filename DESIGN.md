@@ -45,6 +45,7 @@ Every page loads, in this order: preloads for Archivo and the icon font (`/asset
 - **Narrow containers:** 864px from 992, 1026px from 1200, 1188px from 1400.
 - **Sentence case everywhere.** Never uppercase text, and no tracked-out labels above headings.
 - **Tape marks every section and category.** `.tape` (on an `h2` for section titles). Pink by default, `.tape tape-secondary` (moss) for secondary labels and the featured article.
+- **Several tapes in a row** go in a `div.tapes`. Only the first has a straight left end; each next one starts with a cut parallel to the end of the one before (same 0.35rem gap along the diagonal), so they read as pieces of one strip.
 - **Square corners.** Radius is 0 everywhere except images and placeholders (2px). No shadows.
 - **Strong rules are 2px:** `border-2 border-strong`. No hairlines on the site. (The editor's panel uses fine 1px lines between groups and 1px field borders.)
 - **Few boxes.** Buttons in the menu bar (search, ES/EN) and in the editor's bars have no border (`.btn-quiet`, applied automatically to `.navbar .btn-outline-dark`): light fill on hover, a 2px bar under the chosen one. Only the main action keeps a filled block (`btn-primary`). In the editor's panel, buttons are light grey blocks and the chosen option is dark.
