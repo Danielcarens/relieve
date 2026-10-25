@@ -16,6 +16,14 @@ body { display: flex; flex-direction: column; overflow: hidden; }
   #tools .ico { display: block; }
 }
 @media (max-width: 991.98px) { .navbar > .container { max-width: none; } }   /* below this the site shows a menu button; the editor uses the full width */
+/* The page lists and the panel sit in the same centered column as the bar and as the site. The site's .container widths (theme.css)
+   already include the 90 % look, and the editor's own 90 % zoom would shrink them a second time, so they are divided by .9 here:
+   the column's edges (and the 0.75rem inner margin) land on the same screen pixels as the bar's and the site's. */
+main > .container { padding-inline: calc(var(--bs-gutter-x, 1.5rem) * .5 / .9); }
+@media (min-width: 992px)  { main > .container { max-width: calc(864px / .9); } }
+@media (min-width: 1200px) { main > .container { max-width: calc(1026px / .9); } }
+@media (min-width: 1400px) { main > .container { max-width: calc(1188px / .9); } }
+@media (max-width: 991.98px) { main > .container { max-width: none; } }
 /* Ribbon (Word-style formatting bar) */
 .ribbon { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .5rem 1rem; }
 @media (min-width: 1200px) { .ribbon { padding-inline: 1.5rem; } }
