@@ -17,9 +17,9 @@
   {% if hero %}<meta property="og:image" content="{{ site.url }}{{ imgBase }}{{ hero.file }}-1920.jpg">
   {% else %}<meta property="og:image" content="{{ site.url }}{{ site.shareImage }}">
   <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:image:height" content="1200">
   <meta property="og:image:alt" content="RELIEVE">{% endif %}
-  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:card" content="{% if hero %}summary_large_image{% else %}summary{% endif %}">
 
   <link rel="icon" href="/favicon.ico" sizes="32x32">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">

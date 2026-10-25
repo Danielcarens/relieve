@@ -7,7 +7,7 @@ export default {
   // Visitor statistics (GoatCounter, open source, no cookies). Write the account code here, e.g. "relieve"
   // for relieve.goatcounter.com; empty = no counting.
   goatcounter: "",
-  // Image shown when a page without its own photo is shared (1200 x 630, the alternative logo on dark green).
+  // Image shown when a page without its own photo is shared (square 1200 x 1200, the alternative logo on dark green).
   shareImage: "/assets/img/og-relieve.png",
   // Social profiles in the footer. Empty = not shown; the whole "Síguenos" column disappears while all are empty.
   social: { instagram: "", youtube: "" },
