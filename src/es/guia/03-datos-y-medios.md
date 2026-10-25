@@ -132,7 +132,7 @@ El texto sigue al lado de la ficha hasta que se termina. En celular, la ficha oc
 
 Insertar → *Video de YouTube* y pega el enlace en el panel. El lector ve la miniatura; el video se carga solo cuando hace clic (así la página es más rápida y YouTube no rastrea a quien no lo mira).
 
-{% video "7EcrNEsd3-E", "Video de ejemplo" %}
+{% video "tcLQtHLJq3Q", "E-moto test: Arctic Leopard, de Brando Blasco" %}
 
 ## Mapa
 
