@@ -45,6 +45,9 @@ body { background: var(--bs-body-bg); }
 .blk-h2 .ed-field { font-family: var(--font-display); font-stretch: 68%; font-weight: 800; font-size: clamp(2rem, 1.4rem + 1.8vw, 2.75rem); line-height: 1.02; letter-spacing: -0.005em; }
 .blk-h3 { margin-top: 2rem; margin-bottom: .75rem; }
 .blk-h3 .ed-field { font-family: var(--font-display); font-stretch: 68%; font-weight: 800; font-size: 2rem; line-height: 1.02; letter-spacing: -0.005em; }
+/* A quote in its own row: as on the site, it starts at the photos' margin and its lines are at most 22 characters */
+.blk-text.blk-quote { width: var(--cw-inner); }
+.blk-text.blk-quote .ed-rich { max-width: 22ch; text-wrap: balance; }
 .blk-quote .ed-field { font-family: var(--font-display); font-stretch: 68%; font-weight: 800; font-size: clamp(2.25rem, 1.4rem + 3.2vw, 3.75rem); line-height: .98; }
 .blk-raw pre { background: var(--bs-secondary-bg); padding: .75rem; white-space: pre-wrap; font-size: .85rem; }
 
@@ -101,6 +104,7 @@ body.is-file-drag .drop-overlay { display: grid; }
 .divider::after { content: ""; position: absolute; left: 6px; top: 0; bottom: 0; width: 4px; background: var(--bs-primary); opacity: .85; }
 .blk-media:hover .divider, .blk-media.is-sel .divider { display: block; }
 .blk-ficha > .blk-tools, .blk-quote.wrap > .blk-tools { right: 0; top: -2.4rem; }
+.blk.wrap > .box-handle[data-float] { display: none; } .blk.wrap:hover > .box-handle[data-float], .blk.wrap.is-sel > .box-handle[data-float] { display: block; }
 .blk-ficha > .blk-handle, .blk-quote.wrap > .blk-handle { left: 0; top: -2.4rem; background: var(--bs-body-color); color: var(--bs-body-bg); }
 
 /* Side handle of a floating photo (drag it toward the screen edge) */
@@ -177,8 +181,8 @@ body.is-file-drag .drop-overlay { display: grid; }
 @media (max-width: 767.98px) { .rz-l, .rz-r, .rz-tl, .rz-tr, .rz-bl, .rz-br { display: none !important; } }
 /* single photos and rows: as wide as the photos' column, so their edges and handles sit on its margins */
 @media (min-width: 768px) {
-  .blk-photo, .blk-row { width: var(--cw-inner); margin-inline: auto; }
-  .blk-photo > .container, .blk-row > .container { max-width: none; padding-inline: 0; }
+  .blk-photo, .blk-row, .blk-video, .blk-map { width: var(--cw-inner); margin-inline: auto; }
+  .blk-photo > .container, .blk-row > .container, .blk-video > .container, .blk-map > .container { max-width: none; padding-inline: 0; }
 }
 
 /* Facts row: as wide as single photos (its lines and text start at their edges); the side handles change it */

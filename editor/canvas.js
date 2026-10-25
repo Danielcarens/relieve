@@ -182,7 +182,9 @@ const recuadroCls = (b) => { const f = b.fondo || "gris"; return [`fondo-${f}`, 
 const COL = "min(46rem, 100% - 1.5rem)";
 const edgeX = (v, side) => (v === "texto" ? `calc((100% ${side === "l" ? "-" : "+"} ${COL}) / 2)` : `calc((100% - var(--cw-inner)) / 2 + var(--cw-inner) * ${v} / 100)`);
 const boxVars = (x) => `--x1: ${edgeX(x.l, "l")}; --x2: ${edgeX(x.r, "r")}`;
-const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details", "datos", "foto", "fila"];
+const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details", "datos", "foto", "fila", "quote", "button", "hr", "video", "map", "ficha"];
+// Blocks whose normal width is the photos' column (the rest: the text column)
+const WIDE = ["datos", "fila", "foto", "quote", "video", "map", "ficha"];
 // A floating photo, quote or card wraps the text that comes AFTER it. If nothing comes after it, say so.
 const BESIDE = ["p", "ul", "ol", "h3", "callout", "details", "button", "raw"];
 function floatHint(S, i) {
@@ -203,8 +205,9 @@ function blockHTML(b, i, S) {
   const sel = S.sel && S.sel.i === i ? " is-sel" : "";
   const boxable = BOXABLE.includes(b.type) && !(b.wrap && b.wrap.side) && !b.full;
   const style = [boxable && b.box ? boxVars(b.box) : "", b.wrap && b.wrap.side && ![33, 40, 50].includes(b.wrap.size || 40) ? `--ws: ${b.wrap.size / 100}` : ""].filter(Boolean).join("; ");
-  const what = b.type === "fila" ? "de la fila" : b.type === "datos" ? "de los datos" : "del texto";
-  const edges = boxable && b.type !== "foto" ? `<div class="box-handle" data-side="l" title="Arrastra para cambiar el ancho ${what}. Doble clic: ancho normal"></div><div class="box-handle" data-side="r" title="Arrastra para cambiar el ancho ${what}. Doble clic: ancho normal"></div>` : "";
+  const what = { fila: "de la fila", datos: "de los datos", quote: "de la cita", button: "del botón", hr: "de la línea", video: "del video", map: "del mapa", ficha: "de la ficha" }[b.type] || "del texto";
+  const fside = b.wrap && b.wrap.side && b.type !== "foto" ? (b.wrap.side === "left" ? "r" : "l") : null;   // floating card or quote: its inner side
+  const edges = fside ? `<div class="box-handle" data-side="${fside}" data-float="1" title="Arrastra para cambiar el ancho; se pega a los bordes de lo que hay alrededor"></div>` : boxable && b.type !== "foto" ? `<div class="box-handle" data-side="l" title="Arrastra para cambiar el ancho ${what}. Doble clic: ancho normal"></div><div class="box-handle" data-side="r" title="Arrastra para cambiar el ancho ${what}. Doble clic: ancho normal"></div>` : "";
   const wrap = (cls, inner, extra = "") => `<div class="blk ${cls}${extra}${sel}${b.align === "center" ? " is-center" : ""}${boxable && b.box ? " has-box" : ""}"${style ? ` style="${style}"` : ""} data-i="${i}">${handle}${tools}${edges}${inner}${extra.includes(" wrap ") ? floatHint(S, i) : ""}</div>`;
   const rich = (ph) => `<div class="ed-field ed-rich" contenteditable="true" spellcheck="true" data-t="${i}" data-ph="${ph}">${mdToHtml(b.text)}</div>`;
   const text = (cls, ph) => wrap(cls, rich(ph));
@@ -384,7 +387,7 @@ root.addEventListener("pointerdown", (e) => {
     else {
       const k = Number(dv.dataset.k); let dx = ev.clientX - sx;
       const edge = items[k].querySelector(".ratio").getBoundingClientRect().left + widths[k] + dx;   // where the gap would be
-      for (const t of xsRow) if (Math.abs(edge - t) < 10) { dx += t - edge; break; }
+      const t = nearest(edge, xsRow, 10); if (t != null) dx += t - edge;
       const wi = Math.max(h0 * 0.4, widths[k] + dx), wj = Math.max(h0 * 0.4, widths[k + 1] - dx);
       cur = r0.slice(); cur[k] = clampR(wi / h0); cur[k + 1] = clampR(wj / h0);
     }
@@ -713,41 +716,64 @@ function contentBox() {
 }
 let guide = null;
 const showGuide = (x) => { if (!guide) { guide = document.createElement("div"); guide.className = "snap-guide"; document.body.appendChild(guide); } guide.style.left = x + "px"; guide.hidden = x == null; };
+const nearest = (v, list, tol) => { let best = null, d = tol; for (const t of list) { const dd = Math.abs(v - t); if (dd < d) { d = dd; best = t; } } return best; };
 root.addEventListener("pointerdown", (e) => {
   const h = e.target.closest(".box-handle"); if (!h || e.button !== 0) return;
   e.preventDefault(); h.setPointerCapture(e.pointerId);
   const blk = h.closest(".blk"), i = Number(blk.dataset.i), side = h.dataset.side, b = E().blocks[i];
   const C = contentBox(), rect = blk.getBoundingClientRect();
+  // what an edge can stick to (page x): the photos' margins, the text column, the centre and the edges of everything else
+  const xs = [C.x0, C.x0 + C.cw, C.x0 + C.defL / 100 * C.cw, C.x0 + C.defR / 100 * C.cw, C.x0 + C.cw / 2, ...photoEdges(blk)];
+  A().select(i, null);
+  if (h.dataset.float) {   // floating card or quote: the inner edge sets its width (a share of the text column, or of the photos' width when it hangs out)
+    const col = (C.defR - C.defL) / 100 * C.cw, base = b.wrap.hang ? C.cw : col, edgePx = b.wrap.edge ? rect.width - col * (b.wrap.size || 40) / 100 : 0;
+    let size = b.wrap.size || 40;
+    const move = (ev) => {
+      let x = ev.clientX; const t = nearest(x, xs, 12); if (t != null) x = t;
+      const w = side === "l" ? rect.right - x : x - rect.left;
+      size = Math.round(Math.max(15, Math.min(70, ((w - edgePx) / base) * 100)));
+      blk.style.setProperty("--ws", size / 100); showGuide(t);
+    };
+    const up = () => { h.removeEventListener("pointermove", move); h.removeEventListener("pointerup", up); showGuide(null); if (size !== (b.wrap.size || 40)) A().setPhotoFrame(i, { size }); };
+    h.addEventListener("pointermove", move); h.addEventListener("pointerup", up);
+    return;
+  }
   // edges as numbers while dragging; an edge left on the reading column is stored as "texto"
   let l = (rect.left - C.x0) / C.cw * 100, r = (rect.right - C.x0) / C.cw * 100, moved = false;
   let lv = b.box ? b.box.l : null, rv = b.box ? b.box.r : null;
-  A().select(i, null);
+  const isCol = (x) => Math.abs(x - (C.x0 + C.defL / 100 * C.cw)) < 0.5 || Math.abs(x - (C.x0 + C.defR / 100 * C.cw)) < 0.5;
   const move = (ev) => {
     moved = true;
-    let v = (ev.clientX - C.x0) / C.cw * 100, snapped = null;
-    for (const t of [0, 100, C.defL, C.defR, 50, ...photoEdges(blk).map((x) => (x - C.x0) / C.cw * 100)]) if (Math.abs(v - t) * C.cw / 100 < 12) { v = t; snapped = t; break; }
-    if (side === "l") { l = Math.max(0, Math.min(r - 15, v)); lv = snapped === C.defL || snapped === C.defR ? "texto" : Math.round(l * 10) / 10; }
-    else { r = Math.min(100, Math.max(l + 15, v)); rv = snapped === C.defL || snapped === C.defR ? "texto" : Math.round(r * 10) / 10; }
+    let x = ev.clientX; const t = nearest(x, xs, 12); if (t != null) x = t;
+    const v = (x - C.x0) / C.cw * 100;
+    if (side === "l") { l = Math.max(0, Math.min(r - 15, v)); lv = t != null && isCol(t) ? "texto" : Math.round(l * 10) / 10; }
+    else { r = Math.min(100, Math.max(l + 15, v)); rv = t != null && isCol(t) ? "texto" : Math.round(r * 10) / 10; }
     const cur = { l: lv ?? (Math.abs(l - C.defL) < 0.3 ? "texto" : Math.round(l * 10) / 10), r: rv ?? (Math.abs(r - C.defR) < 0.3 ? "texto" : Math.round(r * 10) / 10) };
     blk.classList.add("has-box"); blk.style.cssText = boxVars(cur); blk.dataset.box = JSON.stringify(cur);
-    showGuide(snapped == null ? null : C.x0 + (snapped / 100) * C.cw);
+    showGuide(t);
   };
   const up = () => {
     h.removeEventListener("pointermove", move); h.removeEventListener("pointerup", up); showGuide(null);
     if (!moved) return;
     const box = JSON.parse(blk.dataset.box);
-    const normal = ["datos", "fila", "foto"].includes(b.type) ? box.l === 0 && box.r === 100 : box.l === "texto" && box.r === "texto";   // facts and photos are normally as wide as the photos
+    const normal = WIDE.includes(b.type) ? box.l === 0 && box.r === 100 : box.l === "texto" && box.r === "texto";
     A().setBox(i, normal ? null : box);
   };
   h.addEventListener("pointermove", move); h.addEventListener("pointerup", up);
 });
-root.addEventListener("dblclick", (e) => { const h = e.target.closest(".box-handle"); if (h) A().setBox(Number(h.closest(".blk").dataset.i), null); });
+root.addEventListener("dblclick", (e) => { const h = e.target.closest(".box-handle"); if (!h) return; const i = Number(h.closest(".blk").dataset.i); if (h.dataset.float) A().setPhotoFrame(i, { size: 40 }); else A().setBox(i, null); });
 
 // ---- resize a photo by its handles ----------------------------------------------------------
-// Left and right edges of the other photos on the page (each photo of a row too), in page coordinates
+// Left and right edges of everything else on the page: each photo (also inside rows), paragraphs and titles (their
+// column or free width), text boxes, cards, quotes, facts rows, videos, maps, floating blocks… in page coordinates
 function photoEdges(except) {
-  const xs = [];
-  document.querySelectorAll(".article-body .ratio").forEach((r) => { if (except && except.contains(r)) return; const b = r.getBoundingClientRect(); if (b.width) xs.push(b.left, b.right); });
+  const xs = [], add = (el) => { if (!el || (except && except.contains(el))) return; const b = el.getBoundingClientRect(); if (b.width > 8) xs.push(b.left, b.right); };
+  document.querySelectorAll(".article-body .ratio").forEach(add);
+  document.querySelectorAll(".article-body > .blk").forEach((blk) => {
+    if (blk === except || blk.classList.contains("blk-pano") || blk.classList.contains("blk-space")) return;
+    add(blk.querySelector(":scope > .container > figure, :scope > .container > .datos-wrap, :scope > .container > .fila, :scope > .container > dl") || blk);
+    blk.querySelectorAll(".recuadro, .ficha, .ed-desplegable, .ed-btn").forEach(add);
+  });
   return xs;
 }
 const photoHeights = (except) => [...document.querySelectorAll(".article-body .ratio")].filter((r) => !(except && except.contains(r))).map((r) => r.getBoundingClientRect().height).filter(Boolean);
@@ -768,13 +794,13 @@ root.addEventListener("pointerdown", (e) => {
     let snapX = null;
     if (hx) {
       let x = (hx === "l" ? rect.left : rect.right) + (ev.clientX - sx);
-      for (const t of xs) if (Math.abs(x - t) < 10) { x = t; snapX = t; break; }
+      const t = nearest(x, xs, 10); if (t != null) { x = t; snapX = t; }
       if (hx === "l") L = Math.min(x, R - 120); else R = Math.max(x, L + 120);
     }
     const W = R - L;
     if (vy) {
       H = Math.max(60, rect.height + (vy === "b" ? 1 : -1) * (ev.clientY - sy));
-      for (const t of hs) if (Math.abs(H - t) < 8) { H = t; break; }
+      const th = nearest(H, hs, 8); if (th != null) H = th;
     } else H = W / r0;   // only the width: the photo keeps its shape
     const ratio = Math.round(Math.max(0.4, Math.min(5, W / H)) * 1000) / 1000;
     frame.style.setProperty("--bs-aspect-ratio", (100 / ratio).toFixed(3) + "%");
