@@ -1,182 +1,144 @@
 <!doctype html>
-<html lang="es" data-lang="es" data-bs-theme="light">
+<html lang="es-419" data-bs-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Viajes · RELIEVE</title>
-  <link rel="icon" href="favicon.ico" sizes="32x32">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <meta name="description" content="Reportajes de viajes en bici y moto: rutas, lugares y cómo llegar.">
+  <meta name="description" content="Rutas, lugares y lo que aprendimos en el camino, con mapas, datos y fotos propias.">
+  
+  <link rel="canonical" href="https://relievemag.com/viajes.html">
+
+  <meta property="og:site_name" content="RELIEVE">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Viajes">
+  <meta property="og:description" content="Rutas, lugares y lo que aprendimos en el camino, con mapas, datos y fotos propias.">
+  <meta property="og:locale" content="es_419">
+  <meta property="og:url" content="https://relievemag.com/viajes.html">
+  
+
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
   <!-- Fonts -->
-
-
-  <!-- Bootstrap 5.3.8, then our theme (order matters) -->
   <link rel="preload" href="/assets/fonts/archivo-latin-wdth-wght.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/material-symbols-outlined-subset.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap.min.css">
-  <link rel="stylesheet" href="css/theme.css">
 
-  <!-- Language + color mode (in <head> so the page doesn't flash) -->
-  <script src="js/site.js"></script>
+  <!-- Bootstrap 5.3.8, then our theme (order matters) -->
+  <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/theme.css">
+
+  <script src="/assets/js/site.js" defer></script>
+  
 </head>
 <body>
-  <!-- Logo outline, reused by the navbar and the footer -->
   <svg width="0" height="0" class="position-absolute" aria-hidden="true" focusable="false"><defs><g id="logo-lockup"><path fill="none" stroke="currentColor" stroke-width="22" stroke-linejoin="round" d="M26.1 576.0 L30.5 578.0 L36.8 576.7 L41.0 575.2 L45.2 573.4 L49.4 571.4 L53.6 569.3 L57.8 567.1 L62.0 564.9 L66.2 562.6 L70.4 560.3 L74.6 557.9 L78.8 555.5 L83.0 553.1 L87.0 550.8 L90.6 548.7 L94.1 546.6 L97.7 544.5 L101.9 542.0 L106.0 539.5 L110.2 536.9 L114.4 534.4 L118.4 531.9 L121.8 529.8 L125.2 527.7 L129.1 525.2 L133.3 522.6 L137.5 520.0 L141.7 517.3 L145.1 515.1 L148.4 513.0 L152.2 510.6 L156.4 507.9 L160.6 505.3 L164.8 502.6 L168.1 500.5 L171.4 498.4 L175.3 495.9 L179.5 493.2 L183.6 490.5 L187.8 487.9 L191.1 485.8 L194.4 483.7 L198.3 481.2 L202.5 478.5 L206.7 475.9 L210.9 473.3 L214.5 471.1 L217.9 469.0 L221.4 466.8 L225.6 464.3 L229.8 461.8 L234.0 459.2 L238.2 456.7 L242.3 454.3 L245.8 452.2 L249.4 450.1 L253.1 448.0 L257.0 445.7 L261.2 443.4 L265.4 441.0 L269.6 438.6 L273.8 436.3 L278.0 434.0 L282.2 431.7 L286.4 429.5 L290.6 427.4 L294.8 425.4 L299.0 423.9 L305.3 422.9 L311.6 423.7 L315.8 425.1 L320.0 427.1 L324.2 429.4 L328.4 431.7 L332.5 434.2 L336.7 436.6 L340.9 439.0 L345.1 441.4 L349.3 443.8 L353.1 445.9 L356.7 448.0 L360.4 450.1 L364.1 452.2 L368.2 454.5 L372.4 456.9 L376.6 459.3 L380.8 461.7 L385.0 464.0 L389.2 466.4 L393.4 468.8 L397.5 471.1 L401.2 473.2 L404.9 475.3 L408.6 477.4 L412.4 479.5 L416.4 481.8 L420.6 484.1 L424.8 486.5 L429.0 488.8 L433.2 491.2 L437.4 493.5 L441.6 495.9 L445.8 498.3 L449.7 500.5 L453.4 502.6 L457.2 504.6 L460.9 506.7 L464.7 508.9 L468.9 511.2 L473.1 513.6 L477.3 516.0 L481.5 518.3 L485.6 520.7 L489.8 523.1 L494.0 525.5 L498.0 527.7 L501.7 529.8 L505.4 531.9 L509.1 534.0 L512.9 536.2 L517.1 538.6 L521.3 541.0 L525.5 543.3 L529.7 545.7 L533.9 548.1 L538.1 550.4 L542.3 552.7 L546.4 555.0 L550.4 557.1 L554.6 559.2 L559.0 561.3 L563.2 563.0 L567.4 564.2 L573.3 563.4 L574.3 559.2 L573.6 555.0 L571.6 549.2 L569.7 544.5 L567.9 540.3 L566.0 536.1 L564.0 531.9 L562.0 527.7 L559.9 523.5 L557.9 519.3 L555.8 515.1 L553.8 510.9 L551.7 506.7 L549.7 502.6 L547.7 498.4 L545.7 494.2 L543.7 490.0 L541.7 485.8 L539.7 481.6 L537.7 477.4 L535.8 473.2 L533.8 469.0 L531.8 464.6 L529.7 460.0 L527.6 455.4 L525.5 450.8 L523.4 446.1 L521.4 441.7 L519.5 437.5 L517.7 433.3 L515.8 429.1 L513.9 425.0 L512.1 420.8 L510.2 416.6 L508.3 412.4 L506.5 408.2 L504.5 403.7 L502.4 398.9 L500.3 394.2 L498.2 389.4 L496.3 385.1 L494.5 380.9 L492.6 376.7 L490.7 372.5 L488.9 368.3 L487.0 364.1 L485.1 359.9 L483.2 355.7 L481.4 351.6 L479.4 347.1 L477.3 342.5 L475.2 337.9 L473.1 333.4 L471.0 328.8 L468.9 324.3 L466.9 320.1 L464.9 315.9 L462.9 311.7 L460.9 307.5 L458.9 303.3 L456.9 299.1 L454.9 294.9 L452.8 290.7 L450.7 286.5 L448.7 282.3 L446.6 278.1 L444.5 274.0 L442.3 269.8 L440.2 265.6 L438.1 261.4 L435.9 257.2 L433.7 253.0 L431.6 248.8 L429.4 244.6 L427.1 240.4 L424.9 236.2 L422.7 232.1 L420.6 228.2 L418.5 224.3 L416.4 220.4 L414.3 216.5 L412.2 212.6 L410.1 208.8 L408.0 204.7 L405.7 200.6 L403.4 196.4 L401.1 192.2 L398.8 188.0 L396.5 183.8 L394.1 179.6 L391.8 175.4 L389.5 171.2 L387.2 167.0 L385.0 162.9 L382.9 159.1 L380.8 155.3 L378.7 151.4 L376.6 147.6 L374.5 143.7 L372.3 139.7 L370.1 135.5 L367.8 131.3 L365.6 127.2 L363.3 123.0 L361.1 118.8 L358.9 114.6 L356.7 110.4 L354.5 106.2 L352.3 102.0 L350.1 97.8 L348.0 93.6 L345.8 89.4 L343.7 85.2 L341.6 81.0 L339.5 76.8 L337.4 72.6 L335.3 68.4 L333.2 64.2 L331.2 60.0 L329.1 55.8 L327.1 51.7 L325.0 47.5 L323.0 43.3 L320.8 39.1 L318.6 34.9 L316.2 30.7 L313.7 27.0 L311.4 24.4 L307.4 22.0 L303.2 23.0 L299.8 26.5 L296.9 30.7 L294.8 34.5 L292.7 38.6 L290.6 43.0 L288.5 47.5 L286.6 51.7 L284.8 55.8 L282.9 60.0 L281.1 64.2 L279.2 68.4 L277.4 72.6 L275.5 76.8 L273.7 81.0 L271.7 85.5 L269.6 90.3 L267.5 95.1 L265.4 99.8 L263.6 104.1 L261.7 108.3 L259.9 112.5 L258.0 116.7 L256.1 120.9 L254.3 125.1 L252.4 129.2 L250.5 133.4 L248.6 137.6 L246.6 142.2 L244.5 146.9 L242.4 151.5 L240.3 156.1 L238.2 160.7 L236.2 164.9 L234.3 169.1 L232.3 173.3 L230.4 177.5 L228.4 181.7 L226.5 185.9 L224.5 190.1 L222.5 194.3 L220.5 198.5 L218.5 202.6 L216.4 206.8 L214.4 211.0 L212.4 215.2 L210.3 219.4 L208.2 223.6 L206.1 227.8 L204.0 232.0 L201.9 236.2 L199.8 240.4 L197.7 244.6 L195.5 248.8 L193.4 253.0 L191.2 257.2 L189.0 261.4 L186.9 265.6 L184.7 269.8 L182.4 274.0 L180.2 278.1 L178.0 282.3 L175.7 286.5 L173.5 290.7 L171.2 294.9 L169.0 299.0 L166.9 302.8 L164.8 306.6 L162.7 310.4 L160.6 314.2 L158.5 318.0 L156.1 322.2 L153.8 326.4 L151.4 330.6 L149.1 334.8 L146.7 339.0 L144.3 343.2 L142.0 347.4 L139.6 351.5 L137.5 355.2 L135.4 358.8 L133.3 362.5 L131.2 366.2 L128.8 370.4 L126.4 374.6 L124.0 378.8 L121.6 383.0 L119.2 387.2 L116.8 391.4 L114.4 395.5 L112.3 399.2 L110.2 402.9 L108.1 406.6 L106.0 410.3 L103.7 414.5 L101.3 418.7 L98.9 422.9 L96.6 427.1 L94.2 431.2 L91.9 435.4 L89.6 439.6 L87.3 443.8 L85.1 447.8 L83.0 451.6 L80.9 455.4 L78.8 459.3 L76.7 463.2 L74.6 467.1 L72.4 471.1 L70.2 475.3 L68.0 479.5 L65.7 483.7 L63.5 487.9 L61.3 492.1 L59.2 496.3 L57.0 500.5 L54.9 504.6 L52.7 508.8 L50.6 513.0 L48.5 517.2 L46.4 521.4 L44.3 525.6 L42.2 529.8 L40.2 534.0 L38.2 538.2 L36.2 542.4 L34.2 546.6 L32.4 550.8 L30.5 555.0 L28.5 560.3 L26.7 565.5 L25.7 569.7Z M118.1 479.5 L122.8 480.4 L127.0 479.2 L131.2 477.4 L135.4 475.3 L139.6 473.0 L143.8 470.6 L148.0 468.1 L152.2 465.5 L156.4 462.9 L160.1 460.6 L163.5 458.5 L166.9 456.4 L171.1 453.7 L175.3 451.1 L179.5 448.4 L183.4 445.9 L186.8 443.8 L190.1 441.7 L194.1 439.2 L198.3 436.6 L202.5 434.0 L206.7 431.5 L210.5 429.1 L214.0 427.1 L217.5 425.0 L221.4 422.6 L225.6 420.1 L229.8 417.6 L234.0 415.2 L238.2 412.8 L242.4 410.3 L246.2 408.2 L249.9 406.1 L253.6 404.0 L257.4 401.9 L261.2 399.8 L265.4 397.5 L269.6 395.2 L273.8 393.0 L278.0 390.8 L282.2 388.8 L286.4 387.1 L292.5 385.1 L296.9 384.2 L303.2 383.6 L309.5 383.9 L315.8 385.0 L320.0 386.3 L324.2 387.9 L328.4 389.9 L332.5 392.2 L336.7 394.6 L340.9 397.0 L345.1 399.5 L349.1 401.9 L352.7 404.0 L356.2 406.1 L359.8 408.2 L364.0 410.6 L368.2 413.1 L372.4 415.5 L376.6 417.9 L380.8 420.4 L385.0 422.8 L388.8 425.0 L392.5 427.1 L396.2 429.1 L399.9 431.2 L403.9 433.5 L408.0 435.8 L412.2 438.2 L416.4 440.5 L420.6 442.9 L424.8 445.2 L429.0 447.5 L433.2 449.8 L437.4 452.1 L441.4 454.3 L445.3 456.4 L449.2 458.5 L453.2 460.6 L457.2 462.7 L461.3 464.8 L465.6 466.9 L470.2 469.0 L475.2 471.1 L479.4 472.4 L485.6 472.7 L488.4 469.0 L487.9 462.7 L486.7 458.5 L485.3 454.3 L483.5 449.8 L481.5 444.6 L479.4 439.6 L477.6 435.4 L475.7 431.2 L473.9 427.1 L472.0 422.9 L470.2 418.7 L468.3 414.5 L466.5 410.3 L464.6 406.1 L462.6 401.5 L460.5 396.8 L458.4 392.2 L456.3 387.5 L454.3 383.0 L452.4 378.8 L450.5 374.6 L448.5 370.4 L446.6 366.2 L444.7 362.0 L442.8 357.8 L440.8 353.6 L438.8 349.5 L436.9 345.3 L434.9 341.1 L432.9 336.9 L430.9 332.7 L428.9 328.5 L426.8 324.3 L424.8 320.1 L422.7 315.9 L420.6 311.7 L418.5 307.5 L416.4 303.3 L414.3 299.1 L412.2 294.9 L410.0 290.7 L407.9 286.5 L405.7 282.3 L403.5 278.1 L401.3 274.0 L399.1 269.8 L396.9 265.6 L394.6 261.4 L392.4 257.2 L390.1 253.0 L387.8 248.8 L385.5 244.6 L383.2 240.4 L380.9 236.2 L378.7 232.1 L376.6 228.3 L374.5 224.5 L372.4 220.7 L370.3 217.0 L368.2 213.1 L365.8 208.9 L363.5 204.7 L361.2 200.6 L358.8 196.4 L356.5 192.2 L354.2 188.0 L351.8 183.8 L349.5 179.6 L347.2 175.5 L345.1 171.7 L343.0 167.9 L340.9 164.1 L338.8 160.2 L336.7 156.4 L334.5 152.3 L332.3 148.1 L330.0 143.9 L327.7 139.7 L325.4 135.5 L323.1 131.3 L320.8 127.2 L318.2 123.0 L315.8 119.2 L313.7 116.5 L309.5 113.0 L306.9 112.5 L302.3 114.6 L299.0 118.3 L296.9 121.5 L294.8 125.2 L292.7 129.2 L290.6 133.4 L288.5 137.8 L286.4 142.3 L284.3 146.9 L282.2 151.4 L280.1 156.0 L278.0 160.6 L276.0 164.9 L274.1 169.1 L272.2 173.3 L270.2 177.5 L268.3 181.7 L266.4 185.9 L264.4 190.1 L262.4 194.3 L260.5 198.5 L258.5 202.6 L256.5 206.8 L254.6 211.0 L252.6 215.2 L250.6 219.4 L248.6 223.6 L246.6 227.8 L244.5 232.2 L242.4 236.5 L240.3 240.8 L238.2 245.1 L236.1 249.4 L234.0 253.7 L231.9 257.9 L229.8 262.1 L227.7 266.3 L225.6 270.5 L223.5 274.7 L221.4 278.8 L219.3 282.9 L217.2 287.0 L215.1 291.1 L213.0 295.1 L210.9 299.2 L208.8 303.3 L206.6 307.5 L204.3 311.7 L202.1 315.9 L199.9 320.1 L197.7 324.3 L195.4 328.5 L193.1 332.7 L190.9 336.9 L188.6 341.1 L186.3 345.3 L184.0 349.5 L181.7 353.6 L179.5 357.7 L177.4 361.5 L175.3 365.3 L173.2 369.0 L171.1 372.8 L168.9 376.7 L166.5 380.9 L164.1 385.1 L161.8 389.3 L159.4 393.5 L157.0 397.7 L154.7 401.9 L152.3 406.1 L150.1 409.9 L148.0 413.7 L145.9 417.4 L143.8 421.1 L141.6 425.0 L139.3 429.1 L136.9 433.3 L134.6 437.5 L132.3 441.7 L130.0 445.9 L127.8 450.1 L125.6 454.3 L123.5 458.5 L121.6 462.7 L119.8 466.9 L118.3 471.1 L117.3 477.4Z M395.7 385.1 L401.8 386.6 L406.3 385.1 L406.9 378.8 L406.0 374.5 L403.9 368.5 L402.1 364.1 L400.3 359.9 L398.4 355.7 L396.4 351.6 L394.4 347.4 L392.4 343.2 L390.3 339.0 L388.3 334.8 L386.2 330.6 L384.0 326.4 L381.9 322.2 L379.7 318.0 L377.6 313.8 L375.4 309.6 L373.2 305.4 L371.0 301.2 L368.8 297.0 L366.5 292.8 L364.3 288.6 L362.0 284.4 L359.8 280.4 L357.7 276.5 L355.6 272.7 L353.5 268.9 L351.4 265.1 L349.3 261.3 L347.0 257.2 L344.7 253.0 L342.4 248.8 L340.0 244.6 L337.7 240.4 L335.3 236.2 L333.0 232.0 L330.6 227.8 L328.4 223.9 L326.3 220.2 L324.2 216.6 L322.1 213.0 L319.5 208.9 L316.7 204.7 L313.7 201.1 L310.3 198.5 L305.3 197.9 L301.5 200.6 L299.0 203.5 L296.8 206.8 L294.4 211.0 L292.2 215.2 L290.0 219.4 L288.0 223.6 L286.0 227.8 L284.0 232.0 L282.0 236.2 L280.0 240.4 L278.0 244.6 L275.9 248.9 L273.8 253.3 L271.7 257.7 L269.6 262.1 L267.5 266.4 L265.4 270.8 L263.3 275.1 L261.2 279.4 L259.1 283.7 L257.0 288.0 L255.0 292.3 L252.9 296.6 L250.8 300.8 L248.7 305.0 L246.6 309.3 L244.5 313.5 L242.4 317.7 L240.3 321.9 L238.2 326.1 L236.1 330.3 L234.0 334.6 L231.9 338.9 L229.8 343.2 L227.9 347.4 L226.1 351.6 L224.4 355.7 L223.0 359.9 L221.9 366.2 L225.3 370.4 L227.7 370.4 L234.0 368.6 L238.2 366.9 L242.4 365.0 L246.6 363.0 L250.8 360.9 L255.0 358.8 L259.1 356.6 L263.3 354.6 L267.5 352.7 L271.7 350.9 L275.9 349.4 L282.2 347.6 L286.4 346.7 L292.7 345.8 L299.0 345.4 L305.3 345.4 L311.6 345.9 L317.9 347.0 L322.1 347.9 L327.3 349.5 L332.5 351.3 L336.7 353.1 L340.9 355.1 L345.1 357.3 L349.3 359.7 L353.3 362.0 L356.8 364.1 L360.3 366.2 L364.0 368.5 L368.2 370.9 L372.4 373.4 L376.6 375.7 L380.8 378.0 L385.0 380.3 L389.2 382.3 L393.4 384.2Z M305.2 311.7 L309.5 312.0 L315.8 312.4 L322.1 312.3 L326.3 311.5 L330.0 307.5 L329.5 301.2 L328.0 297.0 L326.2 292.8 L324.1 288.6 L321.8 284.4 L319.3 280.2 L316.4 276.1 L313.7 272.7 L309.7 269.8 L305.3 269.5 L301.9 271.9 L299.0 275.2 L296.9 278.4 L294.6 282.3 L292.5 286.5 L290.6 290.9 L288.5 297.0 L287.8 301.2 L288.5 305.8 L292.7 309.5 L296.9 310.7 L303.2 311.5Z"/><path fill="currentColor" d="M785.6 600.0V590.9090909090909L800.4909090909091 584.5454545454545Q814.6727272727272 578.1818181818181 818.9272727272727 567.7272727272727Q823.1818181818181 557.2727272727273 823.1818181818181 538.1818181818182V62.72727272727275Q823.1818181818181 44.54545454545462 819.2818181818182 34.09090909090912Q815.3818181818182 23.636363636363626 801.9090909090909 17.272727272727252L785.6 9.090909090909122V0.0H988.4Q1072.0727272727272 0.0 1116.7454545454545 40.45454545454544Q1161.418181818182 80.90909090909088 1161.418181818182 152.72727272727275Q1161.418181818182 192.72727272727275 1138.0181818181818 232.72727272727275Q1114.6181818181817 272.72727272727275 1064.2727272727273 294.54545454545456L1162.8363636363638 545.4545454545455Q1169.2181818181818 560.9090909090909 1177.3727272727274 570.4545454545455Q1185.5272727272727 580.0 1199.0 587.2727272727273L1208.2181818181818 591.8181818181819V600.0H1081.290909090909L976.3454545454546 313.6363636363636H928.1272727272727V538.1818181818182Q928.1272727272727 555.4545454545455 932.3818181818182 566.3636363636364Q936.6363636363636 577.2727272727273 950.1090909090909 582.7272727272727L967.1272727272727 590.9090909090909V600.0ZM928.1272727272727 295.45454545454544H962.1636363636363Q1013.2181818181818 295.45454545454544 1035.909090909091 260.45454545454544Q1058.6 225.45454545454544 1058.6 156.36363636363637Q1058.6 86.36363636363637 1037.3272727272727 52.27272727272731Q1016.0545454545454 18.181818181818244 965.709090909091 18.181818181818244H928.1272727272727ZM1223.8181818181818 600.0V590.9090909090909L1240.1272727272728 582.7272727272727Q1252.1818181818182 576.3636363636364 1256.7909090909093 565.909090909091Q1261.4 555.4545454545455 1261.4 537.2727272727273V62.72727272727275Q1261.4 44.54545454545462 1257.5 34.09090909090912Q1253.6000000000001 23.636363636363626 1240.1272727272728 17.272727272727252L1223.8181818181818 9.090909090909122V0.0H1563.4727272727273L1567.7272727272727 140.0H1560.6363636363637L1530.1454545454546 54.54545454545462Q1523.7636363636364 38.181818181818244 1516.6727272727271 28.181818181818244Q1509.581818181818 18.181818181818244 1495.4 18.181818181818244H1367.7636363636364V280.90909090909093H1443.6363636363637Q1457.8181818181818 280.90909090909093 1465.2636363636364 271.3636363636364Q1472.709090909091 261.8181818181818 1478.3818181818183 245.45454545454544L1492.5636363636363 209.09090909090912H1499.6545454545455V372.72727272727275H1492.5636363636363L1478.3818181818183 334.54545454545456Q1472.0 318.1818181818182 1464.909090909091 308.6363636363636Q1457.8181818181818 299.0909090909091 1443.6363636363637 299.0909090909091H1367.7636363636364V581.8181818181819H1511.0Q1525.1818181818182 581.8181818181819 1532.9818181818182 572.2727272727273Q1540.7818181818182 562.7272727272727 1545.7454545454545 545.4545454545455L1574.818181818182 460.0H1581.909090909091L1577.6545454545455 600.0ZM1610.2727272727273 600.0V590.9090909090909L1625.1636363636364 583.6363636363636Q1640.0545454545456 576.3636363636364 1643.9545454545455 565.909090909091Q1647.8545454545456 555.4545454545455 1647.8545454545456 537.2727272727273V62.72727272727275Q1647.8545454545456 44.54545454545462 1643.6000000000001 33.63636363636368Q1639.3454545454547 22.727272727272748 1625.1636363636364 16.363636363636374L1610.2727272727273 9.090909090909122V0.0H1791.0909090909092V9.090909090909122L1778.3272727272729 16.363636363636374Q1764.8545454545456 22.727272727272748 1759.8909090909092 34.09090909090912Q1754.9272727272728 45.454545454545496 1754.9272727272728 63.636363636363626V581.8181818181819H1864.1272727272728Q1890.3636363636365 581.8181818181819 1902.7727272727275 565.4545454545455Q1915.1818181818182 549.0909090909091 1926.5272727272727 518.1818181818182L1954.1818181818182 441.8181818181818H1961.2727272727275L1954.8909090909092 600.0ZM1986.090909090909 600.0V590.9090909090909L2000.2727272727273 583.6363636363636Q2014.4545454545455 577.2727272727273 2019.0636363636363 566.3636363636364Q2023.6727272727273 555.4545454545455 2023.6727272727273 537.2727272727273V62.72727272727275Q2023.6727272727273 44.54545454545462 2019.418181818182 33.63636363636368Q2015.1636363636364 22.727272727272748 2000.2727272727273 16.363636363636374L1986.090909090909 9.090909090909122V0.0H2168.327272727273V9.090909090909122L2154.1454545454544 16.363636363636374Q2139.9636363636364 22.727272727272748 2135.3545454545456 33.63636363636368Q2130.745454545455 44.54545454545462 2130.745454545455 62.72727272727275V537.2727272727273Q2130.745454545455 555.4545454545455 2135.3545454545456 565.909090909091Q2139.9636363636364 576.3636363636364 2154.1454545454544 583.6363636363636L2168.327272727273 590.9090909090909V600.0ZM2192.4363636363637 600.0V590.9090909090909L2208.745454545455 582.7272727272727Q2220.8 576.3636363636364 2225.409090909091 565.909090909091Q2230.018181818182 555.4545454545455 2230.018181818182 537.2727272727273V62.72727272727275Q2230.018181818182 44.54545454545462 2226.118181818182 34.09090909090912Q2222.218181818182 23.636363636363626 2208.745454545455 17.272727272727252L2192.4363636363637 9.090909090909122V0.0H2532.090909090909L2536.3454545454547 140.0H2529.2545454545457L2498.7636363636366 54.54545454545462Q2492.3818181818183 38.181818181818244 2485.2909090909093 28.181818181818244Q2478.2000000000003 18.181818181818244 2464.018181818182 18.181818181818244H2336.3818181818183V280.90909090909093H2412.2545454545457Q2426.4363636363637 280.90909090909093 2433.8818181818183 271.3636363636364Q2441.327272727273 261.8181818181818 2447.0 245.45454545454544L2461.1818181818185 209.09090909090912H2468.2727272727275V372.72727272727275H2461.1818181818185L2447.0 334.54545454545456Q2440.618181818182 318.1818181818182 2433.527272727273 308.6363636363636Q2426.4363636363637 299.0909090909091 2412.2545454545457 299.0909090909091H2336.3818181818183V581.8181818181819H2479.618181818182Q2493.8 581.8181818181819 2501.6000000000004 572.2727272727273Q2509.4 562.7272727272727 2514.3636363636365 545.4545454545455L2543.4363636363637 460.0H2550.5272727272727L2546.2727272727275 600.0ZM2764.6727272727276 602.7272727272727 2612.927272727273 60.90909090909088Q2607.9636363636364 42.72727272727275 2599.809090909091 32.27272727272731Q2591.6545454545458 21.81818181818187 2577.4727272727273 16.363636363636374L2560.4545454545455 9.090909090909122V0.0H2764.6727272727276V9.090909090909122L2742.6909090909094 17.272727272727252Q2726.3818181818183 22.727272727272748 2724.609090909091 36.363636363636374Q2722.836363636364 50.0 2727.8 70.0L2832.745454545455 469.0909090909091L2938.4 69.09090909090912Q2944.0727272727277 48.181818181818244 2943.718181818182 34.54545454545456Q2943.3636363636365 20.909090909090878 2927.0545454545454 15.454545454545496L2908.618181818182 9.090909090909122V0.0H3007.890909090909V9.090909090909122L2988.745454545455 16.363636363636374Q2975.2727272727275 20.909090909090878 2969.6000000000004 32.27272727272725Q2963.927272727273 43.636363636363626 2958.9636363636364 61.81818181818187L2817.145454545455 602.7272727272727ZM3019.9454545454546 600.0V590.9090909090909L3036.2545454545457 582.7272727272727Q3048.309090909091 576.3636363636364 3052.918181818182 565.909090909091Q3057.5272727272727 555.4545454545455 3057.5272727272727 537.2727272727273V62.72727272727275Q3057.5272727272727 44.54545454545462 3053.6272727272726 34.09090909090912Q3049.727272727273 23.636363636363626 3036.2545454545457 17.272727272727252L3019.9454545454546 9.090909090909122V0.0H3359.6000000000004L3363.8545454545456 140.0H3356.7636363636366L3326.2727272727275 54.54545454545462Q3319.890909090909 38.181818181818244 3312.8 28.181818181818244Q3305.709090909091 18.181818181818244 3291.5272727272727 18.181818181818244H3163.890909090909V280.90909090909093H3239.7636363636366Q3253.9454545454546 280.90909090909093 3261.390909090909 271.3636363636364Q3268.836363636364 261.8181818181818 3274.509090909091 245.45454545454544L3288.6909090909094 209.09090909090912H3295.7818181818184V372.72727272727275H3288.6909090909094L3274.509090909091 334.54545454545456Q3268.127272727273 318.1818181818182 3261.0363636363636 308.6363636363636Q3253.9454545454546 299.0909090909091 3239.7636363636366 299.0909090909091H3163.890909090909V581.8181818181819H3307.127272727273Q3321.309090909091 581.8181818181819 3329.109090909091 572.2727272727273Q3336.909090909091 562.7272727272727 3341.8727272727274 545.4545454545455L3370.9454545454546 460.0H3378.0363636363636L3373.7818181818184 600.0Z"/></g></defs></svg>
-  <a class="visually-hidden-focusable" href="#main"><span lang="es">Saltar al contenido</span><span lang="en">Skip to content</span></a>
 
-  <!-- NAVBAR ============================================================ -->
+  <a class="visually-hidden-focusable" href="#main">Saltar al contenido</a>
+
+    <!-- NAVBAR ============================================================ -->
   <nav class="navbar navbar-expand-lg bg-body border-bottom border-2 border-strong py-2 py-lg-3">
     <div class="container">
-      <a class="navbar-brand" href="index.html" aria-label="RELIEVE"><svg class="wordmark" viewBox="-11 -11 3399 622" role="img" aria-label="RELIEVE"><use href="#logo-lockup"/></svg></a>
+      <a class="navbar-brand" href="/" aria-label="RELIEVE"><svg class="wordmark" viewBox="-11 -11 3399 622" role="img" aria-label="RELIEVE"><use href="#logo-lockup"/></svg></a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
-              aria-controls="mainNav" aria-expanded="false" aria-label="Menú / Menu">
+              aria-controls="mainNav" aria-expanded="false" aria-label="Menú">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="mainNav">
         <ul class="navbar-nav me-auto ms-lg-4 gap-lg-3">
-          <li class="nav-item"><a class="nav-link active" aria-current="page" href="viajes.html"><span lang="es">Viajes</span><span lang="en">Travel</span></a></li>
-          <li class="nav-item"><a class="nav-link" href="bici.html"><span lang="es">Bici</span><span lang="en">Bike</span></a></li>
-          <li class="nav-item"><a class="nav-link" href="moto.html"><span lang="es">Moto</span><span lang="en">Moto</span></a></li>
-          <li class="nav-item"><a class="nav-link" href="reviews.html"><span lang="es">Reviews</span><span lang="en">Reviews</span></a></li>
-          <li class="nav-item"><a class="nav-link" href="videos.html"><span lang="es">Videos</span><span lang="en">Videos</span></a></li>
-          <li class="nav-item"><a class="nav-link" href="opinion.html"><span lang="es">Opinión</span><span lang="en">Opinion</span></a></li>
+          
+          <li class="nav-item"><a class="nav-link active" aria-current="page" href="/viajes.html">Viajes</a></li>
+          
+          <li class="nav-item"><a class="nav-link" href="/bici.html">Bici</a></li>
+          
+          <li class="nav-item"><a class="nav-link" href="/moto.html">Moto</a></li>
+          
+          <li class="nav-item"><a class="nav-link" href="/reviews.html">Reviews</a></li>
+          
+          <li class="nav-item"><a class="nav-link" href="/videos.html">Videos</a></li>
+          
+          <li class="nav-item"><a class="nav-link" href="/opinion.html">Opinión</a></li>
+          
         </ul>
         <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
-          <form class="search-form" role="search" action="buscar.html" method="get" data-search>
-            <input class="form-control search-input" type="search" name="q" placeholder="Buscar / Search" aria-label="Buscar / Search" autocomplete="off" tabindex="-1">
-            <button type="submit" class="btn btn-outline-dark btn-icon" aria-label="Buscar / Search" aria-expanded="false"><span class="material-symbols-outlined" aria-hidden="true">search</span></button>
+          <form class="search-form" role="search" action="/buscar.html" method="get" data-search>
+            <input class="form-control search-input" type="search" name="q" placeholder="Buscar" aria-label="Buscar" autocomplete="off" tabindex="-1">
+            <button type="submit" class="btn btn-outline-dark btn-icon" aria-label="Buscar" aria-expanded="false"><span class="material-symbols-outlined" aria-hidden="true">search</span></button>
           </form>
-          <div class="btn-group" role="group" aria-label="Idioma / Language">
-            <button type="button" class="btn btn-outline-dark active" data-set-lang="es" aria-pressed="true">ES</button>
-            <button type="button" class="btn btn-outline-dark" data-set-lang="en" aria-pressed="false">EN</button>
+          <div class="btn-group" role="group" aria-label="Idioma">
+            
+              
+              <span class="btn btn-outline-dark active" aria-current="true" lang="es">ES</span>
+              
+            
+              
+              <span class="btn btn-outline-dark disabled" aria-disabled="true" lang="en">EN</span>
+              
+            
           </div>
         </div>
       </div>
     </div>
   </nav>
 
-  <main id="main">
 
-    <section class="container pt-4 pt-md-5 pb-5">
-      <h1 class="mb-4"><span lang="es">Viajes</span><span lang="en">Travel</span></h1>
-      <div class="row"><div class="col-lg-7">
-        <p class="lead mb-0" lang="es">Rutas, lugares y lo que aprendimos en el camino, con mapas, datos y fotos propias.</p>
-        <p class="lead mb-0" lang="en">Routes, places and what we learned on the way, with maps, facts and our own photos.</p>
-      </div></div>
-    </section>
-    <section class="container pb-5" aria-label="Destacado / Featured">
-      <article class="row gy-4 gx-lg-5 align-items-center position-relative border-top border-2 border-strong pt-4">
-        <div class="col-lg-7"><div class="ratio ratio-3x2"><img class="object-fit-cover" src="/assets/img/caprock-10-2026/hero-1280.jpg" alt="Vista panorámica de los cañones rojos de Caprock Canyons." fetchpriority="high"></div></div>
-        <div class="col-lg-5 d-grid gap-3">
-          <span class="tape tape-secondary"><span lang="es">Texas</span><span lang="en">Texas</span></span>
-          <h2 class="font-serif-display fs-1 mb-0"><a class="stretched-link story-link" href="/es/viajes/caprock-canyons/"><span lang="es">El mirador de los primeros cazadores de Texas</span><span lang="en">El mirador de los primeros cazadores de Texas</span></a></h2>
-          <p class="mb-0">Senderismo en el Parque Estatal Caprock Canyons, en Quitaque, Texas.</p>
-          <p class="small-meta mb-0"><span lang="es">Por Daniel · 21 oct 2026 · 2 min de lectura</span><span lang="en">By Daniel · Oct 21, 2026 · 2 min read</span></p>
-        </div>
-      </article>
-    </section>
-    <section class="py-5">
-      <div class="container">
-        <div class="d-flex justify-content-between align-items-end border-bottom border-2 border-strong mb-4">
-          <h2 class="tape mb-0"><span lang="es">Más artículos</span><span lang="en">More articles</span></h2>
-        </div>
-        <div class="row row-cols-1 row-cols-md-2 gy-5 gx-lg-5">
-          <div class="col">
-            <article class="card h-100">
-              <div class="ratio ratio-3x2 ph card-img-top"></div>
-              <div class="card-body d-flex justify-content-between align-items-start gap-3">
-                <div>
-                  <span class="font-ui small fw-bold text-secondary"><span lang="es">Texas</span><span lang="en">Texas</span></span>
-                  <h3 class="card-title story-title fs-4 mt-1 mb-2"><a class="stretched-link" href="#"><span lang="es">Un fin de semana de bici en Hill Country</span><span lang="en">A bike weekend in the Hill Country</span></a></h3>
-                  <p class="small-meta mb-0"><span lang="es">Por Daniel · 8 min de lectura</span><span lang="en">By Daniel · 8 min read</span></p>
-                </div>
-              </div>
-            </article>
-          </div>
-          <div class="col">
-            <article class="card h-100">
-              <div class="ratio ratio-3x2 ph card-img-top"></div>
-              <div class="card-body d-flex justify-content-between align-items-start gap-3">
-                <div>
-                  <span class="font-ui small fw-bold text-secondary"><span lang="es">Suiza</span><span lang="en">Switzerland</span></span>
-                  <h3 class="card-title story-title fs-4 mt-1 mb-2"><a class="stretched-link" href="#"><span lang="es">Un verano de rutas en los Alpes suizos</span><span lang="en">A summer of routes in the Swiss Alps</span></a></h3>
-                  <p class="small-meta mb-0"><span lang="es">Por Daniel · 12 min de lectura</span><span lang="en">By Daniel · 12 min read</span></p>
-                </div>
-              </div>
-            </article>
-          </div>
-          <div class="col">
-            <article class="card h-100">
-              <div class="ratio ratio-3x2 ph card-img-top"></div>
-              <div class="card-body d-flex justify-content-between align-items-start gap-3">
-                <div>
-                  <span class="font-ui small fw-bold text-secondary"><span lang="es">España</span><span lang="en">Spain</span></span>
-                  <h3 class="card-title story-title fs-4 mt-1 mb-2"><a class="stretched-link" href="#"><span lang="es">Cuatro rutas de bici cerca de Madrid</span><span lang="en">Four bike routes near Madrid</span></a></h3>
-                  <p class="small-meta mb-0"><span lang="es">Por Daniel · 9 min de lectura</span><span lang="en">By Daniel · 9 min read</span></p>
-                </div>
-              </div>
-            </article>
-          </div>
-          <div class="col">
-            <article class="card h-100">
-              <div class="ratio ratio-3x2 ph card-img-top"></div>
-              <div class="card-body d-flex justify-content-between align-items-start gap-3">
-                <div>
-                  <span class="font-ui small fw-bold text-secondary"><span lang="es">Guía</span><span lang="en">Guide</span></span>
-                  <h3 class="card-title story-title fs-4 mt-1 mb-2"><a class="stretched-link" href="#"><span lang="es">Cómo planear un viaje de bici de varios días</span><span lang="en">How to plan a multi-day bike trip</span></a></h3>
-                  <p class="small-meta mb-0"><span lang="es">Por Daniel · 11 min de lectura</span><span lang="en">By Daniel · 11 min read</span></p>
-                </div>
-              </div>
-            </article>
-          </div>
-          <div class="col">
-            <article class="card h-100">
-              <div class="ratio ratio-3x2 ph card-img-top"></div>
-              <div class="card-body d-flex justify-content-between align-items-start gap-3">
-                <div>
-                  <span class="font-ui small fw-bold text-secondary"><span lang="es">Equipo</span><span lang="en">Gear</span></span>
-                  <h3 class="card-title story-title fs-4 mt-1 mb-2"><a class="stretched-link" href="#"><span lang="es">Qué llevar en la mochila para una ruta larga</span><span lang="en">What to carry in your pack on a long ride</span></a></h3>
-                  <p class="small-meta mb-0"><span lang="es">Por Daniel · 7 min de lectura</span><span lang="en">By Daniel · 7 min read</span></p>
-                </div>
-              </div>
-            </article>
-          </div>
-        </div>
-      </div>
-    </section>
+  <main id="main">
+    
+
+
+
+<section class="container pt-4 pt-md-5 pb-5">
+  <h1 class="mb-4">Viajes</h1>
+  <div class="row"><div class="col-lg-7"><p class="lead mb-0">Rutas, lugares y lo que aprendimos en el camino, con mapas, datos y fotos propias.</p></div></div>
+</section>
+
+
+<section class="container pb-5">
+  <div class="border-top border-2 border-strong pt-4">
+    <p class="lead mb-0">Todavía no hay artículos en esta sección. Muy pronto.</p>
+  </div>
+</section>
+
+
   </main>
 
-  <!-- FOOTER ============================================================ -->
+    <!-- FOOTER ============================================================ -->
   <footer class="bg-dark text-light py-5" data-bs-theme="dark">
     <div class="container">
       <div class="row gy-5 gx-lg-5">
         <div class="col-md-6 col-lg-5">
-          <a class="d-block text-light" href="index.html" aria-label="RELIEVE"><img class="footer-logo" src="/assets/logo/relieve-logo-topo-white.svg" alt="RELIEVE" width="2610" height="1053"></a>
+          <a class="d-block text-light" href="/" aria-label="RELIEVE"><img class="footer-logo" src="/assets/logo/relieve-logo-topo-white.svg" alt="RELIEVE" width="2610" height="1053"></a>
         </div>
         <div class="col-6 col-md-3 col-lg-3 offset-lg-1">
-          <h4 class="mb-3"><span lang="es">Secciones</span><span lang="en">Sections</span></h4>
+          <h4 class="mb-3">Secciones</h4>
           <ul class="list-unstyled font-ui d-grid gap-2 mb-0">
-            <li><a class="link-light" href="viajes.html"><span lang="es">Viajes</span><span lang="en">Travel</span></a></li>
-            <li><a class="link-light" href="bici.html"><span lang="es">Bici</span><span lang="en">Bike</span></a></li>
-            <li><a class="link-light" href="moto.html"><span lang="es">Moto</span><span lang="en">Moto</span></a></li>
-            <li><a class="link-light" href="reviews.html"><span lang="es">Reviews</span><span lang="en">Reviews</span></a></li>
-            <li><a class="link-light" href="videos.html"><span lang="es">Videos</span><span lang="en">Videos</span></a></li>
-            <li><a class="link-light" href="opinion.html"><span lang="es">Opinión</span><span lang="en">Opinion</span></a></li>
+            
+            <li><a class="link-light" href="/viajes.html">Viajes</a></li>
+            
+            <li><a class="link-light" href="/bici.html">Bici</a></li>
+            
+            <li><a class="link-light" href="/moto.html">Moto</a></li>
+            
+            <li><a class="link-light" href="/reviews.html">Reviews</a></li>
+            
+            <li><a class="link-light" href="/videos.html">Videos</a></li>
+            
+            <li><a class="link-light" href="/opinion.html">Opinión</a></li>
+            
           </ul>
         </div>
         <div class="col-6 col-md-3">
-          <h4 class="mb-3"><span lang="es">Síguenos</span><span lang="en">Follow</span></h4>
+          <h4 class="mb-3">Síguenos</h4>
           <ul class="list-unstyled font-ui d-grid gap-2 mb-0">
             <li><a class="link-light" href="#">Instagram</a></li>
             <li><a class="link-light" href="#">YouTube</a></li>
           </ul>
         </div>
       </div>
-      <p class="font-ui small border-top border-2 border-light mt-5 pt-3 mb-0"><span lang="es">© 2026 RELIEVE. Todos los derechos reservados.</span><span lang="en">© 2026 RELIEVE. All rights reserved.</span></p>
+      <p class="font-ui small border-top border-2 border-light mt-5 pt-3 mb-0">© 2026 RELIEVE. Todos los derechos reservados.</p>
     </div>
   </footer>
+
 
   <!-- Bootstrap JS bundle (includes Popper): needed for the navbar menu -->
   <script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
