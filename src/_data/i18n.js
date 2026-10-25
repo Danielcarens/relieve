@@ -4,6 +4,7 @@ export default {
   es: {
     htmlLang: "es-419",
     skip: "Saltar al contenido",
+    home: "RELIEVE, inicio",
     menu: "Menú",
     search: "Buscar",
     language: "Idioma",
@@ -29,6 +30,7 @@ export default {
   en: {
     htmlLang: "en-US",
     skip: "Skip to content",
+    home: "RELIEVE, home",
     menu: "Menu",
     search: "Search",
     language: "Language",

@@ -7,6 +7,10 @@ export default {
   // Visitor statistics (GoatCounter, open source, no cookies). Write the account code here, e.g. "relieve"
   // for relieve.goatcounter.com; empty = no counting.
   goatcounter: "",
+  // Image shown when a page without its own photo is shared (1200 x 630, the alternative logo on dark green).
+  shareImage: "/assets/img/og-relieve.png",
+  // Social profiles in the footer. Empty = not shown; the whole "Síguenos" column disappears while all are empty.
+  social: { instagram: "", youtube: "" },
   sections: [
     { id: "viajes", es: "Viajes", en: "Travel", href: "viajes.html", lead: "Rutas, lugares y lo que aprendimos en el camino, con mapas, datos y fotos propias." },
     { id: "bici", es: "Bici", en: "Bike", href: "bici.html", lead: "Pruebas, comparativas y mecánica para montar mejor y gastar menos." },

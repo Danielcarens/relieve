@@ -1,7 +1,7 @@
 ---
 permalink: /index.html
 fullTitle: "RELIEVE · Viajes, bicis, reviews y vida al aire libre"
-description: "Reportajes, reviews y videos de enduro y vida al aire libre, escritos por alguien que monta."
+description: "Reportajes de viaje, pruebas de bicis, motos y equipo, y videos de vida al aire libre, escritos por alguien que monta."
 ---
 {% from "partials/cards.njk" import row, card %}
 {% set arts = collections.articulos %}
@@ -53,10 +53,14 @@ description: "Reportajes, reviews y videos de enduro y vida al aire libre, escri
 </section>
 {% endif %}
 
-<!-- ONE BLOCK PER SECTION (only sections that have articles) -->
+<!-- ONE BLOCK PER SECTION (only sections that have articles; the featured article is not repeated here) -->
+{% set soon = [] %}
 {% for s in site.sections %}
   {% set inSec = [] %}
-  {% for a in arts %}{% if a.data.section == s.id %}{% set inSec = (inSec.push(a), inSec) %}{% endif %}{% endfor %}
+  {% for a in arts %}{% if a.data.section == s.id and a.url != top.url %}{% set inSec = (inSec.push(a), inSec) %}{% endif %}{% endfor %}
+  {% set hasAny = false %}
+  {% for a in arts %}{% if a.data.section == s.id %}{% set hasAny = true %}{% endif %}{% endfor %}
+  {% if not hasAny %}{% set soon = (soon.push(s.es), soon) %}{% endif %}
   {% if inSec.length %}
 <section class="py-5" aria-labelledby="sec-{{ s.id }}">
   <div class="container">
@@ -71,4 +75,14 @@ description: "Reportajes, reviews y videos de enduro y vida al aire libre, escri
 </section>
   {% endif %}
 {% endfor %}
+
+<!-- SECTIONS WITHOUT ARTICLES YET: one line, so the menu never leads to a surprise -->
+{% if soon.length %}
+<section class="container py-5" aria-labelledby="pronto-title">
+  <div class="border-top border-2 border-strong pt-4">
+    <h2 id="pronto-title" class="tape tape-secondary mb-3">Próximamente</h2>
+    <p class="lead mb-0">Muy pronto, artículos en {% for n in soon %}{{ n }}{% if loop.revindex0 == 1 %} y {% elif not loop.last %}, {% endif %}{% endfor %}.</p>
+  </div>
+</section>
+{% endif %}
 {% endif %}

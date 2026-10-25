@@ -3,7 +3,7 @@
     <div class="container">
       <div class="row gy-5 gx-lg-5">
         <div class="col-md-6 col-lg-5">
-          <a class="d-block text-light" href="{{ site.liveBase }}" aria-label="RELIEVE"><img class="footer-logo" src="/assets/logo/relieve-logo-topo-white.svg" alt="RELIEVE" width="2610" height="1053"></a>
+          <a class="d-block text-light" href="{{ site.liveBase }}" aria-label="{{ ui.home }}"><img class="footer-logo" src="/assets/logo/relieve-logo-topo-white.svg" alt="" width="2610" height="1053"></a>
         </div>
         <div class="col-6 col-md-3 col-lg-3 offset-lg-1">
           <h4 class="mb-3">{{ ui.sections }}</h4>
@@ -13,13 +13,15 @@
             {% endfor %}
           </ul>
         </div>
+        {% if site.social.instagram or site.social.youtube %}
         <div class="col-6 col-md-3">
           <h4 class="mb-3">{{ ui.follow }}</h4>
           <ul class="list-unstyled font-ui d-grid gap-2 mb-0">
-            <li><a class="link-light" href="#">Instagram</a></li>
-            <li><a class="link-light" href="#">YouTube</a></li>
+            {% if site.social.instagram %}<li><a class="link-light" href="{{ site.social.instagram }}" target="_blank" rel="noopener">Instagram</a></li>{% endif %}
+            {% if site.social.youtube %}<li><a class="link-light" href="{{ site.social.youtube }}" target="_blank" rel="noopener">YouTube</a></li>{% endif %}
           </ul>
         </div>
+        {% endif %}
       </div>
       <p class="font-ui small border-top border-2 border-light mt-5 pt-3 mb-0">{{ ui.rights }}</p>
     </div>
