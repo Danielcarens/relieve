@@ -934,7 +934,7 @@ $("#users-btn").onclick = async () => {
       if (!user || pass.length < 12) { msg.textContent = "Escribe un usuario y una contraseña de 12 caracteres o más."; msg.classList.add("bad"); return; }
       if (users.some((u) => u.user === user.toLowerCase())) { msg.textContent = "Ese usuario ya existe."; msg.classList.add("bad"); return; }
       try { msg.classList.remove("bad"); msg.textContent = "Guardando…"; if (!$("#nu-same").checked) await web.checkToken(token);
-        const next = [...users, await web.makeUser({ user, name: $("#nu-name").value, password: pass, token })]; await web.saveUsers(next); users = next; draw(); toast("Usuario agregado. Podrá entrar en unos 2 minutos, cuando el sitio se actualice."); }
+        const next = [...users, await web.makeUser({ user, name: $("#nu-name").value, password: pass, token })]; await web.saveUsers(next); users = next; draw(); toast("Usuario agregado. Ya puede entrar con su usuario y contraseña."); }
       catch (e) { msg.textContent = e.message; msg.classList.add("bad"); }
     };
   });
