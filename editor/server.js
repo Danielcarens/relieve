@@ -199,6 +199,13 @@ const server = http.createServer(async (req, res) => {
       if (fs.existsSync(f) && fs.statSync(f).isDirectory()) f = path.join(f, "index.html");
       return send(res, f);
     }
+    // Links clicked inside the preview (menu, logo, other articles) open the built site, not the editor
+    const ref = (() => { try { return new URL(req.headers.referer || "").pathname; } catch { return ""; } })();
+    if ((ref.startsWith("/preview/") || /^\/(?!index\.html)[\w-]+\.html$/.test(ref) || ref.startsWith("/es/")) && (url.pathname === "/" || /^\/[\w-]+\.html$/.test(url.pathname) || /^\/(es|pagefind)\//.test(url.pathname))) {
+      let f = safeJoin(path.join(SITE, "_site"), url.pathname === "/" ? "/index.html" : url.pathname);
+      if (f && fs.existsSync(f) && fs.statSync(f).isDirectory()) f = path.join(f, "index.html");
+      if (f && fs.existsSync(f)) return send(res, f);
+    }
     if (url.pathname === "/lib/article.js") return send(res, path.join(HERE, "lib", "article.js"));
     if (url.pathname === "/favicon.svg") return send(res, path.join(SITE, "src", "favicon.svg"));
     let p = url.pathname === "/" ? "/index.html" : url.pathname;

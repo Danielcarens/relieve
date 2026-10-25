@@ -84,7 +84,7 @@ layout: layouts/base.njk
   </div>
 
   <!-- BODY ============================================================== -->
-  <div class="article-body" data-pagefind-body>
+  <div class="article-body"{% if not draft %} data-pagefind-body{% endif %}>
     {{ content | safe }}
   </div>
 

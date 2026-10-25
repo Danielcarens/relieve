@@ -1,0 +1,43 @@
+---
+pagination:
+  data: site.sections
+  size: 1
+  alias: sec
+permalink: "/{{ sec.href }}"
+eleventyComputed:
+  title: "{{ sec.es }}"
+  section: "{{ sec.id }}"
+  description: "{{ sec.lead }}"
+---
+{% from "partials/cards.njk" import featured, card %}
+{% set inSec = [] %}
+{% for a in collections.articulos %}{% if a.data.section == sec.id %}{% set inSec = (inSec.push(a), inSec) %}{% endif %}{% endfor %}
+
+<section class="container pt-4 pt-md-5 pb-5">
+  <h1 class="mb-4">{{ sec.es }}</h1>
+  <div class="row"><div class="col-lg-7"><p class="lead mb-0">{{ sec.lead }}</p></div></div>
+</section>
+
+{% if inSec.length %}
+<section class="container pb-5" aria-label="Destacado">
+  {{ featured(inSec[0], ui) }}
+</section>
+  {% if inSec.length > 1 %}
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end border-bottom border-2 border-strong mb-4">
+      <h2 class="tape mb-0">Más artículos</h2>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 gy-5 gx-lg-5">
+      {% for a in inSec.slice(1) %}{{ card(a, ui, false) }}{% endfor %}
+    </div>
+  </div>
+</section>
+  {% endif %}
+{% else %}
+<section class="container pb-5">
+  <div class="border-top border-2 border-strong pt-4">
+    <p class="lead mb-0">Todavía no hay artículos en esta sección. Muy pronto.</p>
+  </div>
+</section>
+{% endif %}

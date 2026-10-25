@@ -1,0 +1,74 @@
+---
+permalink: /index.html
+fullTitle: "RELIEVE · Viajes, bicis, reviews y vida al aire libre"
+description: "Reportajes, reviews y videos de enduro y vida al aire libre, escritos por alguien que monta."
+---
+{% from "partials/cards.njk" import row, card %}
+{% set arts = collections.articulos %}
+{% set top = arts | first %}
+
+<!-- INTRO -->
+<section class="container pt-4 pt-md-5 pb-4">
+  <h1 class="visually-hidden">RELIEVE</h1>
+  <h2 class="font-serif-display mb-4">Viajes, bicis, reviews y vida al aire libre</h2>
+  <div class="row"><div class="col-lg-6"><p class="lead mb-0">{{ description }}</p></div></div>
+</section>
+
+{% if not top %}
+<section class="container pb-5">
+  <div class="border-top border-2 border-strong pt-4">
+    <p class="lead mb-0">Muy pronto, los primeros artículos.</p>
+  </div>
+</section>
+{% else %}
+
+<!-- FEATURED: the newest article, full width with the title over the photo (as on the article page) -->
+<section class="pb-5" aria-label="Artículo destacado">
+  <article class="article-hero home-hero position-relative">
+    <div class="hero-frame">
+      {% if top.data.hero %}<img class="hero-img" src="{{ top.data.imgBase }}{{ top.data.hero.file }}-1920.jpg" srcset="{{ top.data.imgBase }}{{ top.data.hero.file }}-1280.jpg 1280w, {{ top.data.imgBase }}{{ top.data.hero.file }}-1920.jpg 1920w, {{ top.data.imgBase }}{{ top.data.hero.file }}-2560.jpg 2560w" sizes="100vw" width="{{ top.data.hero.w }}" height="{{ top.data.hero.h }}" alt="" fetchpriority="high" decoding="async">{% else %}<div class="ph position-absolute top-0 start-0 w-100 h-100"></div>{% endif %}
+    </div>
+    <div class="hero-text">
+      <div class="container d-grid gap-3">
+        <span class="tape">{{ top.data.section | sectionName }}</span>
+        <h2 class="hero-title font-serif-display mb-0"><a class="stretched-link story-link home-hero-link" href="{{ top.url }}">{{ top.data.title }}</a></h2>
+        {% if top.data.subtitle %}<p class="lead mb-0 home-hero-sub">{{ top.data.subtitle | mdPlain }}</p>{% endif %}
+      </div>
+    </div>
+  </article>
+</section>
+
+{% set rest = arts.slice(1, 7) %}
+{% if rest.length %}
+<!-- LATEST -->
+<section class="py-5" aria-labelledby="ultimos-title">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end border-bottom border-2 border-strong">
+      <h2 id="ultimos-title" class="tape mb-0">Últimos artículos</h2>
+    </div>
+    <ul class="list-unstyled mb-0">
+      {% for a in rest %}{{ row(a, ui) }}{% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}
+
+<!-- ONE BLOCK PER SECTION (only sections that have articles) -->
+{% for s in site.sections %}
+  {% set inSec = [] %}
+  {% for a in arts %}{% if a.data.section == s.id %}{% set inSec = (inSec.push(a), inSec) %}{% endif %}{% endfor %}
+  {% if inSec.length %}
+<section class="border-top border-2 border-strong py-5" aria-labelledby="sec-{{ s.id }}">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end border-bottom border-2 border-strong mb-4">
+      <h2 id="sec-{{ s.id }}" class="tape mb-0">{{ s.es }}</h2>
+      <a class="pb-1 fw-semibold font-ui" href="{{ site.liveBase }}{{ s.href }}">Ver todo</a>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 gy-5 gx-lg-5">
+      {% for a in inSec.slice(0, 2) %}{{ card(a, ui, false) }}{% endfor %}
+    </div>
+  </div>
+</section>
+  {% endif %}
+{% endfor %}
+{% endif %}

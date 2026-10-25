@@ -1,0 +1,54 @@
+{# Article cards for the home page and the section pages. `a` is an item of collections.articulos. #}
+{% macro photo(a, ratio = "ratio-3x2", sizes = "(min-width: 992px) 600px, 100vw", eager = false) %}
+  {% if a.data.hero %}
+  <div class="ratio {{ ratio }}"><img class="object-fit-cover" src="{{ a.data.imgBase }}{{ a.data.hero.file }}-1280.jpg" srcset="{{ a.data.imgBase }}{{ a.data.hero.file }}-1280.jpg 1280w, {{ a.data.imgBase }}{{ a.data.hero.file }}-1920.jpg 1920w" sizes="{{ sizes }}" alt="" {% if eager %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async"></div>
+  {% else %}
+  <div class="ratio {{ ratio }} ph"></div>
+  {% endif %}
+{% endmacro %}
+
+{% macro meta(a, ui, withTime = true) %}
+  <p class="small-meta mb-0">{{ ui.by }} {{ a.data.author }} · <time datetime="{{ a.date | dateISO }}">{{ a.date | dateLong("es") }}</time>{% if withTime %} · {{ a.content | readingMinutes }} {{ ui.minRead }}{% endif %}</p>
+{% endmacro %}
+
+{# A row in a list: small photo on the left, section, title and byline #}
+{% macro row(a, ui) %}
+  <li class="py-4">
+    <article class="row gx-3 gx-md-4 gy-3 gy-md-0 align-items-center position-relative">
+      <div class="col-12 col-md-4 col-lg-3">{{ photo(a) }}</div>
+      <div class="col-12 col-md-8 col-lg-9 d-grid gap-2">
+        <span class="font-ui small fw-bold text-secondary">{{ a.data.section | sectionName }}</span>
+        <h3 class="story-title fs-3 mb-0"><a class="stretched-link" href="{{ a.url }}">{{ a.data.title }}</a></h3>
+        {{ meta(a, ui, false) }}
+      </div>
+    </article>
+  </li>
+{% endmacro %}
+
+{# A card in a grid #}
+{% macro card(a, ui, kicker = true) %}
+  <div class="col">
+    <article class="card h-100">
+      <div class="card-img-top">{{ photo(a) }}</div>
+      <div class="card-body d-grid gap-2">
+        {% if kicker %}<span class="font-ui small fw-bold text-secondary">{{ a.data.section | sectionName }}</span>{% endif %}
+        <h3 class="card-title story-title fs-4 mb-0"><a class="stretched-link" href="{{ a.url }}">{{ a.data.title }}</a></h3>
+        {% if a.data.subtitle %}<p class="mb-0">{{ a.data.subtitle | mdPlain }}</p>{% endif %}
+        {{ meta(a, ui) }}
+      </div>
+    </article>
+  </div>
+{% endmacro %}
+
+{# The big one at the top of a section page #}
+{% macro featured(a, ui, kicker = false) %}
+  <article class="row gy-4 gx-lg-5 align-items-center position-relative border-top border-2 border-strong pt-4">
+    <div class="col-lg-7">{{ photo(a, "ratio-3x2", "(min-width: 992px) 700px, 100vw", true) }}</div>
+    <div class="col-lg-5 d-grid gap-3">
+      {% if kicker %}<span class="tape">{{ a.data.section | sectionName }}</span>{% endif %}
+      <h2 class="font-serif-display fs-1 mb-0"><a class="stretched-link story-link" href="{{ a.url }}">{{ a.data.title }}</a></h2>
+      {% if a.data.subtitle %}<p class="mb-0">{{ a.data.subtitle | mdPlain }}</p>{% endif %}
+      {{ meta(a, ui) }}
+    </div>
+  </article>
+{% endmacro %}

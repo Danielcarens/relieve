@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ title }} · {{ site.name }}</title>
+  <title>{% if fullTitle %}{{ fullTitle }}{% else %}{{ title }} · {{ site.name }}{% endif %}</title>
   <meta name="description" content="{{ description or (subtitle | mdPlain) or ui.tagline }}">
-  {% if draft %}<meta name="robots" content="noindex, nofollow">{% endif %}
+  {% if draft %}<meta name="robots" content="noindex, nofollow">{% elif robots %}<meta name="robots" content="{{ robots }}">{% endif %}
   <link rel="canonical" href="{{ site.url }}{{ page.url }}">
 
   <meta property="og:site_name" content="{{ site.name }}">
-  <meta property="og:type" content="article">
-  <meta property="og:title" content="{{ title }}">
-  <meta property="og:description" content="{{ description or (subtitle | mdPlain) }}">
+  <meta property="og:type" content="{{ ogType or 'article' }}">
+  <meta property="og:title" content="{{ fullTitle or title }}">
+  <meta property="og:description" content="{{ description or (subtitle | mdPlain) or ui.tagline }}">
   <meta property="og:locale" content="{{ ui.htmlLang | replace('-', '_') }}">
   <meta property="og:url" content="{{ site.url }}{{ page.url }}">
   {% if hero %}<meta property="og:image" content="{{ site.url }}{{ imgBase }}{{ hero.file }}-1920.jpg">{% endif %}

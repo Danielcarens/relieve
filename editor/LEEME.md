@@ -71,7 +71,7 @@ Se agregan con **Insertar** o con el botón **+** entre bloques; se reordenan ar
 
 ## Limitaciones actuales
 
-- Las portadas de Inicio y de cada sección (`index.html`, `viajes.html`…) todavía se editan a mano: un artículo nuevo ya existe en su dirección, pero no aparece listado en esas páginas hasta que pasen a Eleventy.
+- **Inicio y secciones se arman solos:** al publicar, Eleventy pone el artículo más reciente arriba en el inicio, los siguientes en «Últimos artículos», dos por sección, y la lista completa en la página de su sección (Viajes, Bici…), con su portada, título, subtítulo y firma. También entra al buscador y al mapa del sitio para Google (`sitemap.xml`). Los **borradores** se publican en su dirección pero no aparecen en el inicio, las secciones ni el buscador; las guías no se publican.
 - Solo español por ahora (la versión en inglés llegará con las páginas bilingües).
 - Las listas tienen un solo nivel (sin subpuntos) y no hay texto en dos columnas.
 - No se puede seleccionar texto de varios bloques a la vez (por ejemplo, para borrar tres párrafos de un golpe): se borra bloque por bloque o con el botón de eliminar.

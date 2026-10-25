@@ -195,3 +195,14 @@ Grids: inside a stack the photos share its height exactly (frames without natura
 - Check the availability of the name RELIEVE (domain, Instagram/YouTube, trademarks per country; an academic journal called "Relieve" exists).
 - Licenses: CC BY-NC-ND or BY-NC-SA for content; Bootstrap is MIT, fonts are OFL. Review data protection per country.
 - Possible: DM Serif Display on card titles; white footer instead of dark; real title and link on the hero once the article exists.
+
+## Front pages (home, sections, search, 404)
+
+Built by Eleventy from `src/portadas/` (directory data: Spanish, base layout, `ogType: website`) and copied to the root of `main` by `desplegar.sh`, at the same addresses as before (`/index.html`, `/viajes.html`…, `/buscar.html`, `/404.html`, plus `/sitemap.xml` and `/robots.txt`).
+
+- `collections.articulos` (eleventy.config.js): every `src/es/**/*.md` with the article layout, newest first, without the writing guides (`guia: true`, no permalink) and without drafts (`draft: true`). Drafts are still built at their address, with `noindex`, and left out of Pagefind (`data-pagefind-body` only on non-drafts).
+- Home (`inicio.njk`): intro, the newest article full width with the title over the photo (`.article-hero.home-hero`), "Últimos artículos" (next six, list rows), then one block per section that has articles (two cards and "Ver todo"). With no articles: a short "muy pronto" line.
+- Section pages (`secciones.njk`, paginated over `site.sections`; the lead text is `sections[].lead` in `src/_data/site.js`): title and lead, the newest article large, then "Más artículos" as cards. Empty section: a short line.
+- Cards (`partials/cards.njk`): the cover (`hero-1280/1920`) in a 3:2 frame, or the `.ph` placeholder when the article has no cover; section, title, subtitle, "Por autor · fecha · N min de lectura".
+- `site.liveBase` is `/`: menu, logo and footer links stay on the site.
+

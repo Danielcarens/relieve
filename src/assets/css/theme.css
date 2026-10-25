@@ -796,6 +796,12 @@ html[data-lang="en"] body [lang="es"] {
   .ficha:is(.tone-amarillo, .tone-rojo, .tone-verde) { box-shadow: inset 0 2px 0 var(--tone-border), inset 0 -2px 0 var(--tone-border); }
 }
 
+/* Home page: the newest article on top, full width, with the title over the photo like the article page */
+.home-hero .story-link { color: inherit; }
+.home-hero .hero-text a { pointer-events: auto; }
+.home-hero .home-hero-sub { max-width: 40rem; }
+@media (min-width: 992px) { .home-hero .hero-text { color: #fff; } }
+
 /* Header without the big photo: title on white, then (optionally) the photo inside the page width */
 .article-head .hero-title { max-width: 20ch; }
 .article-hero-boxed { display: block; }

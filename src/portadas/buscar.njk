@@ -1,0 +1,33 @@
+---
+permalink: /buscar.html
+title: Buscar
+robots: noindex
+---
+<section class="container pt-4 pt-md-5 pb-5">
+  <h1 class="mb-4">Buscar</h1>
+  <p class="lead mb-5" id="search-status" aria-live="polite"></p>
+  <ol class="list-unstyled mb-0" id="search-results"></ol>
+</section>
+<script type="module">
+// Search runs on Pagefind: GitHub Actions builds the index of the published articles (pagefind/) on every publish.
+const q = new URLSearchParams(location.search).get("q") || "";
+const status = document.getElementById("search-status"), list = document.getElementById("search-results");
+const show = (m) => { status.textContent = m; };
+const input = document.querySelector(".search-input"); if (input && q) input.value = q;
+if (!q.trim()) show("Escribe algo en la lupa para buscar.");
+else {
+  try {
+    const pagefind = await import("/pagefind/pagefind.js");
+    const search = await pagefind.search(q);
+    const items = await Promise.all(search.results.slice(0, 20).map((r) => r.data()));
+    show(items.length ? `${search.results.length} resultado${search.results.length === 1 ? "" : "s"} para «${q}»` : `No encontramos resultados para «${q}».`);
+    for (const d of items) {
+      const li = document.createElement("li"); li.className = "py-4 border-bottom";
+      const h = document.createElement("h2"); h.className = "story-title fs-3 mb-2";
+      const a = document.createElement("a"); a.href = d.url; a.textContent = d.meta.title || d.url; h.append(a);
+      const p = document.createElement("p"); p.className = "mb-0"; p.innerHTML = d.excerpt;
+      li.append(h, p); list.append(li);
+    }
+  } catch (e) { show("La búsqueda no está disponible en este momento. Inténtalo de nuevo en unos minutos."); }
+}
+</script>

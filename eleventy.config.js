@@ -1,6 +1,8 @@
 // Eleventy (Build Awesome) configuration for RELIEVE.
 // Source lives in /src, the built site goes to /_site.
 
+import site from "./src/_data/site.js";
+
 const LOCALES = { es: "es-419", en: "en-US" };
 
 function esc(value) {
@@ -24,6 +26,14 @@ const mdPlain = (value) => String(value ?? "").replace(/\\\*/g, "\u0001").replac
 
 export default function (eleventyConfig) {
   eleventyConfig.addFilter("mdi", mdi);
+  eleventyConfig.addFilter("sectionName", (id, lang = "es") => (site.sections.find((s) => s.id === id) || {})[lang] || id);
+
+  // Published articles, newest first: what the home page and the section pages list. Writing guides (no address)
+  // and drafts ("Borrador" in the editor) stay out; a draft is still published at its address, only not listed.
+  eleventyConfig.addCollection("articulos", (api) =>
+    api.getFilteredByGlob("src/es/**/*.md")
+      .filter((it) => it.data.layout === "layouts/article.njk" && !it.data.guia && it.data.permalink !== false && it.url && !it.data.draft)
+      .sort((a, b) => b.date - a.date || String(a.data.title).localeCompare(String(b.data.title))));
   eleventyConfig.addFilter("mdPlain", mdPlain);
   // Copy as-is: CSS, JS, logos, photos, favicons
   eleventyConfig.addPassthroughCopy({ "src/assets": "assets" });

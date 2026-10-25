@@ -8,6 +8,12 @@ rm -rf "$SITIO/es" "$SITIO/assets"
 cp -r "$FUENTE/_site/es" "$SITIO/es"
 cp -r "$FUENTE/_site/assets" "$SITIO/assets"
 
+# Portadas: inicio, una página por sección, buscar y la página de error (404), más el mapa del sitio para Google.
+# Se arman solas con los artículos publicados (src/portadas/ en el código fuente).
+for f in "$FUENTE"/_site/*.html "$FUENTE/_site/sitemap.xml" "$FUENTE/_site/robots.txt"; do
+  if [ -f "$f" ]; then cp "$f" "$SITIO/"; fi
+done
+
 # Editor web (relievemag.com/editor/): la interfaz, el lector de artículos compartido, el logo y la lista
 # de usuarios (contraseñas cifradas; ver editor/LEEME.md). No lo indexan los buscadores (meta robots).
 rm -rf "$SITIO/editor"

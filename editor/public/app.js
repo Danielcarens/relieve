@@ -664,7 +664,7 @@ ${fld("Descripción para Google", `<textarea class="form-control" data-k="m.desc
 ${fld("Sección", `<select class="form-select" data-k="m.section">${SECTIONS.map(([k, l]) => `<option value="${k}" ${m.section === k ? "selected" : ""}>${l}</option>`).join("")}</select>`)}
 ${fld("Fecha", inp("m.date", m.date, "", "date"))}
 ${fld("Video de YouTube", inp("m.youtube", m.youtube, "Pega el enlace o el código"), '<p class="hint">Se reproduce al hacer clic sobre la portada.</p>')}
-<div class="form-check"><input class="form-check-input" type="checkbox" id="c-draft" data-k="m.draft" ${m.draft ? "checked" : ""}><label class="form-check-label" for="c-draft">Borrador (Google no lo indexará)</label></div>
+<div class="form-check"><input class="form-check-input" type="checkbox" id="c-draft" data-k="m.draft" ${m.draft ? "checked" : ""}><label class="form-check-label" for="c-draft">Borrador (no sale en el inicio, la sección ni el buscador; Google no lo indexa)</label></div>
 <div class="form-check"><input class="form-check-input" type="checkbox" id="c-ai" data-k="m.ai" ${m.ai ? "checked" : ""}><label class="form-check-label" for="c-ai">Mostrar aviso de texto escrito con IA</label></div>
 <hr>${fld("Cabecera", `<select class="form-select" data-k="m.cabecera">${[["", "Foto grande con el título encima"], ["debajo", "Foto grande con el título debajo"], ["titulo", "Título arriba y la foto debajo"], ["texto", "Solo el título, sin foto"]].map(([v, l]) => `<option value="${v}" ${(m.cabecera || "") === v ? "selected" : ""}>${l}</option>`).join("")}</select>`)}
 ${hero}<hr>
@@ -840,8 +840,8 @@ $("#publish").onclick = async () => {
   const blocking = probs.filter((p) => /foto principal|título/i.test(p) && /Falta (el|la) /.test(p) && !/alternativo/.test(p));
   modal(`<div class="dlg"><h2>Publicar</h2>
     ${probs.length ? `<div><strong>Antes de publicar, revisa:</strong><ul>${probs.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>` : "<p>Todo en orden.</p>"}
-    ${ED.meta.draft ? '<p class="hint bad">Este artículo está marcado como borrador: se publicará, pero Google no lo indexará. Puedes quitar la marca en la pestaña Artículo.</p>' : ""}
-    <p class="hint">Se guardará en GitHub y, en un par de minutos, el sitio se reconstruye solo con Eleventy. Las portadas de inicio y de sección todavía se editan a mano, así que un artículo nuevo se alcanza por su dirección hasta que esas páginas pasen al editor.</p>
+    ${ED.meta.guia ? '<p class="hint bad">Esto es una guía de ejemplo: se guarda en GitHub, pero no se publica en el sitio.</p>' : ED.meta.draft ? '<p class="hint bad">Está marcado como <b>borrador</b>: se publicará en su dirección, pero no aparecerá en el inicio, en su sección ni en el buscador, y Google no lo indexará. Para que salga en todo el sitio, quita la marca «Borrador» en la pestaña Artículo.</p>' : '<p class="hint">Aparecerá en el inicio, en su sección y en el buscador.</p>'}
+    <p class="hint">Se guardará en GitHub y, en un par de minutos, el sitio se reconstruye solo con Eleventy.</p>
     <div><label class="form-label" for="pub-msg">Nota del cambio</label><input class="form-control" type="text" id="pub-msg" value="${esc("Publica: " + (ED.meta.title || ""))}"></div>
     <div class="acts"><button class="btn btn-outline-dark rounded-0" id="pub-c">Cancelar</button><button class="btn btn-primary rounded-0" id="pub-ok" ${blocking.length ? "disabled" : ""}>Publicar ahora</button></div></div>`, () => {
     $("#pub-c").onclick = closeModal;
