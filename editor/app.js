@@ -20,7 +20,7 @@ window.SECTION_NAMES = Object.fromEntries(SECTIONS);
 window.heroSrc = (m) => {
   const h = m.hero, dir = (/\/assets\/img\/([^/]+)\//.exec(m.imgBase || "") || [])[1];
   if (MODE === "web") return (web && web.heroSourceUrl(m)) || window.imgSrc(m.imgBase, h.file, "-1280.jpg");
-  return h.srcW && dir ? `/originals/${dir}/hero-source.jpg?v=${ED.heroV || 0}` : `${m.imgBase}${h.file}-1280.jpg?v=${ED.heroV || 0}`;
+  return h.srcW && dir ? `/originals/${dir}/${h.file || "hero"}-source.jpg?v=${ED.heroV || 0}` : `${m.imgBase}${h.file}-1280.jpg?v=${ED.heroV || 0}`;
 };
 const cdoc = () => frame().contentDocument;
 
@@ -74,15 +74,15 @@ function mutate(fn, { typing = false } = {}) {
 function updateUndo() { $("#undo").disabled = !hist.length; $("#redo").disabled = !fut.length; }
 function undo() { if (!hist.length) return; fut.push(snap()); restore(hist.pop()); updateUndo(); }
 function redo() { if (!fut.length) return; hist.push(snap()); restore(fut.pop()); updateUndo(); }
-function markDirty() { dirty = true; setState("Cambios sin guardar"); updateCount(); clearTimeout(saveTimer); saveTimer = setTimeout(save, 1200); }
+function markDirty() { dirty = true; setState("Sin guardar"); updateCount(); clearTimeout(saveTimer); saveTimer = setTimeout(save, 1200); }
 function setState(t) { $("#save-state").textContent = t; }
 async function save() {
   clearTimeout(saveTimer);
   if (!ED.path || !dirty) return;
   if (saving) { saveTimer = setTimeout(save, 400); return; }
   saving = true; setState("Guardando…"); dirty = false;
-  try { const r = await post("/api/article", { path: ED.path, meta: ED.meta, photos: ED.photos, fichas: ED.fichas, blocks: ED.blocks }); ED.problems = r.problems; setState(dirty ? "Cambios sin guardar" : "Guardado"); }
-  catch (e) { dirty = true; setState("No se pudo guardar"); toast("No se pudo guardar: " + e.message, true); }
+  try { const r = await post("/api/article", { path: ED.path, meta: ED.meta, photos: ED.photos, fichas: ED.fichas, blocks: ED.blocks }); ED.problems = r.problems; setState(dirty ? "Sin guardar" : "Guardado"); }
+  catch (e) { dirty = true; setState("Sin guardar"); toast("No se pudo guardar: " + e.message, true); }
   saving = false;
 }
 addEventListener("keydown", (e) => {
@@ -113,6 +113,7 @@ function highlight() {
 function showView(v) {
   for (const id of ["view-list", "view-edit", "view-panel"]) $("#" + id).hidden = id !== "view-" + v;
   $("#tools").hidden = v !== "edit"; $("#ribbon").hidden = v !== "edit"; $("#nav-crumb").hidden = v !== "edit";
+  if (MODE === "web" && web && web.session.token) $("#web-tools").hidden = v === "edit";   // Usuarios / Salir only outside an article: the bar keeps the site's width
   for (const [id, on] of [["nav-list", v === "list"], ["nav-panel", v === "panel"]]) { $("#" + id).classList.toggle("active", on); if (on) $("#" + id).setAttribute("aria-current", "page"); else $("#" + id).removeAttribute("aria-current"); }
 }
 const artItem = (a) => `<li class="art border-bottom border-strong" data-path="${esc(a.path)}" ${a.error ? `data-error="${esc(a.error)}"` : ""}>
@@ -469,7 +470,10 @@ window.act = {
     mutate(() => { const h = ED.meta.hero; h.pos = pos; if (zoom != null) { if (zoom > 1) h.zoom = zoom; else delete h.zoom; } }, { typing: !!live });
     if (live) { const w = frame().contentWindow; w.layoutHero && w.layoutHero(); }
     clearTimeout(heroTimer);
-    heroTimer = setTimeout(async () => { const h = ED.meta.hero; try { await post("/api/hero-pos?" + new URLSearchParams({ article: ED.path, pos: h.pos || "50% 50%", zoom: h.zoom || 1 }), {}); } catch (e) { toast(e.message, true); } }, 700);
+    heroTimer = setTimeout(async () => { const h = ED.meta.hero; try {
+      const r = await post("/api/hero-pos?" + new URLSearchParams({ article: ED.path, pos: h.pos || "50% 50%", zoom: h.zoom || 1 }), {});
+      if (r && r.file && r.file !== ED.meta.hero.file) mutate(() => { ED.meta.hero.file = r.file; ED.heroV = Date.now(); });   // its own name if the folder is shared
+    } catch (e) { toast(e.message, true); } }, 700);
   },
   undoKey(e) { e.key.toLowerCase() === "z" && !e.shiftKey ? undo() : redo(); },
 };

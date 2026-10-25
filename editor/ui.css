@@ -6,9 +6,16 @@ html { zoom: .9; }   /* the whole editor (bars, panel and page) at 90 %, like zo
 body { display: flex; flex-direction: column; overflow: hidden; }
 .navbar { flex: none; zoom: calc(1 / .9); }   /* the top bar stays at 100 %: logo and links the same size and spacing as on the site */
 .navbar .navbar-nav .nav-link { padding-inline: .5rem; }   /* as in the site's expanded navbar (navbar-expand-lg) */
-#nav-crumb { max-width: 32rem; }
-@media (max-width: 1199.98px) { #nav-crumb { display: none; } }
+#nav-crumb { display: none; }   /* the bar sits in the site's centered column, like on the site; there is no room for the article's title (it is on the page) */
 #save-state { min-width: 7.5rem; text-align: right; }
+.navbar .navbar-nav { flex-shrink: 0; }   /* the menu never gets covered by the buttons */
+#tools .ico { display: none; width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 1399.98px) { #save-state { min-width: 0; } }
+@media (max-width: 1199.98px) {   /* the site's column is narrower here: icons for the view size and the preview, so everything stays inside it */
+  #tools .lbl { display: none; }
+  #tools .ico { display: block; }
+}
+@media (max-width: 991.98px) { .navbar > .container { max-width: none; } }   /* below this the site shows a menu button; the editor uses the full width */
 /* Ribbon (Word-style formatting bar) */
 .ribbon { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .5rem 1rem; }
 @media (min-width: 1200px) { .ribbon { padding-inline: 1.5rem; } }

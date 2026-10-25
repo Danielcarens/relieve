@@ -75,8 +75,28 @@ async function readText(path) {
 // ---- photos (resized in the browser; the canvas re-encodes, so EXIF and GPS are gone) ----------------------
 const urls = new Map();                                    // repo path -> object URL of a photo not published yet
 export const pendingUrl = (p) => urls.get(p);
+// Photo files an unpublished article uses (its photos and its cover), as repo paths, plus the cover's full original.
+function draftFiles(model) {
+  const out = new Set(); let dir; try { dir = dirOf(model.meta); } catch { return out; }
+  const base = `src/assets/img/${dir}/`;
+  for (const ph of Object.values(model.photos || {})) if (ph && ph.file) { out.add(`${base}${ph.file}.jpg`); out.add(`${base}${ph.file}-sm.jpg`); }
+  const h = model.meta.hero; if (h && h.file) { for (const w of [1280, 1920, 2560]) out.add(`${base}${h.file}-${w}.jpg`); out.add(`${base}${h.file}-source.jpg`); out.add(`orig/${dir}/${h.file}-source`); }
+  return out;
+}
+async function usedByDrafts(except) {
+  const used = new Set();
+  for (const p of await kv.keys("drafts")) if (p !== except) { const d = await kv.get("drafts", p); if (d && d.model) for (const k of draftFiles(d.model)) used.add(k); }
+  return used;
+}
+async function dropBlob(k) { await kv.del("blobs", k); const u = urls.get(k); if (u) { URL.revokeObjectURL(u); urls.delete(k); } }
 export async function loadPending() {
-  for (const k of await kv.keys("blobs")) if (!urls.has(k)) { const v = await kv.get("blobs", k); if (v && v.blob) urls.set(k, URL.createObjectURL(v.blob)); }
+  // Photos that no unpublished article uses any more (replaced, or left by a discarded article) are deleted, so they
+  // cannot show up in, or be published with, another article that uses the same folder.
+  const used = await usedByDrafts(null);
+  for (const k of await kv.keys("blobs")) {
+    if (!used.has(k)) { await kv.del("blobs", k); continue; }
+    if (!urls.has(k)) { const v = await kv.get("blobs", k); if (v && v.blob) urls.set(k, URL.createObjectURL(v.blob)); }
+  }
 }
 async function putBlob(path, blob) { await kv.set("blobs", path, { blob, at: Date.now() }); const old = urls.get(path); if (old) URL.revokeObjectURL(old); urls.set(path, URL.createObjectURL(blob)); }
 export function slugify(name) {
@@ -110,23 +130,35 @@ async function repoBlob(path) {
   const b = await gh("GET", `${R}/git/blobs/${e.sha}`);
   return new Blob([b64ToBytes(b.content)], { type: "image/jpeg" });
 }
+// The cover's file name: "hero", or "hero-<file name>" when another article uses the same folder and name (see server.js).
+async function heroNameFor(articlePath, meta) {
+  const prev = (meta.hero && meta.hero.file) || "hero";
+  const t = await tree(), drafts = await kv.keys("drafts");
+  const paths = new Set([...[...t.entries.keys()], ...drafts].filter((p) => /^src\/es\/.+\.md$/.test(p) && p !== articlePath));
+  let clash = false;
+  for (const p of paths) { try { const m = (await getArticle(p)).meta; if (m.imgBase === meta.imgBase && ((m.hero && m.hero.file) || "") === prev) { clash = true; break; } } catch {} }
+  return { prev, name: clash ? `hero-${slugify(articlePath.split("/").pop())}` : prev };
+}
 async function makeHero(articlePath, file, pos = "50% 50%", zoom = 1) {
   const { meta } = await getArticle(articlePath); const dir = dirOf(meta), base = `src/assets/img/${dir}/`;
-  if (file) await putBlob(`orig/${dir}/hero-source`, file);
-  let src = (await kv.get("blobs", `orig/${dir}/hero-source`))?.blob || (await kv.get("blobs", `${base}hero-source.jpg`))?.blob;
-  if (!src) { src = await repoBlob(`${base}hero-source.jpg`); if (src) await putBlob(`orig/${dir}/hero-source`, src); }
+  const { name, prev } = await heroNameFor(articlePath, meta);
+  if (file) await putBlob(`orig/${dir}/${name}-source`, file);
+  const find = async (n) => (await kv.get("blobs", `orig/${dir}/${n}-source`))?.blob || (await kv.get("blobs", `${base}${n}-source.jpg`))?.blob || await repoBlob(`${base}${n}-source.jpg`);
+  let src = await find(name);
+  if (!src && !file && prev !== name) src = await find(prev);
   if (!src) throw new Error("Esta portada se eligió antes de que el editor guardara la foto completa. Para encuadrarla, vuelve a elegirla con «Cambiar foto».");
+  if (!(await kv.get("blobs", `orig/${dir}/${name}-source`))) await putBlob(`orig/${dir}/${name}-source`, src);
   const bmp = await decode(src), W = bmp.width, H = bmp.height;
-  if (file) { const cw0 = Math.min(2600, W); await putBlob(`${base}hero-source.jpg`, await jpeg(bmp, cw0, Math.round((cw0 * H) / W))); }
+  if (file || !(await kv.get("blobs", `${base}${name}-source.jpg`)) && !(await tree()).entries.has(`${base}${name}-source.jpg`)) { const cw0 = Math.min(2600, W); await putBlob(`${base}${name}-source.jpg`, await jpeg(bmp, cw0, Math.round((cw0 * H) / W))); }
   const [px, py] = pos.split(" ").map((v) => Math.min(100, Math.max(0, parseFloat(v))) / 100);
   const z = Math.min(4, Math.max(1, Number(zoom) || 1));   // zoom: 1 = the largest 16:9 crop, 2 = half as wide…
   const cw = Math.round((W / H > 16 / 9 ? H * 16 / 9 : W) / z), ch = Math.round(cw * 9 / 16);
   const left = Math.round((W - cw) * px), top = Math.round((H - ch) * py);
-  for (const w of [1280, 1920, 2560]) { const ow = Math.min(w, cw); await putBlob(`${base}hero-${w}.jpg`, await jpeg(bmp, ow, Math.round(ow * 9 / 16), left, top, cw, ch)); }
-  return { file: "hero", w: 2560, h: 1440, srcW: W, srcH: H, pos, ...(z > 1 ? { zoom: z } : {}) };
+  for (const w of [1280, 1920, 2560]) { const ow = Math.min(w, cw); await putBlob(`${base}${name}-${w}.jpg`, await jpeg(bmp, ow, Math.round(ow * 9 / 16), left, top, cw, ch)); }
+  return { file: name, w: 2560, h: 1440, srcW: W, srcH: H, pos, ...(z > 1 ? { zoom: z } : {}) };
 }
 export const heroSourceUrl = (meta) => {
-  try { const dir = dirOf(meta); return urls.get(`orig/${dir}/hero-source`) || urls.get(`src${meta.imgBase}hero-source.jpg`) || (meta.hero && meta.hero.srcW ? `${meta.imgBase}hero-source.jpg` : null); } catch { return null; }
+  try { const dir = dirOf(meta), n = (meta.hero && meta.hero.file) || "hero"; return urls.get(`orig/${dir}/${n}-source`) || urls.get(`src${meta.imgBase}${n}-source.jpg`) || (meta.hero && meta.hero.srcW ? `${meta.imgBase}${n}-source.jpg` : null); } catch { return null; }
 };
 
 // ---- articles -------------------------------------------------------------------------------------------
@@ -156,7 +188,8 @@ async function publish({ message, path, force }) {
   const text = serializeArticle(d.model);
   const mdBlob = await gh("POST", `${R}/git/blobs`, { content: text, encoding: "utf-8" });
   items.push({ path, mode: "100644", type: "blob", sha: mdBlob.sha });
-  const imgKeys = (await kv.keys("blobs")).filter((k) => k.startsWith(`src/assets/img/${dir}/`));
+  const mine = draftFiles(d.model), others = await usedByDrafts(path);   // only this article's own photos and cover
+  const imgKeys = (await kv.keys("blobs")).filter((k) => k.startsWith(`src/assets/img/${dir}/`) && mine.has(k));
   for (const k of imgKeys) {
     const v = await kv.get("blobs", k); const b64 = bytesToB64(new Uint8Array(await v.blob.arrayBuffer()));
     const r = await gh("POST", `${R}/git/blobs`, { content: b64, encoding: "base64" });
@@ -174,7 +207,7 @@ async function publish({ message, path, force }) {
     try { await gh("PATCH", `${R}/git/refs/heads/${REPO.branch}`, { sha: commit.sha, force: false }); }
     catch (e) { if ((e.status === 422 || e.status === 409) && attempt < 4) { treeCache = null; await new Promise((r) => setTimeout(r, 800 * attempt)); continue; } throw e; }
     await kv.del("drafts", path);
-    for (const k of imgKeys) { await kv.del("blobs", k); }
+    for (const k of mine) if (!others.has(k)) await dropBlob(k);
     treeCache = null;
     return { ok: true, sha: commit.sha, files: items.length };
   }
@@ -230,7 +263,11 @@ export async function handle(method, url, body) {
     case "POST /api/hero-pos": return makeHero(q.get("article"), null, q.get("pos") || "50% 50%", q.get("zoom") || 1);
     case "POST /api/sync": treeCache = null; return { ok: true };
     case "POST /api/publish": return publish(JSON.parse(body));
-    case "POST /api/discard": { const { path } = JSON.parse(body); await kv.del("drafts", path); return { ok: true }; }
+    case "POST /api/discard": {   // the article's unpublished changes and the photos only it uses
+      const { path } = JSON.parse(body), d = await kv.get("drafts", path); await kv.del("drafts", path);
+      if (d && d.model) { const others = await usedByDrafts(path); for (const k of draftFiles(d.model)) if (!others.has(k)) await dropBlob(k); }
+      return { ok: true };
+    }
     case "GET /api/dashboard": return dashboard();
     case "POST /api/goatcounter": return setGoatcounter(JSON.parse(body).code);
     default: throw new Error(`El editor web no sabe hacer: ${route}`);

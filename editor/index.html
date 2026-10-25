@@ -15,9 +15,9 @@
 <!--LOGO-DEFS-->
 <!-- Same bar as the site (src/_includes/partials/navbar.njk): logo, links, square controls -->
 <nav class="navbar bg-body border-bottom border-2 border-strong py-2 py-lg-3 flex-nowrap">
-  <div class="container-fluid flex-nowrap gap-3 px-3 px-xl-4">
+  <div class="container flex-nowrap gap-3">
     <a class="navbar-brand me-0" href="#" id="go-list" aria-label="RELIEVE: volver a los artículos"><svg class="wordmark" viewBox="-11 -11 3399 622" role="img" aria-label="RELIEVE"><use href="#logo-lockup"/></svg></a>
-    <ul class="navbar-nav flex-row gap-3 ms-lg-4 me-auto min-w-0">
+    <ul class="navbar-nav flex-row gap-3 ms-lg-4 me-auto">
       <li class="nav-item"><a class="nav-link" href="#" id="nav-list">Artículos</a></li>
       <li class="nav-item"><a class="nav-link" href="#" id="nav-panel">Panel</a></li>
       <li class="nav-item min-w-0" id="nav-crumb" hidden><span class="nav-link active text-truncate d-block" id="crumb" aria-current="page"></span></li>
@@ -30,10 +30,10 @@
     <div class="d-flex align-items-center gap-2 flex-nowrap" id="tools" hidden>
       <span id="save-state" class="font-ui small text-secondary text-nowrap me-1"></span>
       <div class="btn-group" role="group" aria-label="Tamaño de la vista">
-        <button class="btn btn-outline-dark" id="dev-desktop" title="Ver como en computadora">Computadora</button>
-        <button class="btn btn-outline-dark" id="dev-phone" title="Ver como en celular">Celular</button>
+        <button class="btn btn-outline-dark" id="dev-desktop" title="Ver como en computadora" aria-label="Computadora"><span class="lbl">Computadora</span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg></button>
+        <button class="btn btn-outline-dark" id="dev-phone" title="Ver como en celular" aria-label="Celular"><span class="lbl">Celular</span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="1.5"/><path d="M11 18.5h2"/></svg></button>
       </div>
-      <button class="btn btn-outline-dark" id="preview">Vista previa</button>
+      <button class="btn btn-outline-dark" id="preview" title="Vista previa" aria-label="Vista previa"><span class="lbl">Vista previa</span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <button class="btn btn-primary" id="publish">Publicar</button>
     </div>
   </div>
