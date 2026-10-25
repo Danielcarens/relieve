@@ -95,7 +95,8 @@ All sit in the reading column (`min(46rem, 100% - 1.5rem)`) unless noted. Paired
 |---|---|---|
 | Lists | plain Markdown `- item` / `1. item` | one level, `padding-left: 1.5rem`, `li + li` 0.35rem |
 | Text box | `{% recuadro "gris marco linea-rosa" %}…{% endrecuadro %}`: background (gris, sin-fondo, amarillo, rojo, verde), optional `marco`, optional `linea-rosa/amarillo/verde/rojo` (old one-word `borde` / `acento` still read) | `aside.recuadro.fondo-*`, `.has-marco`, `.linea-*`; frame and line are inset box-shadows so text never moves; `display: flow-root` so it makes room for floating photos |
-| Free-width text | `{% caja "12 70" %}…{% endcaja %}` around one text block (from 12% to 70% of the content width, `--cw-inner`) | `.caja` with `--l` / `--r`; phones fall back to the 46rem column |
+| Free width | `{% caja "12 70" %}…{% endcaja %}` around one text block or facts row: each edge is a % of the content width (`--cw-inner`) or `texto` (edge of the 46rem reading column at any screen width) | `.caja` with `--x1` / `--x2` (calc expressions written by the shortcode); phones fall back to the 46rem column; a facts row inside drops its container padding |
+| Facts row | `{% datos "Etiqueta", "Valor", … %}` | lines on `.datos-wrap` so lines and text start exactly at the photos' edges (the Bootstrap row's gutters stay inside) |
 | Inline formatting in short fields | captions, hero caption, subtitle, quote author, card title/rows, facts row, expandable title, map label, video caption accept `**bold**`, `*italic*`, `[link](url)` | `mdi` filter / function in eleventy.config.js (`mdPlain` for meta tags) |
 | Expandable | `{% desplegable "Pregunta" %}…{% enddesplegable %}` | `details.desplegable` with 2px rules; consecutive ones share a rule; summary in the display face, `+` / `−` |
 | Button | `{% boton "Texto", "url", "primario", "centro" %}` (style primario / secundario, optional centro) | `p.article-cta` > `a.btn`; external links open in a new tab |

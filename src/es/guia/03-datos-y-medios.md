@@ -102,6 +102,12 @@ Una fila de datos grandes entre dos líneas, como la ficha de una etapa: lugar, 
 
 {% datos "Lugar", "Quitaque, Texas", "Distancia", "12 km", "Desnivel", "+350 m", "Dificultad", "Media" %}
 
+Normalmente las dos líneas y el texto empiezan y terminan justo en los bordes de las fotos. Como los párrafos, tiene dos barras rosas a los lados para cambiar su ancho: los bordes se pegan a los márgenes de las fotos, a los de la columna de texto y al centro. Esta otra fila está ajustada a la columna de texto:
+
+{% caja "texto texto" %}
+{% datos "Salida", "7:00", "Duración", "4 h", "Agua", "3 litros" %}
+{% endcaja %}
+
 ## Ficha de datos en su propia fila
 
 Un cuadro con título y datos (Dato: valor, o una tabla de dos columnas). En su propia fila, el cuadro mide lo mismo que una foto y el texto de adentro se alinea con los párrafos. En celular va de borde a borde, como las fotos. Insertar → *Ficha de datos*; el título y los datos se escriben en la ficha misma (para enlazar el título, selecciónalo y usa el botón de enlace de la barra), y en el panel se agregan datos y se cambian el color y el formato.

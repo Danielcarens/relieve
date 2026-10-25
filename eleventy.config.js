@@ -249,13 +249,16 @@ ${figcaption(p, "figure-caption container pt-2")}
     return `<div class="article-space" style="height: ${n}rem" aria-hidden="true"></div>`;
   });
   // A row of facts (place, distance, difficulty…), the "stage sheet": {% datos "Lugar", "Quitaque", "Distancia", "12 km" %}
+  // The two lines and the text start exactly at the edges of single photos; {% caja %} around it changes the width.
   eleventyConfig.addShortcode("datos", (...a) => {
     const rows = []; for (let k = 0; k + 1 < a.length; k += 2) rows.push([a[k], a[k + 1]]);
     if (!rows.length) return "";
     return `<div class="container">
-<dl class="row row-cols-2 row-cols-md-4 g-4 py-4 my-5 border-top border-bottom border-2 border-strong datos">
+<div class="datos-wrap py-4 my-5 border-top border-bottom border-2 border-strong">
+<dl class="row row-cols-2 row-cols-md-4 g-4 mb-0 datos">
 ${rows.map(([l, v]) => `<div class="col"><dt class="small-meta fw-semibold font-ui">${mdi(l)}</dt><dd class="h3 mb-0">${mdi(v)}</dd></div>`).join("\n")}
 </dl>
+</div>
 </div>`;
   });
   // Button: {% boton "Texto", "https://…", "secundario", "centro" %} (style primario | secundario, then optional "centro")
@@ -277,12 +280,16 @@ ${rows.map(([l, v]) => `<div class="col"><dt class="small-meta fw-semibold font-
     const cls = [`fondo-${fondo}`, ["amarillo", "rojo", "verde"].includes(fondo) ? `tone-${fondo}` : "", w.includes("marco") ? "has-marco" : "", linea ? `linea-${linea}` : ""].filter(Boolean).join(" ");
     return `<aside class="recuadro ${cls}">\n\n${content.trim()}\n\n</aside>`;
   });
-  // Free width for a text block (the editor's side handles): {% caja "12 70" %}…{% endcaja %} runs from 12% to 70% of
-  // the content width (the width of single photos). Phones: back to the normal reading column.
+  // Free width for a text block or a facts row (the editor's side handles): {% caja "12 70" %}…{% endcaja %} runs from
+  // 12% to 70% of the content width (the width of single photos). An edge can be "texto": the edge of the reading
+  // column, at any screen width ({% caja "0 texto" %}). Phones: back to the normal reading column.
   eleventyConfig.addPairedShortcode("caja", (content, lr) => {
-    const [l, r] = String(lr || "").split(/\s+/).map(Number);
-    if (!(r > l) || l < 0 || r > 100) return content;
-    return `<div class="caja" style="--l: ${l}; --r: ${r}">\n\n${content.trim()}\n\n</div>`;
+    const COL = "min(46rem, 100% - 1.5rem)";
+    const [l, r] = String(lr || "").trim().split(/\s+/).map((x) => (x === "texto" ? x : Number(x)));
+    const ok = (v) => v === "texto" || (Number.isFinite(v) && v >= 0 && v <= 100);
+    if (!ok(l) || !ok(r) || (typeof l === "number" && typeof r === "number" && r <= l)) return content;
+    const x = (v, side) => (v === "texto" ? `calc((100% ${side === "l" ? "-" : "+"} ${COL}) / 2)` : `calc((100% - var(--cw-inner)) / 2 + var(--cw-inner) * ${v} / 100)`);
+    return `<div class="caja" style="--x1: ${x(l, "l")}; --x2: ${x(r, "r")}">\n\n${content.trim()}\n\n</div>`;
   });
   // Expandable (questions, extra details): {% desplegable "Pregunta" %}…{% enddesplegable %}
   eleventyConfig.addPairedShortcode("desplegable", (content, title) =>
