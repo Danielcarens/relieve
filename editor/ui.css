@@ -2,7 +2,7 @@
    this file only lays out the editor's own panels. No colors of its own. */
 [hidden] { display: none !important; }   /* Bootstrap's d-flex would otherwise win over the hidden attribute */
 html, body { height: 100%; }
-html { zoom: .9; }   /* the whole editor (bars, panel and page) at 90 %, like zooming the browser out one step */
+html { zoom: .9; scrollbar-gutter: auto; }   /* the whole editor (bars, panel and page) at 90 %, like zooming the browser out one step */
 body { display: flex; flex-direction: column; overflow: hidden; }
 .navbar { flex: none; zoom: calc(1 / .9); }   /* the top bar stays at 100 %: logo and links the same size and spacing as on the site */
 .navbar .navbar-nav .nav-link { padding-inline: .5rem; }   /* as in the site's expanded navbar (navbar-expand-lg) */
@@ -38,7 +38,7 @@ main > .container { padding-inline: calc(var(--bs-gutter-x, 1.5rem) * .5 / .9); 
 .rb-menu button { display: block; width: 100%; border: 0; background: transparent; color: var(--bs-body-color); text-align: left; padding: .5rem 1rem; font: 600 .95rem/1.2 var(--font-display); }
 .rb-menu button:hover, .rb-menu button:focus-visible { background: var(--bs-secondary-bg); outline: 0; }
 .rb-menu kbd, .ribbon kbd { font: inherit; color: var(--bs-secondary-color); float: right; background: none; padding: 0; }
-.list-view { flex: 1; }
+.list-view { flex: 1; scrollbar-gutter: stable; }   /* the scrollbar's room is always reserved, like the site's page; index.html gives the bar the same room */
 
 .edit-view { flex: 1; display: flex; min-height: 0; }
 .stage { flex: 1; min-width: 0; overflow: auto; display: flex; justify-content: center; }

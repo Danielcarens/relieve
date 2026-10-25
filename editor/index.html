@@ -9,6 +9,22 @@
 <link rel="stylesheet" href="/assets/css/theme.css">
 <link rel="stylesheet" href="ui.css">
 <script src="/assets/js/ridge.js" defer></script>
+<script>
+/* The site's scrollbar sits at the window's edge and the column is centred in what is left; here the scrollbar belongs to the
+   list/panel under the bar. Give the bar the same room on the right so both columns are centred on the same line. */
+addEventListener("DOMContentLoaded", function () {
+  var nav = document.querySelector(".navbar-ridge");
+  function fit() {
+    var m = document.querySelector("main.list-view:not([hidden])");
+    var sb = m ? (m.offsetWidth - m.clientWidth) * .9 : 0;    /* .9 = the editor's zoom (ui.css); the bar is back at 100 % */
+    nav.style.paddingRight = Math.round(sb) + "px";
+    nav.dispatchEvent(new Event("ridge"));
+  }
+  fit(); addEventListener("resize", fit);
+  var mo = new MutationObserver(fit);
+  document.querySelectorAll("main.list-view").forEach(function (m) { mo.observe(m, { attributes: true, attributeFilter: ["hidden"] }); });
+});
+</script>
 <meta name="robots" content="noindex, nofollow">
 <script type="importmap">{ "imports": { "js-yaml": "./vendor/js-yaml.js" } }</script>
 </head>
