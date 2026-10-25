@@ -185,7 +185,8 @@ p { text-wrap: pretty; }
 }
 
 /* The navbar's bottom edge is a mountain ridge instead of a straight 2px rule. It is a mask (relieve-ridge.svg,
-   a 4000 x 72 tile, flat at both ends so tiles join) filled with the text color, so it follows the theme.
+   a 4000 x 60 tile drawn as a hand-inked outline: soft curves, a stroke of slightly varying width, flat at both ends
+   so tiles join) filled with the text color, so it follows the theme.
    The navbar keeps --ridge-h of free space at the bottom for the peaks; to go back to the plain rule, replace
    `navbar-ridge` with `border-bottom border-2 border-strong` in partials/navbar.njk. */
 .navbar-ridge {
@@ -194,7 +195,7 @@ p { text-wrap: pretty; }
   border-bottom: 0 !important;
   padding-bottom: var(--ridge-h) !important;
 }
-@media (min-width: 992px) { .navbar-ridge { --ridge-h: 2rem; } }
+@media (min-width: 992px) { .navbar-ridge { --ridge-h: 1.75rem; } }
 .navbar-ridge::after {
   content: "";
   position: absolute;
