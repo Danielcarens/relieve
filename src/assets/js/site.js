@@ -32,6 +32,34 @@
     });
   });
 
+  /* ---- Navbar line: a flat hand-drawn line with a mountain range under the menu links (theme.css,
+          ".navbar-ridge"). Measures where the links start and end, so the range always sits right
+          under them. Below 992px the links are inside the folded menu: flat line only. ---------- */
+  (function () {
+    var nav = document.querySelector(".navbar-ridge");
+    if (!nav) return;
+    var wide = window.matchMedia("(min-width: 992px)");
+
+    function place() {
+      var links = nav.querySelectorAll(".navbar-nav .nav-link");
+      if (!wide.matches || !links.length) {
+        nav.style.removeProperty("--ridge-x1");
+        nav.style.removeProperty("--ridge-x2");
+        return;
+      }
+      var box = nav.getBoundingClientRect();
+      var first = links[0].getBoundingClientRect();
+      var last = links[links.length - 1].getBoundingClientRect();
+      nav.style.setProperty("--ridge-x1", Math.round(first.left - box.left) + "px");
+      nav.style.setProperty("--ridge-x2", Math.round(last.right - box.left) + "px");
+    }
+
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("load", place);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+  })();
+
   /* ---- Article hero video: the photo stays until the reader clicks. Then
           the YouTube player replaces it in the same frame. Uses the
           privacy-enhanced domain, so YouTube gets nothing before the click. - */
