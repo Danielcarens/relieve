@@ -41,7 +41,22 @@ function parseFila(argText, raw) {
 }
 
 // Blocks that wrap text and may contain blank lines: {% cita %}, {% recuadro %}, {% desplegable %}
-const PAIRED = ["cita", "recuadro", "desplegable", "centrado"];
+const PAIRED = ["cita", "recuadro", "desplegable", "centrado", "caja"];
+
+// Text box look, as words: background (gris | sin-fondo | amarillo | rojo | verde), "marco" (a frame) and
+// "linea-rosa" (a thick line on the left: rosa | amarillo | verde | rojo). Older files used one word: gris | borde | acento | amarillo…
+export const FONDOS = ["gris", "sin-fondo", "amarillo", "rojo", "verde"], LINEAS = ["rosa", "amarillo", "verde", "rojo"];
+export function parseRecuadro(str) {
+  const w = String(str || "gris").toLowerCase().split(/[\s,]+/).filter(Boolean);
+  if (w.length === 1 && w[0] === "borde") return { fondo: "sin-fondo", marco: true, linea: "" };
+  if (w.length === 1 && w[0] === "acento") return { fondo: "gris", marco: false, linea: "rosa" };
+  const l = (w.find((x) => x.startsWith("linea-")) || "").slice(6);
+  return { fondo: w.find((x) => FONDOS.includes(x)) || (w.includes("sin") ? "sin-fondo" : "gris"), marco: w.includes("marco"), linea: LINEAS.includes(l) ? l : "" };
+}
+export const recuadroStr = (b) => [FONDOS.includes(b.fondo) ? b.fondo : "gris", b.marco ? "marco" : "", b.linea ? `linea-${b.linea}` : ""].filter(Boolean).join(" ");
+// Free width for a text block: {% caja "12 70" %}…{% endcaja %} = from 12% to 70% of the content width (the photos' width)
+const boxStr = (x) => `${Math.round(x.l * 10) / 10} ${Math.round(x.r * 10) / 10}`;
+const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details"];
 const LIST_UL = /^[-*+]\s+/, LIST_OL = /^\d+[.)]\s+/;
 
 export function parseBody(body) {
@@ -68,7 +83,7 @@ export function parseBody(body) {
       const a = args(m[1]); const b = withWrap({ type: "quote", text: m[2].trim() }, a[0]); if (a[1]) b.by = a[1]; blocks.push(b);
     }
     else if ((m = t.match(/^\{%\s*recuadro((?:\s*,?\s*"(?:[^"\\]|\\.)*")*)\s*%\}([\s\S]*?)\{%\s*endrecuadro\s*%\}$/))) {
-      const a = args(m[1]); blocks.push({ type: "callout", tone: ["gris", "borde", "acento"].includes(a[0]) ? a[0] : "gris", text: m[2].trim() });
+      const a = args(m[1]); blocks.push({ type: "callout", ...parseRecuadro(a[0]), text: m[2].trim() });
     }
     else if ((m = t.match(/^\{%\s*desplegable((?:\s*,?\s*"(?:[^"\\]|\\.)*")*)\s*%\}([\s\S]*?)\{%\s*enddesplegable\s*%\}$/))) {
       blocks.push({ type: "details", title: args(m[1])[0] || "", text: m[2].trim() });
@@ -76,6 +91,10 @@ export function parseBody(body) {
     else if ((m = t.match(/^\{%\s*centrado\s*%\}([\s\S]*?)\{%\s*endcentrado\s*%\}$/))) {
       const inner = parseBody(m[1]);
       if (inner.length === 1 && ["p", "h2", "h3"].includes(inner[0].type)) blocks.push({ ...inner[0], align: "center" }); else blocks.push({ type: "raw", text: t });
+    }
+    else if ((m = t.match(/^\{%\s*caja\s*"([\d.]+)\s+([\d.]+)"\s*%\}([\s\S]*?)\{%\s*endcaja\s*%\}$/))) {
+      const inner = parseBody(m[3]), l = Number(m[1]), r = Number(m[2]);
+      if (inner.length === 1 && BOXABLE.includes(inner[0].type) && r > l) blocks.push({ ...inner[0], box: { l, r } }); else blocks.push({ type: "raw", text: t });
     }
     else if (/^\{%\s*separador\s*%\}$/.test(t)) blocks.push({ type: "hr" });
     else if ((m = t.match(/^\{%\s*espacio\s*(.*?)\s*%\}$/))) { const a = args(m[1]); blocks.push({ type: "space", size: { s: 1.5, m: 3, l: 6 }[a[0]] ?? (Number(a[0]) || 3) }); }
@@ -109,6 +128,7 @@ export function parseBody(body) {
 export function serializeBlocks(blocks) {
   const isEmptyText = (b) => b.type === "p" && !b.text.trim();
   return blocks.filter((b) => !isEmptyText(b)).map((b) => {
+    if (b.box && BOXABLE.includes(b.type)) return `{% caja "${boxStr(b.box)}" %}\n${serializeBlocks([{ ...b, box: undefined }])}\n{% endcaja %}`;
     if (b.align === "center" && ["p", "h2", "h3"].includes(b.type)) return `{% centrado %}\n${serializeBlocks([{ ...b, align: undefined }])}\n{% endcentrado %}`;
     switch (b.type) {
       case "p": return b.text.trim();
@@ -131,7 +151,7 @@ export function serializeBlocks(blocks) {
       case "button": return `{% boton ${q(b.text)}, ${q(b.url)}${b.style === "secundario" || b.align === "center" ? `, "${b.style === "secundario" ? "secundario" : "primario"}"` : ""}${b.align === "center" ? ', "centro"' : ""} %}`;
       case "map": return `{% mapa ${q(b.coords)}, ${q(b.label)}, ${q(b.zoom || "11")} %}`;
       case "video": return `{% video ${q(b.id)}${b.caption ? `, ${q(b.caption)}` : ""} %}`;
-      case "callout": return `{% recuadro "${b.tone || "gris"}" %}\n${(b.text || "").trim()}\n{% endrecuadro %}`;
+      case "callout": return `{% recuadro "${recuadroStr(b)}" %}\n${(b.text || "").trim()}\n{% endrecuadro %}`;
       case "details": return `{% desplegable ${q(b.title)} %}\n${(b.text || "").trim()}\n{% enddesplegable %}`;
       default: return b.text;
     }

@@ -98,13 +98,13 @@ fichas:
 ---
 ## Datos en fila
 
-Una fila de datos grandes entre dos líneas, como la ficha de una etapa: lugar, distancia, desnivel, dificultad. Se puede usar en cualquier parte del artículo y las veces que quieras. Insertar → *Datos en fila*; los valores se escriben en la página o en el panel.
+Una fila de datos grandes entre dos líneas, como la ficha de una etapa: lugar, distancia, desnivel, dificultad. Se puede usar en cualquier parte del artículo y las veces que quieras. Insertar → *Datos en fila*; los nombres y los valores se escriben en la página, y en el panel se agregan o quitan datos.
 
 {% datos "Lugar", "Quitaque, Texas", "Distancia", "12 km", "Desnivel", "+350 m", "Dificultad", "Media" %}
 
 ## Ficha de datos en su propia fila
 
-Un cuadro con título y datos (Dato: valor, o una tabla de dos columnas). En su propia fila, el cuadro mide lo mismo que una foto y el texto de adentro se alinea con los párrafos. En celular va de borde a borde, como las fotos. Insertar → *Ficha de datos*; el contenido y el color se cambian en el panel.
+Un cuadro con título y datos (Dato: valor, o una tabla de dos columnas). En su propia fila, el cuadro mide lo mismo que una foto y el texto de adentro se alinea con los párrafos. En celular va de borde a borde, como las fotos. Insertar → *Ficha de datos*; el título y los datos se escriben en la ficha misma (para enlazar el título, selecciónalo y usa el botón de enlace de la barra), y en el panel se agregan datos y se cambian el color y el formato.
 
 {% ficha "bici" %}
 
@@ -138,6 +138,6 @@ Insertar → *Mapa*. En Google Maps, busca el lugar, copia el enlace de la barra
 
 Para casos especiales (un formulario de reserva, un widget de otra página), Insertar → *Código HTML*. Se publica tal cual: revisa siempre la vista previa.
 
-{% recuadro "amarillo" %}
+{% recuadro "amarillo marco" %}
 **Ojo:** el código HTML puede romper el diseño si está mal escrito. Úsalo solo cuando ningún otro bloque sirva.
 {% endrecuadro %}

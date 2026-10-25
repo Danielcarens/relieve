@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ title }} · {{ site.name }}</title>
-  <meta name="description" content="{{ description or subtitle or ui.tagline }}">
+  <meta name="description" content="{{ description or (subtitle | mdPlain) or ui.tagline }}">
   {% if draft %}<meta name="robots" content="noindex, nofollow">{% endif %}
   <link rel="canonical" href="{{ site.url }}{{ page.url }}">
 
   <meta property="og:site_name" content="{{ site.name }}">
   <meta property="og:type" content="article">
   <meta property="og:title" content="{{ title }}">
-  <meta property="og:description" content="{{ description or subtitle }}">
+  <meta property="og:description" content="{{ description or (subtitle | mdPlain) }}">
   <meta property="og:locale" content="{{ ui.htmlLang | replace('-', '_') }}">
   <meta property="og:url" content="{{ site.url }}{{ page.url }}">
   {% if hero %}<meta property="og:image" content="{{ site.url }}{{ imgBase }}{{ hero.file }}-1920.jpg">{% endif %}

@@ -188,7 +188,12 @@ const server = http.createServer(async (req, res) => {
     const handler = api[`${req.method} ${url.pathname}`];
     if (handler) return json(res, 200, await handler(req, res, url.searchParams));
     if (url.pathname.startsWith("/assets/")) { const f = safeJoin(path.join(SITE, "src"), url.pathname); return f ? send(res, f) : (res.writeHead(403), res.end()); }
-    if (url.pathname.startsWith("/originals/")) { const f = safeJoin(ORIG, url.pathname.slice("/originals".length)); return f ? send(res, f) : (res.writeHead(403), res.end()); }
+    if (url.pathname.startsWith("/originals/")) {   // the cover's original; if it was chosen on another computer, the copy in the repo
+      let f = safeJoin(ORIG, url.pathname.slice("/originals".length)); if (!f) { res.writeHead(403); return res.end(); }
+      const m = url.pathname.match(/^\/originals\/([^/]+)\/hero-source\.jpg$/);
+      if (!fs.existsSync(f) && m) f = safeJoin(path.join(SITE, "src", "assets", "img"), `/${m[1]}/hero-source.jpg`);
+      return send(res, f);
+    }
     if (url.pathname.startsWith("/preview/")) {
       let f = safeJoin(path.join(SITE, "_site"), url.pathname.slice("/preview".length)); if (!f) { res.writeHead(403); return res.end(); }
       if (fs.existsSync(f) && fs.statSync(f).isDirectory()) f = path.join(f, "index.html");

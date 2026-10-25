@@ -32,7 +32,7 @@ layout: layouts/base.njk
   {% if cab == "foto" %}
   <header class="article-hero" data-hero>
     {{ heroFrame() }}
-    {% if hero.caption %}<p class="hero-credit figure-caption container mb-0 pt-2">{{ hero.caption }}</p>{% endif %}
+    {% if hero.caption %}<p class="hero-credit figure-caption container mb-0 pt-2">{{ hero.caption | mdi | safe }}</p>{% endif %}
     <div class="hero-text">
       <div class="container d-grid gap-3">
         <span class="tape">{{ sectionName }}</span>
@@ -49,7 +49,7 @@ layout: layouts/base.njk
     {% if cab == "titulo" %}
     <div class="container mt-4 article-hero article-hero-boxed" data-hero>
       {{ heroFrame() }}
-      {% if hero.caption %}<p class="hero-credit figure-caption mb-0 pt-2">{{ hero.caption }}</p>{% endif %}
+      {% if hero.caption %}<p class="hero-credit figure-caption mb-0 pt-2">{{ hero.caption | mdi | safe }}</p>{% endif %}
     </div>
     {% endif %}
   </header>
@@ -66,7 +66,7 @@ layout: layouts/base.njk
   <div class="container pt-4 pt-lg-5">
     <div class="row">
       <div class="col-xl-10 d-grid gap-4">
-        <p class="lead measure mb-0">{{ subtitle }}</p>
+        <p class="lead measure mb-0">{{ subtitle | mdi | safe }}</p>
         <ul class="list-inline small-meta mb-0">
           <li class="list-inline-item me-4"><strong class="text-body">{{ ui.by }} {{ author }}</strong></li>
           <li class="list-inline-item me-4"><time datetime="{{ date | dateISO }}">{{ date | dateLong(lang) }}</time></li>

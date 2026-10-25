@@ -33,17 +33,22 @@ function findOriginal(origDir, base) {
 }
 
 // The hero is always 16:9: crop it from the original around `pos` ("50% 40%").
+// A copy of the uncropped photo (hero-source.jpg, at most 2600 px wide) goes into the article's image folder, so the
+// cover can be reframed later from any computer or from the web editor, not only where it was first chosen.
 export async function makeHero({ buf, imgDir, origDir, pos = "50% 50%" }) {
   fs.mkdirSync(imgDir, { recursive: true });
   fs.mkdirSync(origDir, { recursive: true });
+  const repoCopy = path.join(imgDir, "hero-source.jpg");
   if (buf) {
     for (const f of fs.readdirSync(origDir)) if (path.parse(f).name === "hero-source") fs.unlinkSync(path.join(origDir, f));
     fs.writeFileSync(path.join(origDir, "hero-source.jpg"), buf);   // same name whatever the format; sharp reads by content
   }
   const src = findOriginal(origDir, "hero-source");
-  if (!src) throw new Error("No hay foto original de la portada");
-  const rot = await sharp(path.join(origDir, src)).rotate().toBuffer();
+  const from = src ? path.join(origDir, src) : fs.existsSync(repoCopy) ? repoCopy : null;
+  if (!from) throw new Error("No hay foto original de la portada. Elígela otra vez con «Cambiar foto».");
+  const rot = await sharp(from).rotate().toBuffer();
   const { width, height } = await sharp(rot).metadata();
+  if (buf || !fs.existsSync(repoCopy)) await sharp(rot).resize({ width: Math.min(2600, width), withoutEnlargement: true }).jpeg({ ...JPG, quality: 80 }).toFile(repoCopy);
   const [px, py] = pos.split(" ").map((v) => Math.min(100, Math.max(0, parseFloat(v))) / 100);
   const target = 16 / 9;
   let cw = width, ch = height;

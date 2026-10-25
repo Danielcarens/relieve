@@ -1,7 +1,8 @@
 /* The page as readers will see it, plus editing aids. Editing aids never change the layout. */
 body { background: var(--bs-body-bg); }
 .ed-hero-wrap { position: relative; }
-.ed-hero-img { position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 85vh; background: var(--bs-body-color); overflow: hidden; cursor: grab; }
+.ed-hero-img { position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 85vh; background: var(--bs-body-color); overflow: hidden; }
+.ed-hero-img.can-drag { cursor: grab; } .ed-hero-img.is-dragging { cursor: grabbing; }
 .ed-hero-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
 .ed-hero-empty { display: grid; place-items: center; color: var(--bs-body-bg); text-align: center; padding: 2rem; cursor: pointer; font-family: var(--font-display); font-weight: 700; }
 .ed-hero-actions { position: absolute; right: 1rem; top: 1rem; display: flex; gap: .5rem; }
@@ -37,11 +38,11 @@ body { background: var(--bs-body-bg); }
 .blk-tools button, .blk-handle { border: 0; background: transparent; color: var(--bs-body-bg); width: 2rem; height: 2rem; display: grid; place-items: center; padding: 0; cursor: pointer; }
 .blk-tools button:hover { background: rgba(var(--bs-body-bg-rgb), .22); }
 .blk-tools svg, .blk-handle svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.blk-handle { position: absolute; left: -2.5rem; top: .1rem; color: var(--bs-body-color); opacity: 0; cursor: grab; }
+.blk-handle { position: absolute; left: -3.25rem; top: .1rem; color: var(--bs-body-color); opacity: 0; cursor: grab; }
 .blk:hover > .blk-handle, .blk.is-sel > .blk-handle { opacity: .6; }
 .blk-media > .blk-handle, .blk-pano > .blk-handle { left: .5rem; top: .5rem; background: var(--bs-body-color); color: var(--bs-body-bg); opacity: 0; z-index: 5; }
 .blk-media:hover > .blk-handle, .blk-pano:hover > .blk-handle, .blk-media.is-sel > .blk-handle, .blk-pano.is-sel > .blk-handle { opacity: 1; }
-@media (max-width: 991.98px) { .blk-handle { left: -1.9rem; } }
+@media (max-width: 991.98px) { .blk-handle { left: -2.75rem; } }
 
 .blk-media .ratio { cursor: grab; }
 .blk-media .ratio.is-dragging { cursor: grabbing; }
@@ -135,9 +136,33 @@ body.is-file-drag .drop-overlay { display: grid; }
 .ed-space { position: relative; }
 .blk-datos .ed-plain { display: inline-block; min-width: 3ch; }
 
+/* Free text width: drag the pink edges (same rule as the site's .caja) */
+@media (min-width: 768px) {
+  .blk-text.has-box { width: calc(var(--cw-inner) * (var(--r) - var(--l)) / 100); margin-left: calc((100% - var(--cw-inner)) / 2 + var(--cw-inner) * var(--l) / 100); margin-right: 0; }
+}
+.box-handle { position: absolute; top: 0; bottom: 0; width: 12px; cursor: ew-resize; z-index: 6; display: none; touch-action: none; }
+.box-handle[data-side="l"] { left: -12px; } .box-handle[data-side="r"] { right: -12px; }   /* outside the text: never covers it or the line of a text box */
+.box-handle::after { content: ""; position: absolute; left: 4px; top: 50%; height: min(3rem, 100%); transform: translateY(-50%); width: 4px; background: var(--bs-primary); border-radius: 2px; }
+.blk:hover > .box-handle, .blk.is-sel > .box-handle { display: block; }
+.blk-text.has-box::after { content: ""; position: absolute; inset: 0; outline: 1px dashed rgba(var(--bs-primary-rgb), .45); pointer-events: none; }
+@media (max-width: 767.98px) { .box-handle { display: none !important; } .blk-text.has-box::after { content: none; } }
+.snap-guide { position: fixed; top: 0; bottom: 0; width: 0; border-left: 1px solid var(--bs-primary); z-index: 60; pointer-events: none; }
+.blk-handle { z-index: 7; }
+
+/* Text box: click the left edge to change the line's colour */
+.blk-callout .recuadro { position: relative; }
+.rq-line-hit { position: absolute; left: 0; top: 0; bottom: 0; width: 14px; cursor: pointer; z-index: 2; }
+.rq-line-hit:hover { background: rgba(var(--bs-primary-rgb), .15); }
+
+/* A floating block with no text after it */
+.float-hint { position: absolute; left: 0; right: 0; top: calc(100% + .3rem); z-index: 7; background: var(--bs-body-bg); border: 2px dashed var(--bs-primary); padding: .4rem .6rem; font: 500 .8rem/1.35 var(--font-display); color: var(--bs-body-color); }
+.float-hint button { border: 0; background: var(--bs-primary); color: #fff; font: 700 .8rem var(--font-display); padding: .2rem .5rem; margin-left: .25rem; cursor: pointer; }
+.ed-inline { cursor: text; }
+.ed-inline a { text-decoration: underline; }
+
 /* Preview: no editing aids */
 .is-preview .blk-tools, .is-preview .blk-handle, .is-preview .ins, .is-preview .crop-handle, .is-preview .row-handle, .is-preview .divider, .is-preview .size-handle, .is-preview .edge-handle,
-.is-preview .ed-hero-actions, .is-preview .ed-hero-hint, .is-preview .ed-warn, .is-preview .ed-space span, .is-preview .ed-date, .is-preview .ed-plain:empty, .is-preview .alt-missing::after { display: none !important; }
+.is-preview .ed-hero-actions, .is-preview .ed-aid, .is-preview .box-handle, .is-preview .rq-line-hit, .is-preview .blk-text.has-box::after, .is-preview .ed-hero-hint, .is-preview .ed-warn, .is-preview .ed-space span, .is-preview .ed-date, .is-preview .ed-plain:empty, .is-preview .alt-missing::after { display: none !important; }
 .is-preview .blk.is-sel::before, .is-preview .is-sel-item .ratio { outline: 0 !important; border: 0 !important; content: none !important; }
 .is-preview .ed-field, .is-preview .ed-list { border-bottom-color: transparent !important; }
 .is-preview .ed-rich:empty::before, .is-preview .ed-field::placeholder { opacity: 0; }

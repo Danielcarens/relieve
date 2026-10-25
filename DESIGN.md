@@ -94,7 +94,9 @@ All sit in the reading column (`min(46rem, 100% - 1.5rem)`) unless noted. Paired
 | Block | Shortcode | Markup / rule |
 |---|---|---|
 | Lists | plain Markdown `- item` / `1. item` | one level, `padding-left: 1.5rem`, `li + li` 0.35rem |
-| Text box | `{% recuadro "gris" %}…{% endrecuadro %}` (gris, borde, acento) | `aside.recuadro.recuadro-*`, `display: flow-root` so it makes room for floating photos |
+| Text box | `{% recuadro "gris marco linea-rosa" %}…{% endrecuadro %}`: background (gris, sin-fondo, amarillo, rojo, verde), optional `marco`, optional `linea-rosa/amarillo/verde/rojo` (old one-word `borde` / `acento` still read) | `aside.recuadro.fondo-*`, `.has-marco`, `.linea-*`; frame and line are inset box-shadows so text never moves; `display: flow-root` so it makes room for floating photos |
+| Free-width text | `{% caja "12 70" %}…{% endcaja %}` around one text block (from 12% to 70% of the content width, `--cw-inner`) | `.caja` with `--l` / `--r`; phones fall back to the 46rem column |
+| Inline formatting in short fields | captions, hero caption, subtitle, quote author, card title/rows, facts row, expandable title, map label, video caption accept `**bold**`, `*italic*`, `[link](url)` | `mdi` filter / function in eleventy.config.js (`mdPlain` for meta tags) |
 | Expandable | `{% desplegable "Pregunta" %}…{% enddesplegable %}` | `details.desplegable` with 2px rules; consecutive ones share a rule; summary in the display face, `+` / `−` |
 | Button | `{% boton "Texto", "url", "primario", "centro" %}` (style primario / secundario, optional centro) | `p.article-cta` > `a.btn`; external links open in a new tab |
 | Centered text | `{% centrado %}## Título{% endcentrado %}` | `div.article-center` (paragraph, title or subtitle only) |
@@ -104,7 +106,7 @@ All sit in the reading column (`min(46rem, 100% - 1.5rem)`) unless noted. Paired
 | YouTube video | `{% video "id", "Descripción" %}` | container width, 16:9, thumbnail + play button; the privacy-enhanced player loads on click (site.js) |
 | Map | `{% mapa "lat,lng", "Lugar", "11" %}` | container width, OpenStreetMap embed (21:9, 4:3 on phones), link to the full map |
 | Data card on its own row | `{% ficha "id" %}` | box as wide as a single photo (`--cw-inner`); its text keeps the reading column; edge to edge on phones (text on the 0.75rem page margin) |
-| Colour tones | ficha `tone:` / recuadro first argument: `amarillo`, `rojo`, `verde` (plus gris, sin fondo, borde, acento) | `.tone-*`: Bootstrap's subtle warning / danger / success background, border-subtle 2px, text-emphasis colour (same family as alerts) |
+| Colour tones | ficha `tone:` / recuadro background: `amarillo`, `rojo`, `verde` (plus gris, sin fondo) | `.tone-*`: Bootstrap's subtle warning / danger / success background and text-emphasis colour; card and notice edges are 2px inset shadows (no border, so nothing shifts); a recuadro frame on a tone uses the strong colour |
 | Facts row | `{% datos "Lugar", "Quitaque", "Distancia", "12 km" %}` | the stage sheet: container width, `dl.row.row-cols-2.row-cols-md-4`, 2px rules; usable anywhere, any number of times (replaces the old front-matter `route`) |
 | Panorama height | `{% pano "id", "", "60" %}` | third argument = share of the screen height (20-95) → `--pano-limit: clamp(12rem, Nvh, N×0.68rem)`; never shorter than the photo needs |
 | Spacer | `{% espacio "4" %}` | height in rem (0.5-20); old s/m/l still work |

@@ -80,7 +80,7 @@ Un nivel más pequeño: «### », **Ctrl + Alt + 2** o *Subtítulo* en la caja d
 
 ## Negrita, cursiva y enlaces
 
-Selecciona texto y pulsa **N** (negrita, Ctrl + B), **K** (cursiva, Ctrl + I) o el botón de cadena (enlace, Ctrl + K). Así se ve: texto en **negrita**, texto en *cursiva* y un [enlace a Parques de Texas](https://tpwd.texas.gov). Para cambiar un enlace, pon el cursor dentro y vuelve a pulsar el botón de cadena; para quitarlo, usa el botón de cadena tachada.
+Selecciona texto y pulsa **N** (negrita, Ctrl + B), **K** (cursiva, Ctrl + I) o el botón de cadena (enlace, Ctrl + K) en la barra de arriba. Funciona en cualquier texto de la página: párrafos, descripciones de fotos, autores de citas, fichas y datos. Así se ve: texto en **negrita**, texto en *cursiva* y un [enlace a Parques de Texas](https://tpwd.texas.gov). Para cambiar un enlace, pon el cursor dentro y vuelve a pulsar el botón de cadena; para quitarlo, usa el botón de cadena tachada.
 
 ## Listas
 
@@ -102,35 +102,47 @@ Una frase importante, grande, con el autor opcional debajo. Insertar → *Cita d
 
 {% cita "", "Guardaparques de Caprock Canyons" %}El cañón se entiende mejor caminando despacio.{% endcita %}
 
-Una cita también puede flotar a un lado y dejar que el texto la rodee: selecciónala y elige *Flotar a la derecha* en el panel. Es útil para cortar textos largos sin ocupar toda una fila.
+Una cita también puede flotar a un lado y dejar que el texto la rodee: selecciónala y elige *Flotar a la derecha* en el panel. El texto que la rodea es el que va **debajo** de ella; si la mueves debajo del último párrafo de una sección, el editor te avisa y te ofrece subirla.
 
 ## Recuadros de texto
 
-Un recuadro resalta un consejo, un dato o una advertencia. Insertar → *Recuadro de texto*, y en el panel eliges la apariencia. Dentro puede haber varios párrafos, negritas y enlaces.
+Un recuadro resalta un consejo, un dato o una advertencia. Insertar → *Recuadro de texto*. Dentro puede haber varios párrafos, negritas y enlaces. Su aspecto tiene tres partes independientes, y ninguna mueve el texto: el **fondo** (gris, sin fondo, amarillo, rojo o verde), el **marco** (sí o no) y la **línea** de la izquierda. La línea cambia de color con cada clic en el borde izquierdo del recuadro: rosa, amarillo, verde, rojo y sin línea.
 
 {% recuadro "gris" %}
 **Fondo gris:** para datos de contexto o una nota al margen.
 {% endrecuadro %}
 
-{% recuadro "borde" %}
-**Con borde:** más discreto, para una aclaración.
+{% recuadro "sin-fondo marco" %}
+**Sin fondo, con marco:** más discreto, para una aclaración.
 {% endrecuadro %}
 
-{% recuadro "acento" %}
-**Línea rosa:** el color de la revista, para un consejo del autor.
+{% recuadro "gris linea-rosa" %}
+**Línea rosa:** el color de la revista, para un consejo del autor. Haz clic en la línea para cambiarle el color.
 {% endrecuadro %}
 
-{% recuadro "amarillo" %}
-**Amarillo, advertencia:** algo que el lector debe tener en cuenta, como un tramo peligroso o un horario.
+{% recuadro "amarillo marco" %}
+**Amarillo con marco, advertencia:** algo que el lector debe tener en cuenta, como un tramo peligroso o un horario.
 {% endrecuadro %}
 
-{% recuadro "rojo" %}
+{% recuadro "rojo linea-rojo" %}
 **Rojo, importante:** prohibiciones, riesgos serios o un aviso que no puede pasar desapercibido.
 {% endrecuadro %}
 
 {% recuadro "verde" %}
 **Verde, consejo:** para llamar la atención sobre algo bueno: una recomendación, un dato útil, un descuento.
 {% endrecuadro %}
+
+## Ancho libre del texto
+
+Al pasar el cursor por un párrafo, título, lista o recuadro aparecen dos barras rosas a sus lados. Arrástralas para hacer el bloque más angosto o más ancho, hasta los márgenes del contenido (el ancho de las fotos): al acercarte a un margen, el borde se pega a él. Doble clic en una barra devuelve el bloque al ancho normal. En celular todo vuelve a la columna normal.
+
+{% caja "0 62" %}
+Este párrafo empieza en el margen izquierdo del contenido y termina antes de la mitad derecha. Sirve para dar aire a una página, alinear un texto con una foto o armar un artículo menos rígido.
+{% endcaja %}
+
+{% caja "38 100" %}
+Y este otro se pega al margen derecho. Al pulsar Enter al final de un párrafo con ancho libre, el párrafo nuevo conserva el mismo ancho, como en Word.
+{% endcaja %}
 
 ## Desplegables
 

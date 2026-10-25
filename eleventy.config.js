@@ -11,7 +11,20 @@ function esc(value) {
     .replace(/"/g, "&quot;");
 }
 
+// Inline formatting in short fields (captions, card rows, quote authors, subtitles…): the same marks the editor
+// writes in the text: **bold**, *italic*, [link](https://…) and <br>. Everything else is escaped.
+function mdi(value) {
+  let h = esc(value).replace(/\\\*/g, "\u0001");
+  h = h.replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>").replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>");
+  h = h.replace(/\[([^\]]+)\]\(((?:https?:|mailto:|\/|#)[^)\s]*)\)/g, (m, t, u) => `<a href="${u}"${/^https?:/.test(u.replace(/&amp;/g, "&")) ? ' target="_blank" rel="noopener"' : ""}>${t}</a>`);
+  return h.replace(/\u0001/g, "*").replace(/&lt;br&gt;/g, "<br>");
+}
+// The same fields as plain text (for alt text, page titles, meta descriptions)
+const mdPlain = (value) => String(value ?? "").replace(/\\\*/g, "\u0001").replace(/\*+/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/<br>/g, " ").replace(/\u0001/g, "*");
+
 export default function (eleventyConfig) {
+  eleventyConfig.addFilter("mdi", mdi);
+  eleventyConfig.addFilter("mdPlain", mdPlain);
   // Copy as-is: CSS, JS, logos, photos, favicons
   eleventyConfig.addPassthroughCopy({ "src/assets": "assets" });
   eleventyConfig.addPassthroughCopy({
@@ -63,7 +76,7 @@ export default function (eleventyConfig) {
   // credit is not shown next to photos: it goes once at the end of the article.
   function figcaption(p, cls) {
     const text = (p.caption || "").trim();
-    return text ? `\n<figcaption class="${cls}">${esc(text)}</figcaption>` : "";
+    return text ? `\n<figcaption class="${cls}">${mdi(text)}</figcaption>` : "";
   }
 
   const BASE = "/assets/img/caprock-10-2026/";
@@ -172,10 +185,10 @@ ${items.join("\n")}
     const base = this.ctx.imgBase || BASE;
     const wrap = wrapOf(opts, " wrap-card");
     const photoHtml = f.photo ? frame(photo(this.ctx, f.photo), base, "(min-width: 768px) 520px, 100vw").html : "";
-    const title = f.title ? `<h3 class="ficha-title">${f.url ? `<a href="${esc(f.url)}">${esc(f.title)}</a>` : esc(f.title)}</h3>` : "";
+    const title = f.title ? `<h3 class="ficha-title">${f.url ? `<a href="${esc(f.url)}">${mdi(f.title)}</a>` : mdi(f.title)}</h3>` : "";
     const rows = (f.rows || []).map((r) => f.format === "tabla"
-      ? `<tr><th scope="row">${esc(r.label)}</th><td>${esc(r.value)}</td></tr>`
-      : `<div><dt>${esc(r.label)}</dt> <dd>${esc(r.value)}</dd></div>`).join("\n");
+      ? `<tr><th scope="row">${mdi(r.label)}</th><td>${mdi(r.value)}</td></tr>`
+      : `<div><dt>${mdi(r.label)}</dt> <dd>${mdi(r.value)}</dd></div>`).join("\n");
     const list = !rows ? "" : f.format === "tabla" ? `<table class="ficha-table"><tbody>\n${rows}\n</tbody></table>` : `<dl class="ficha-list">\n${rows}\n</dl>`;
     const tone = f.tone === "sin fondo" ? " ficha-plain" : ["amarillo", "rojo", "verde"].includes(f.tone) ? ` tone-${f.tone}` : "";
     return `<aside class="ficha${tone}${wrap}${wrap ? "" : " ficha-solo"}">
@@ -214,15 +227,15 @@ ${figcaption(p, "figure-caption container pt-2")}
   // {% cita "derecha 40", "Nombre" %}…{% endcita %}  ({% cita "", "Nombre" %} for no wrapping)
   eleventyConfig.addPairedShortcode("cita", function (content, opts, author) {
     const wrap = wrapOf(opts, " wrap-card");
-    const by = author ? `\n<figcaption class="pullquote-by">${esc(author)}</figcaption>` : "";
+    const by = author ? `\n<figcaption class="pullquote-by">${mdi(author)}</figcaption>` : "";
     if (wrap) {
       return `<figure class="pullquote-wrap${wrap}">
-<blockquote class="blockquote pullquote mb-0"><p>${esc(content.trim())}</p></blockquote>${by}
+<blockquote class="blockquote pullquote mb-0"><p>${mdi(content.trim())}</p></blockquote>${by}
 </figure>`;
     }
     return `<div class="container">
 <figure class="my-5">
-<blockquote class="blockquote pullquote mb-0"><p>${esc(content.trim())}</p></blockquote>${by}
+<blockquote class="blockquote pullquote mb-0"><p>${mdi(content.trim())}</p></blockquote>${by}
 </figure>
 </div>`;
   });
@@ -241,7 +254,7 @@ ${figcaption(p, "figure-caption container pt-2")}
     if (!rows.length) return "";
     return `<div class="container">
 <dl class="row row-cols-2 row-cols-md-4 g-4 py-4 my-5 border-top border-bottom border-2 border-strong datos">
-${rows.map(([l, v]) => `<div class="col"><dt class="small-meta fw-semibold font-ui">${esc(l)}</dt><dd class="h3 mb-0">${esc(v)}</dd></div>`).join("\n")}
+${rows.map(([l, v]) => `<div class="col"><dt class="small-meta fw-semibold font-ui">${mdi(l)}</dt><dd class="h3 mb-0">${mdi(v)}</dd></div>`).join("\n")}
 </dl>
 </div>`;
   });
@@ -252,12 +265,28 @@ ${rows.map(([l, v]) => `<div class="col"><dt class="small-meta fw-semibold font-
   });
   // Centered paragraph or title: {% centrado %}## Título{% endcentrado %}
   eleventyConfig.addPairedShortcode("centrado", (content) => `<div class="article-center">\n\n${content.trim()}\n\n</div>`);
-  // Text box: {% recuadro "gris" %}…{% endrecuadro %} (gris | borde | acento | amarillo | rojo | verde)
-  eleventyConfig.addPairedShortcode("recuadro", (content, tone) =>
-    `<aside class="recuadro recuadro-${["gris", "borde", "acento"].includes(tone) ? tone : "gris"}${["amarillo", "rojo", "verde"].includes(tone) ? ` tone-${tone}` : ""}">\n\n${content.trim()}\n\n</aside>`);
+  // Text box: {% recuadro "gris marco linea-rosa" %}…{% endrecuadro %}
+  //   background: gris | sin-fondo | amarillo | rojo | verde;  "marco": a 2px frame;  "linea-…": a thick line on the left
+  //   (rosa | amarillo | verde | rojo). Frame and line are drawn inside the box, so the text never moves when they change.
+  //   Older one-word values still work: borde (= sin-fondo marco), acento (= gris linea-rosa).
+  eleventyConfig.addPairedShortcode("recuadro", (content, opts) => {
+    let w = String(opts || "gris").toLowerCase().split(/[\s,]+/).filter(Boolean);
+    if (w.join(" ") === "borde") w = ["sin-fondo", "marco"]; else if (w.join(" ") === "acento") w = ["gris", "linea-rosa"];
+    const fondo = ["gris", "sin-fondo", "amarillo", "rojo", "verde"].find((x) => w.includes(x)) || "gris";
+    const linea = (w.find((x) => /^linea-(rosa|amarillo|verde|rojo)$/.test(x)) || "").slice(6);
+    const cls = [`fondo-${fondo}`, ["amarillo", "rojo", "verde"].includes(fondo) ? `tone-${fondo}` : "", w.includes("marco") ? "has-marco" : "", linea ? `linea-${linea}` : ""].filter(Boolean).join(" ");
+    return `<aside class="recuadro ${cls}">\n\n${content.trim()}\n\n</aside>`;
+  });
+  // Free width for a text block (the editor's side handles): {% caja "12 70" %}…{% endcaja %} runs from 12% to 70% of
+  // the content width (the width of single photos). Phones: back to the normal reading column.
+  eleventyConfig.addPairedShortcode("caja", (content, lr) => {
+    const [l, r] = String(lr || "").split(/\s+/).map(Number);
+    if (!(r > l) || l < 0 || r > 100) return content;
+    return `<div class="caja" style="--l: ${l}; --r: ${r}">\n\n${content.trim()}\n\n</div>`;
+  });
   // Expandable (questions, extra details): {% desplegable "Pregunta" %}…{% enddesplegable %}
   eleventyConfig.addPairedShortcode("desplegable", (content, title) =>
-    `<details class="desplegable">\n<summary>${esc(title || "")}</summary>\n<div class="desplegable-body">\n\n${content.trim()}\n\n</div>\n</details>`);
+    `<details class="desplegable">\n<summary>${mdi(title || "")}</summary>\n<div class="desplegable-body">\n\n${content.trim()}\n\n</div>\n</details>`);
   // Map (OpenStreetMap, no account or key): {% mapa "30.4207,-101.1700", "Caprock Canyons", "12" %}
   eleventyConfig.addShortcode("mapa", function (coords, label, zoom) {
     const [lat, lng] = String(coords || "").split(",").map(Number);
@@ -265,11 +294,11 @@ ${rows.map(([l, v]) => `<div class="col"><dt class="small-meta fw-semibold font-
     const z = Math.min(18, Math.max(3, Number(zoom) || 11)), d = 180 / 2 ** z * 1.6;
     const bbox = [lng - d * 1.6, lat - d, lng + d * 1.6, lat + d].map((x) => x.toFixed(5)).join(",");
     const big = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=${z}/${lat}/${lng}`;
-    const t = esc(label || "Mapa");
+    const t = esc(mdPlain(label || "Mapa"));
     return `<div class="container">
 <figure class="article-map my-5">
 <div class="ratio ratio-21x9 map-frame"><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&amp;layer=mapnik&amp;marker=${lat},${lng}" title="Mapa: ${t}" loading="lazy"></iframe></div>
-<figcaption class="figure-caption d-flex flex-wrap justify-content-between gap-2"><span>${label ? t : ""}</span><a href="${big}" target="_blank" rel="noopener">Ver el mapa más grande</a></figcaption>
+<figcaption class="figure-caption d-flex flex-wrap justify-content-between gap-2"><span>${label ? mdi(label) : ""}</span><a href="${big}" target="_blank" rel="noopener">Ver el mapa más grande</a></figcaption>
 </figure>
 </div>`;
   });
@@ -279,13 +308,13 @@ ${rows.map(([l, v]) => `<div class="col"><dt class="small-meta fw-semibold font-
   eleventyConfig.addShortcode("video", function (id, caption) {
     const v = String(id || "").replace(/[^\w-]/g, "");
     const ui = this.ctx.ui || {};
-    const title = caption || ui.videoTitle || "Video";
+    const title = mdPlain(caption) || ui.videoTitle || "Video";
     return `<div class="container">
 <figure class="video-embed my-5" data-video-embed>
 <div class="ratio ratio-16x9 video-frame" data-video-frame>
 <img src="https://i.ytimg.com/vi/${v}/hqdefault.jpg" alt="" loading="lazy" decoding="async" class="object-fit-cover">
 <button type="button" class="btn btn-primary font-ui video-play" data-video="${v}" data-video-title="${esc(title)}" aria-label="${esc(ui.playVideoLabel || "Reproducir el video")}: ${esc(title)}"><span class="material-symbols-outlined me-1" aria-hidden="true">play_arrow</span>${esc(ui.playVideo || "Ver el video")}</button>
-</div>${caption ? `\n<figcaption class="figure-caption">${esc(caption)}</figcaption>` : ""}
+</div>${caption ? `\n<figcaption class="figure-caption">${mdi(caption)}</figcaption>` : ""}
 </figure>
 </div>`;
   });
