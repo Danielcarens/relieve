@@ -23,7 +23,7 @@ description: "Reportajes, reviews y videos de enduro y vida al aire libre, escri
 {% else %}
 
 <!-- FEATURED: the newest article, full width with the title over the photo (as on the article page) -->
-<section class="pb-5" aria-label="Artículo destacado">
+<section aria-label="Artículo destacado">
   <article class="article-hero home-hero position-relative">
     <div class="hero-frame">
       {% if top.data.hero %}<img class="hero-img" src="{{ top.data.imgBase }}{{ top.data.hero.file }}-1920.jpg" srcset="{{ top.data.imgBase }}{{ top.data.hero.file }}-1280.jpg 1280w, {{ top.data.imgBase }}{{ top.data.hero.file }}-1920.jpg 1920w, {{ top.data.imgBase }}{{ top.data.hero.file }}-2560.jpg 2560w" sizes="100vw" width="{{ top.data.hero.w }}" height="{{ top.data.hero.h }}" alt="" fetchpriority="high" decoding="async">{% else %}<div class="ph position-absolute top-0 start-0 w-100 h-100"></div>{% endif %}
@@ -58,7 +58,7 @@ description: "Reportajes, reviews y videos de enduro y vida al aire libre, escri
   {% set inSec = [] %}
   {% for a in arts %}{% if a.data.section == s.id %}{% set inSec = (inSec.push(a), inSec) %}{% endif %}{% endfor %}
   {% if inSec.length %}
-<section class="border-top border-2 border-strong py-5" aria-labelledby="sec-{{ s.id }}">
+<section class="py-5" aria-labelledby="sec-{{ s.id }}">
   <div class="container">
     <div class="d-flex justify-content-between align-items-end border-bottom border-2 border-strong mb-4">
       <h2 id="sec-{{ s.id }}" class="tape mb-0">{{ s.es }}</h2>
