@@ -122,7 +122,7 @@ Grids: inside a stack the photos share its height exactly (frames without natura
 
 ## Page templates
 
-**Home (`index.html`):** menu → slogan `h2.font-serif-display` + lead (a hidden `h1` "RELIEVE" for SEO and accessibility) → full-width hero "Artículo destacado" → "Últimos artículos" (5 items) → sections Viajes, Bici, Moto, Reviews, Videos (2 cards each) → Opinión (3 text items, no rules) → dark footer with large logo. Each "Ver todo" links to its section page.
+**Home (`index.html`):** menu → slogan `h2.font-serif-display` + lead (a hidden `h1` "RELIEVE" for SEO and accessibility) → full-width hero with a moss `tape-secondary` label "Artículo destacado" next to the section tape → "Últimos artículos" (5 items) → sections Viajes, Bici, Moto, Reviews, Videos (2 cards each) → Opinión (3 text items, no rules) → dark footer with large logo. Each "Ver todo" links to its section page.
 
 **Section pages (Viajes, Bici, Moto, Reviews, Videos, Opinión):** same template for all six. `h1` (serif) with a lead → featured article (two columns) → "Más artículos" with 5 cards in two columns. No rule under the featured article. Videos show "Video · duration" as details. Opinion uses the same structure, with the category "Opinión".
 

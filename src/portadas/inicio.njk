@@ -30,7 +30,7 @@ description: "Reportajes, reviews y videos de enduro y vida al aire libre, escri
     </div>
     <div class="hero-text">
       <div class="container d-grid gap-3">
-        <span class="tape">{{ top.data.section | sectionName }}</span>
+        <div class="d-flex flex-wrap gap-2"><span class="tape tape-secondary">Artículo destacado</span><span class="tape">{{ top.data.section | sectionName }}</span></div>
         <h2 class="hero-title font-serif-display mb-0"><a class="stretched-link story-link home-hero-link" href="{{ top.url }}">{{ top.data.title }}</a></h2>
         {% if top.data.subtitle %}<p class="lead mb-0 home-hero-sub">{{ top.data.subtitle | mdPlain }}</p>{% endif %}
       </div>
