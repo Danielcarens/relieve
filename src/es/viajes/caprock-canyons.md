@@ -8,9 +8,8 @@ description: Senderismo en el Parque Estatal Caprock Canyons, en Quitaque, Texas
 date: 2026-10-21
 author: Daniel
 credit: Daniel Cárdenas
-draft: true
 ai: true
-youtube: "7EcrNEsd3-E"
+youtube: 7EcrNEsd3-E
 imgBase: /assets/img/caprock-10-2026/
 hero:
   file: hero
@@ -18,11 +17,6 @@ hero:
   h: 1440
   alt: Vista panorámica de los cañones rojos de Caprock Canyons bajo un cielo con nubes finas, con árboles y arbustos en primer plano.
   caption: Los cañones del parque, vistos desde el borde.
-route:
-  - { label: Lugar, value: "Quitaque, Texas" }
-  - { label: Actividad, value: Senderismo }
-  - { label: Distancia, value: Por definir }
-  - { label: Dificultad, value: Por definir }
 photos:
   pano1:
     file: pano-1
@@ -88,15 +82,19 @@ sources:
   - Texas Parks and Wildlife Department (historia del parque)
   - Texas Historical Commission (sitio Folsom del lago Theo)
 ---
+{% datos "Lugar", "Quitaque, Texas", "Actividad", "Senderismo", "Distancia", "Por definir", "Dificultad", "Por definir" %}
+
 Al norte de Texas, donde la llanura plana se parte de golpe en cañones rojos, hay un parque que casi nunca aparece en las listas de viaje. Caprock Canyons queda en el condado de Briscoe, a unos 160 kilómetros al sureste de Amarillo, y abarca unas 6.200 hectáreas de paredes de roca roja, mesetas y senderos.
 
 Es un lugar para caminar despacio y mirar lejos. Desde los bordes, el cañón se abre en capas: roca roja abajo, vegetación verde en el fondo y, al final, la línea recta del horizonte.
 
 {% pano "pano1" %}
 
+{% caja "texto 60" %}
 ## Los primeros cazadores
+{% endcaja %}
 
-{% ficha "parque", "derecha 40 fuera" %}
+{% ficha "parque", "derecha 35 fuera" %}
 
 Mucho antes de que existiera el parque, estos cañones ya tenían visitantes. Según el Departamento de Parques y Vida Silvestre de Texas, la cultura Folsom vivió aquí hace más de 10.000 años.
 
@@ -114,7 +112,7 @@ Quitaque, el pueblo junto al parque, ya era parada regular de diligencias en 189
 
 ## El cañón de cerca
 
-{% pano "pano2", "alta" %}
+{% pano "pano2", "", "65" %}
 
 Vale la pena agacharse. A pocos centímetros, la roca es un libro de páginas rojas con una franja blanca que cruza las capas, y cada grieta muestra una época distinta.
 
@@ -125,4 +123,3 @@ Vale la pena agacharse. A pocos centímetros, la roca es un libro de páginas ro
 Al final del día, las crestas se vuelven siluetas contra un cielo que pasa del azul al negro. Desde arriba se entiende por qué un grupo de cazadores querría quedarse a mirar.
 
 {% pano "cresta" %}
-
