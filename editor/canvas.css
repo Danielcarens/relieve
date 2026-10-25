@@ -6,6 +6,7 @@ body { background: var(--bs-body-bg); }
 .ed-hero-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
 .ed-hero-img.has-src img { inset: auto; max-width: none; object-fit: fill; }   /* the uncropped original, placed by heroStyle() */
 .ed-hero-actions .btn { font-weight: 700; }
+.ed-hero-video { pointer-events: none; }   /* the cover can still be dragged under it */
 .ed-hero-zoom { align-self: center; background: var(--bs-body-bg); color: var(--bs-body-color); font: 700 .8rem var(--font-display); padding: .3rem .5rem; }
 /* "Foto grande con el título encima": as on the site, the title sits over the photo from 992 px up */
 .ed-hero-stack { position: relative; }
