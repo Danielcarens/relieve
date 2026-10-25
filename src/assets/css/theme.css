@@ -188,7 +188,8 @@ p { text-wrap: pretty; }
    under the menu links (from the first to the last link), then flat again. Three masks, filled with the text color:
    relieve-ridge-llano-a.svg (6000 x 60, ends at the first link), relieve-ridge-cadena.svg (the range, stretched to the
    width of the links) and relieve-ridge-llano-b.svg (starts at the last link). site.js measures the links and sets
-   --ridge-x1 / --ridge-x2 (px from the left edge of the navbar). Without them, or below 992px where the links fold
+   --ridge-x1 / --ridge-x2 (px from the left edge of the navbar) and --ridge-xl (where the left tile starts: x1 minus the
+   tile width, computed in JS because Chrome does not paint a calc() there). Without them, or below 992px where the links fold
    into the menu, the line is flat all the way. All tiles are flat at their ends so the pieces join.
    The navbar keeps --ridge-h of free space at the bottom for the peaks; to go back to the plain rule, replace
    `navbar-ridge` with `border-bottom border-2 border-strong` in partials/navbar.njk. */
@@ -215,8 +216,8 @@ p { text-wrap: pretty; }
   mask-repeat: no-repeat;
   -webkit-mask-size: auto 100%, calc(var(--rx2) - var(--rx1)) 100%, auto 100%;
   mask-size: auto 100%, calc(var(--rx2) - var(--rx1)) 100%, auto 100%;
-  -webkit-mask-position: calc(var(--rx1) - var(--ridge-h) * 100) bottom, var(--rx1) bottom, var(--rx2) bottom;
-  mask-position: calc(var(--rx1) - var(--ridge-h) * 100) bottom, var(--rx1) bottom, var(--rx2) bottom;
+  -webkit-mask-position: var(--ridge-xl, 0px) bottom, var(--rx1) bottom, var(--rx2) bottom;
+  mask-position: var(--ridge-xl, 0px) bottom, var(--rx1) bottom, var(--rx2) bottom;
   pointer-events: none;
 }
 
