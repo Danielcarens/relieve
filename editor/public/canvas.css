@@ -19,6 +19,12 @@ body { background: var(--bs-body-bg); }
   .ed-cab-foto .ed-hero-hint { top: 1rem; bottom: auto; }
 }
 .ed-titles .tape, .ed-hero-text .tape { justify-self: start; }
+/* narrower than 992 px the site puts the cover caption between the photo and the title: same order here */
+@media (max-width: 991.98px) {
+  .ed-cab-foto { display: flex; flex-direction: column; }
+  .ed-cab-foto .ed-hero-stack { display: contents; }
+  .ed-cab-foto .ed-hero-img { order: 1; } .ed-cab-foto > .container { order: 2; } .ed-cab-foto .ed-hero-text { order: 3; }
+}
 .ed-hero-empty { display: grid; place-items: center; color: var(--bs-body-bg); text-align: center; padding: 2rem; cursor: pointer; font-family: var(--font-display); font-weight: 700; }
 .ed-hero-actions { position: absolute; right: 1rem; top: 1rem; display: flex; gap: .5rem; }
 .ed-hero-hint { position: absolute; left: 1rem; bottom: 1rem; background: var(--bs-body-color); color: var(--bs-body-bg); padding: .25rem .6rem; font-family: var(--font-display); font-size: .8rem; }

@@ -822,10 +822,11 @@ function canvasPreview() {   // the page exactly as the canvas draws it, without
 }
 $("#preview").onclick = async () => {
   await save();
-  if (MODE === "web") return canvasPreview();
-  if (!ED.meta.hero) return toast("Primero elige la foto principal.", true);
+  // The web editor, the writing guides (they have no address on the site) and articles without a cover show the page as
+  // the editor draws it; otherwise the local editor builds the real page with Eleventy.
+  if (MODE === "web" || !ED.meta.permalink || !ED.meta.hero) return canvasPreview();
   toast("Preparando la vista previa…", false, 2000);
-  try { await post("/api/preview", {}); } catch (e) { return toast("No se pudo construir: " + e.message, true, 12000); }
+  try { await post("/api/preview", {}); } catch (e) { toast("No se pudo construir la página con Eleventy; te muestro la vista del editor. (" + e.message + ")", true, 9000); return canvasPreview(); }
   const url = "/preview" + ED.meta.permalink + "?t=" + Date.now();
   modal(`<div class="dlg wide"><div class="d-flex flex-wrap gap-2 align-items-center"><h2 class="flex-grow-1 mb-0">Vista previa</h2><div class="btn-group"><button class="btn btn-outline-dark active" id="pv-d">Computadora</button><button class="btn btn-outline-dark" id="pv-p">Celular</button></div><button class="btn btn-outline-dark rounded-0" id="pv-x">Cerrar</button></div><div class="pv" id="pv"><iframe src="${url}" title="Vista previa"></iframe></div></div>`, () => {
     $("#pv-x").onclick = closeModal;
