@@ -46,7 +46,8 @@ Every page loads, in this order: preloads for Archivo and the icon font (`/asset
 - **Sentence case everywhere.** Never uppercase text, and no tracked-out labels above headings.
 - **Tape marks every section and category.** `.tape` (on an `h2` for section titles). Pink by default, `.tape tape-secondary` (moss) for secondary labels and the featured article.
 - **Square corners.** Radius is 0 everywhere except images and placeholders (2px). No shadows.
-- **Strong rules are 2px:** `border-2 border-strong`. No hairlines.
+- **Strong rules are 2px:** `border-2 border-strong`. No hairlines on the site. (The editor's panel uses fine 1px lines between groups and 1px field borders.)
+- **Few boxes.** Buttons in the menu bar (search, ES/EN) and in the editor's bars have no border (`.btn-quiet`, applied automatically to `.navbar .btn-outline-dark`): light fill on hover, a 2px bar under the chosen one. Only the main action keeps a filled block (`btn-primary`). In the editor's panel, buttons are light grey blocks and the chosen option is dark.
 - **No lines between list items.** Article lists (Latest articles, Opinion, section pages) are separated by space only. Keep the 2px rule under a section title, the rule above a section, and the one above the featured article.
 - **Pink is for fills** (`btn-primary`, `.tape`). Pink text must use the link color, which passes contrast. Don't use `.text-primary` on small text.
 - **One control height: 44px** (`--control-height: 2.75rem` in `theme.css`) for `.btn`, `.btn-sm`, button groups, `.form-control` and the menu toggler. Consistency is the owner's priority. Change the variable, never a single control.
@@ -84,8 +85,8 @@ Every page loads, in this order: preloads for Archivo and the icon font (`/asset
 | Trail or event facts | `dl.row` with `row-cols-2 row-cols-md-4` (stage sheet) |
 | Article | `h1.display-1`, `.lead`, `col-lg-8 col-xl-7` text columns, `figure.figure.w-100`, `blockquote.blockquote.pullquote` |
 | Image next to text | `.row.align-items-center` with two `.col-lg-6` (add `order-lg-2` to alternate) |
-| Buttons | `.btn.btn-primary`, `.btn.btn-outline-dark` (theme-aware ghost) |
-| Language switch | `.btn-group` with two `.btn-outline-dark` buttons carrying `data-set-lang` |
+| Buttons | `.btn.btn-primary` (main action), `.btn.btn-outline-dark` (theme-aware ghost, for a secondary button inside an article), `.btn-quiet` (no box: bars and menus) |
+| Language switch | `.btn-group` with two `.btn-outline-dark` buttons carrying `data-set-lang` (shown without a box: the current language has a bar under it) |
 
 ### Article text blocks (shortcodes; the editor's "Insertar" menu writes them)
 
