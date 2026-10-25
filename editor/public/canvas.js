@@ -10,6 +10,7 @@ const ic = {
   up: '<path d="M6 15l6-6 6 6"/>', down: '<path d="M6 9l6 6 6-6"/>',
   dup: '<rect x="9" y="9" width="11" height="11"/><path d="M5 15V5h10"/>',
   del: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  move: '<path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/>',
   grip: '<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
 };
 const svg = (n) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ic[n]}</svg>`;
@@ -137,18 +138,22 @@ function gridVars(tree, r) {
   walk(tree, 1, true); return out;
 }
 const cellStyle = (v) => `--g:${v.g.toFixed(4)};--ar:${v.ar ? v.ar.toFixed(4) : "auto"}`;
+// Mosaic cells carry data-cp, their place in the layout ("1.0" = first photo of the second group), so the bars between
+// them know which photos they resize. Containers say their direction: data-dir="r" (a row) or "c" (photos stacked).
+const GRIP = `<div class="item-grip" draggable="true" title="Arrastra para mover la foto: a otro lugar del mosaico, sobre otra foto, junto a un párrafo o entre dos bloques">${svg("move")}</div>`;
 function gridHTML(b, S, base, i) {
   const vars = gridVars(b.tree, (id) => ratioOf(S.photos[id])); let n = 0;
-  const cells = (arr, depth) => arr.map((c) => {
-    const v = vars[n], k = n++;
+  const cells = (arr, depth, pre) => arr.map((c, j) => {
+    const v = vars[n], k = n++, cp = pre + j;
     if (!Array.isArray(c)) {
       const p = S.photos[c]; if (!p) return "";
       const si = S.sel && S.sel.i === i && S.sel.id === c ? " is-sel-item" : "";
-      return `<figure class="fila-item figure${si} ${p.alt ? "" : "alt-missing"}" data-item="${esc(c)}" data-n="${k}" style="${cellStyle(v)}">${photoFrame(p, base, i, c, true)}</figure>`;
+      return `<figure class="fila-item figure${si} ${p.alt ? "" : "alt-missing"}" data-item="${esc(c)}" data-n="${k}" data-cp="${cp}" style="${cellStyle(v)}">${photoFrame(p, base, i, c, true)}${GRIP}</figure>`;
     }
-    return `<div class="${depth % 2 === 0 ? "fila fila-in" : "fila-col"}" data-n="${k}" style="${cellStyle(v)}">${cells(c, depth + 1)}</div>`;
+    const row = depth % 2 === 0;
+    return `<div class="${row ? "fila fila-in" : "fila-col"}" data-n="${k}" data-cp="${cp}" data-dir="${row ? "r" : "c"}" style="${cellStyle(v)}">${cells(c, depth + 1, cp + ".")}</div>`;
   }).join("");
-  return `<div class="fila fila-grid${b.full ? " fila-bleed" : ""} my-5" data-row data-nested>${cells(b.tree, 1)}<div class="row-handle" title="Arrastra hacia arriba o abajo para cambiar la altura"></div></div>`;
+  return `<div class="fila fila-grid${b.full ? " fila-bleed" : ""} my-5" data-row data-nested data-cp="" data-dir="r">${cells(b.tree, 1, "")}<div class="row-handle" title="Arrastra hacia arriba o abajo para cambiar la altura del mosaico"></div></div>`;
 }
 function patchGrid(row, tree, ratios) {   // ratios: { id: ratio }; updates the cells in place while dragging
   const vars = gridVars(tree, (id) => ratios[id]);
@@ -201,14 +206,16 @@ function blockHTML(b, i, S) {
   const tools = `<div class="blk-tools">
 <button data-a="up" title="Subir">${svg("up")}</button><button data-a="down" title="Bajar">${svg("down")}</button>
 <button data-a="dup" title="Duplicar">${svg("dup")}</button><button data-a="del" title="Eliminar">${svg("del")}</button></div>`;
-  const handle = `<div class="blk-handle" draggable="true" title="Arrastra para mover">${svg("grip")}</div>`;
+  const handle = b.type === "foto"
+    ? `<div class="blk-handle" draggable="true" title="Arrastra para mover la foto: sobre otra foto (mosaico), a un lado del texto (flota) o entre dos bloques">${svg("move")}</div>`
+    : `<div class="blk-handle" draggable="true" title="Arrastra para mover">${svg("grip")}</div>`;
   const sel = S.sel && S.sel.i === i ? " is-sel" : "";
   const boxable = BOXABLE.includes(b.type) && !(b.wrap && b.wrap.side) && !b.full;
   const style = [boxable && b.box ? boxVars(b.box) : "", b.wrap && b.wrap.side && ![33, 40, 50].includes(b.wrap.size || 40) ? `--ws: ${b.wrap.size / 100}` : ""].filter(Boolean).join("; ");
   const what = { fila: "de la fila", datos: "de los datos", quote: "de la cita", button: "del botón", hr: "de la línea", video: "del video", map: "del mapa", ficha: "de la ficha" }[b.type] || "del texto";
   const fside = b.wrap && b.wrap.side && b.type !== "foto" ? (b.wrap.side === "left" ? "r" : "l") : null;   // floating card or quote: its inner side
   const edges = fside ? `<div class="box-handle" data-side="${fside}" data-float="1" title="Arrastra para cambiar el ancho; se pega a los bordes de lo que hay alrededor"></div>` : boxable && b.type !== "foto" ? `<div class="box-handle" data-side="l" title="Arrastra para cambiar el ancho ${what}. Doble clic: ancho normal"></div><div class="box-handle" data-side="r" title="Arrastra para cambiar el ancho ${what}. Doble clic: ancho normal"></div>` : "";
-  const wrap = (cls, inner, extra = "") => `<div class="blk ${cls}${extra}${sel}${b.align === "center" ? " is-center" : ""}${boxable && b.box ? " has-box" : ""}"${style ? ` style="${style}"` : ""} data-i="${i}">${handle}${tools}${edges}${inner}${extra.includes(" wrap ") ? floatHint(S, i) : ""}</div>`;
+  const wrap = (cls, inner, extra = "") => `<div class="blk ${cls}${extra}${sel}${b.align === "center" ? " is-center" : ""}${boxable && b.box ? " has-box" : ""}"${style ? ` style="${style}"` : ""} data-i="${i}">${handle}${tools}${edges}${inner}${extra.includes(" wrap ") ? floatHint(S, i) + UNDER : ""}</div>`;
   const rich = (ph) => `<div class="ed-field ed-rich" contenteditable="true" spellcheck="true" data-t="${i}" data-ph="${ph}">${mdToHtml(b.text)}</div>`;
   const text = (cls, ph) => wrap(cls, rich(ph));
   const plain = (key, ph, cls = "", tag = "div") => `<${tag} class="ed-plain ${cls}" contenteditable="plaintext-only" spellcheck="true" data-f="${i}:${key}" data-ph="${ph}">${esc(key.split(".").reduce((o, k) => (o == null ? o : o[k]), b) || "")}</${tag}>`;
@@ -252,14 +259,14 @@ function blockHTML(b, i, S) {
       return wrap("blk-media blk-photo", `<div class="container"><figure class="figure w-100 my-5 ${p.alt ? "" : "alt-missing"}" style="position:relative">${photoFrame(p, base, i, b.id)}${caption(p, b.id)}</figure></div>`);
     }
     case "fila": {
-      if (b.tree) return wrap("blk-media" + (b.full ? "" : " blk-row"), b.full ? gridHTML(b, S, base, i) : `<div class="container">${gridHTML(b, S, base, i)}</div>`);
+      if (b.tree) return wrap("blk-media blk-mosaic" + (b.full ? "" : " blk-row"), b.full ? gridHTML(b, S, base, i) : `<div class="container">${gridHTML(b, S, base, i)}</div>`);
       const items = b.ids.map((id) => {
         const p = S.photos[id]; if (!p) return "";
         const si = S.sel && S.sel.i === i && S.sel.id === id ? " is-sel-item" : "";
-        return `<figure class="fila-item figure${si} ${p.alt ? "" : "alt-missing"}" data-item="${esc(id)}" style="--g: ${ratioOf(p).toFixed(3)}">${photoFrame(p, base, i, id, true)}${caption(p, id)}</figure>`;
+        return `<figure class="fila-item figure${si} ${p.alt ? "" : "alt-missing"}" data-item="${esc(id)}" data-cp="${b.ids.indexOf(id)}" style="--g: ${ratioOf(p).toFixed(3)}">${photoFrame(p, base, i, id, true)}${GRIP}${caption(p, id)}</figure>`;
       }).join("");
-      const rowHtml = `<div class="fila${b.full ? " fila-bleed" : ""} my-5" data-row>${items}<div class="row-handle" title="Arrastra hacia arriba o abajo para cambiar la altura de la fila"></div></div>`;
-      return wrap("blk-media" + (b.full ? "" : " blk-row"), b.full ? rowHtml : `<div class="container">${rowHtml}</div>`);
+      const rowHtml = `<div class="fila${b.full ? " fila-bleed" : ""} my-5" data-row data-cp="" data-dir="r">${items}<div class="row-handle" title="Arrastra hacia arriba o abajo para cambiar la altura del mosaico"></div></div>`;
+      return wrap("blk-media blk-mosaic" + (b.full ? "" : " blk-row"), b.full ? rowHtml : `<div class="container">${rowHtml}</div>`);
     }
     case "pano": {
       const p = S.photos[b.id];
@@ -276,6 +283,8 @@ function blockHTML(b, i, S) {
 
 // The same list feeds the "+" between blocks and the ribbon's "Insertar" button (parent.INSERT_MENU)
 const ins = (at) => `<div class="ins" data-at="${at}"><button type="button" title="Agregar" aria-label="Agregar bloque aquí">+</button></div>`;
+// Under a floating photo (or quote, or card): adds below it, not beside it. Its place is found when it is clicked.
+const UNDER = `<div class="ins ins-under" data-under="1"><button type="button" title="Agregar debajo" aria-label="Agregar un bloque debajo de esta foto">+</button></div>`;
 
 // The cover. "" = full-bleed photo with the title over it (as on the site from 992 px up; under it on narrower
 // screens), "debajo" = full-bleed photo with the title under it, "titulo" = title, then the photo, "texto" = no photo.
@@ -329,7 +338,7 @@ function render() {
   const y = scrollY;
   let html = heroHTML(S) + `<main><div class="article-body">${ins(0)}`;
   S.blocks.forEach((b, i) => { html += blockHTML(b, i, S) + ins(i + 1); });
-  html += `</div><div class="drop-overlay">Suelta las fotos para agregarlas</div></main>`;
+  html += `</div><div class="drop-overlay">Sobre una foto: forman un mosaico · Entre dos bloques: una foto sola</div></main>`;
   root.innerHTML = html;
   fitAll(); layoutPanos(); layoutRows(); scrollTo(0, y);
   if (S.focus) {
@@ -352,21 +361,39 @@ addEventListener("resize", () => { fitAll(); layoutPanos(); layoutRows(); });
 // The title box measures its height with the page's fonts: measure again once they have loaded
 if (document.fonts) { document.fonts.ready.then(fitAll); document.fonts.addEventListener("loadingdone", fitAll); }
 
-// Rows: a handle under the row changes its height; dividers between photos move the crop from one to the other.
+// Mosaics: the pink handle under a mosaic changes its height (every crop by the same factor). A pink bar between two
+// photos, or two groups of photos, moves the border between them: one side grows and the other shrinks by the same
+// amount, so the rest of the mosaic does not move. The border sticks to the edges of the other photos.
+const leavesOf = (n) => (Array.isArray(n) ? n.flatMap(leavesOf) : [n]);
+const nodeAt = (t, cp) => (cp === "" ? t : cp.split(".").reduce((a, k) => a[Number(k)], t));
+const cellBox = (el) => (el.matches(".fila-item") ? el.querySelector(".ratio") : el).getBoundingClientRect();   // a photo's frame, without its caption
 function layoutRows() {
-  document.querySelectorAll("[data-row]:not([data-nested])").forEach((row) => {
+  document.querySelectorAll("[data-row]").forEach((row) => {
     row.querySelectorAll(".divider").forEach((d) => d.remove());
-    const items = [...row.querySelectorAll(".fila-item")];
     const rr = row.getBoundingClientRect();
-    items.slice(0, -1).forEach((it, k) => {
-      const a = it.getBoundingClientRect(), b = items[k + 1].getBoundingClientRect();
-      const d = document.createElement("div"); d.className = "divider"; d.dataset.k = k; d.title = "Arrastra a los lados para repartir el ancho entre las dos fotos";
-      d.style.left = (a.right + b.left) / 2 - rr.left - 8 + "px"; d.style.height = a.height - 0 + "px"; row.appendChild(d);
-      const fr = it.querySelector(".ratio").getBoundingClientRect(); d.style.height = fr.height + "px";
-    });
+    for (const c of [row, ...row.querySelectorAll(".fila-in, .fila-col")]) {
+      const dir = c.dataset.dir, kids = [...c.children].filter((x) => x.hasAttribute("data-cp"));
+      if (kids.length < 2) continue;
+      if ((dir === "r") !== getComputedStyle(c).flexDirection.startsWith("row")) continue;   // phones: a simple row turns into a column
+      for (let k = 0; k < kids.length - 1; k++) {
+        const a = cellBox(kids[k]), b = cellBox(kids[k + 1]);
+        const d = document.createElement("div");
+        d.className = "divider " + (dir === "r" ? "dv-v" : "dv-h"); d.dataset.cp = c.dataset.cp; d.dataset.k = k; d.dataset.dir = dir;
+        if (dir === "r") {
+          d.title = "Arrastra a los lados: una foto se hace más ancha y la otra más angosta";
+          const top = Math.min(a.top, b.top), bot = Math.max(a.bottom, b.bottom);
+          Object.assign(d.style, { left: (a.right + b.left) / 2 - rr.left - 8 + "px", top: top - rr.top + "px", height: bot - top + "px" });
+        } else {
+          d.title = "Arrastra hacia arriba o abajo: una foto se hace más alta y la otra más baja";
+          const l = Math.min(a.left, b.left), r = Math.max(a.right, b.right);
+          Object.assign(d.style, { top: (a.bottom + b.top) / 2 - rr.top - 8 + "px", left: l - rr.left + "px", width: r - l + "px" });
+        }
+        row.appendChild(d);
+      }
+    }
   });
 }
-const clampR = (r) => Math.round(Math.max(0.4, Math.min(5, r)) * 1000) / 1000;
+const clampR = (r) => Math.round(Math.max(0.2, Math.min(8, r)) * 1000) / 1000;
 function patchRatios(row, ratios) {
   row.querySelectorAll(".fila-item").forEach((it, k) => { it.style.setProperty("--g", ratios[k].toFixed(3)); it.querySelector(".ratio").style.setProperty("--bs-aspect-ratio", (100 / ratios[k]).toFixed(3) + "%"); });
 }
@@ -374,31 +401,56 @@ root.addEventListener("pointerdown", (e) => {
   if (e.button !== 0) return;
   const rh = e.target.closest(".row-handle"), dv = e.target.closest(".divider");
   if (!rh && !dv) return;
-  const row = e.target.closest("[data-row]"), S = E();
-  const items = [...row.querySelectorAll(".fila-item")], ids = items.map((n) => n.dataset.item);
-  const r0 = ids.map((id) => ratioOf(S.photos[id]));
-  const nested = row.hasAttribute("data-nested"), blk = S.blocks[Number(row.closest(".blk").dataset.i)];
-  const h0 = nested ? row.getBoundingClientRect().height - 0 : items[0].querySelector(".ratio").getBoundingClientRect().height;
-  const widths = items.map((n) => n.querySelector(".ratio").getBoundingClientRect().width);
+  const row = e.target.closest("[data-row]"), S = E(), i = Number(row.closest(".blk").dataset.i), blk = S.blocks[i];
+  const t = blk.tree || blk.ids, ids = leavesOf(t), nested = row.hasAttribute("data-nested");
+  const r0 = Object.fromEntries(ids.map((id) => [id, ratioOf(S.photos[id])]));
   e.preventDefault(); const cap = e.target; cap.setPointerCapture(e.pointerId);
-  A().select(Number(row.closest(".blk").dataset.i), null);
+  A().select(i, null);
   const sx = e.clientX, sy = e.clientY; let cur = r0;
-  const xsRow = dv ? photoEdges(row) : [];
-  const move = (ev) => {
-    if (rh) { const k = h0 / Math.max(40, h0 + (ev.clientY - sy)); cur = r0.map((r) => clampR(r * k)); }
-    else {
-      const k = Number(dv.dataset.k); let dx = ev.clientX - sx;
-      const edge = items[k].querySelector(".ratio").getBoundingClientRect().left + widths[k] + dx;   // where the gap would be
-      const t = nearest(edge, xsRow, 10); if (t != null) dx += t - edge;
-      const wi = Math.max(h0 * 0.4, widths[k] + dx), wj = Math.max(h0 * 0.4, widths[k + 1] - dx);
-      cur = r0.slice(); cur[k] = clampR(wi / h0); cur[k + 1] = clampR(wj / h0);
-    }
-    if (nested) patchGrid(row, blk.tree, Object.fromEntries(ids.map((id, k) => [id, cur[k]]))); else patchRatios(row, cur);
+  const apply = () => (nested ? patchGrid(row, t, cur) : patchRatios(row, ids.map((id) => cur[id])));
+  let move;
+  if (rh) {
+    const h0 = nested ? row.getBoundingClientRect().height : row.querySelector(".ratio").getBoundingClientRect().height;
+    move = (ev) => { const k = h0 / Math.max(40, h0 + (ev.clientY - sy)); cur = Object.fromEntries(ids.map((id) => [id, clampR(r0[id] * k)])); apply(); };
+  } else {
+    const cp = dv.dataset.cp, k = Number(dv.dataset.k), dir = dv.dataset.dir, pre = cp === "" ? "" : cp + ".";
+    const cont = nodeAt(t, cp), side1 = leavesOf(cont[k]), side2 = leavesOf(cont[k + 1]);
+    const ea = cellBox(row.querySelector(`[data-cp="${pre + k}"]`)), eb = cellBox(row.querySelector(`[data-cp="${pre + (k + 1)}"]`));
+    const sizeA = dir === "r" ? ea.width : ea.height, sizeB = dir === "r" ? eb.width : eb.height;
+    // the edges the border can stick to: the other photos of this mosaic, and (side to side) everything else on the page
+    const others = [...row.querySelectorAll(".fila-item")].filter((it) => !side1.includes(it.dataset.item) && !side2.includes(it.dataset.item)).map(cellBox);
+    const lines = dir === "r" ? [...others.flatMap((o) => [o.left, o.right]), ...photoEdges(blkOf(row))] : others.flatMap((o) => [o.top, o.bottom]);
+    const end0 = dir === "r" ? ea.right : ea.bottom;
+    move = (ev) => {
+      let d = dir === "r" ? ev.clientX - sx : ev.clientY - sy;
+      const snap = nearest(end0 + d, lines, 8); if (snap != null) d = snap - end0;
+      d = Math.max(40 - sizeA, Math.min(sizeB - 40, d));
+      const nA = sizeA + d, nB = sizeB - d;
+      // side by side a photo's crop gets wider as it grows; stacked, it gets taller (its width stays)
+      const kA = dir === "r" ? nA / sizeA : sizeA / nA, kB = dir === "r" ? nB / sizeB : sizeB / nB;
+      cur = { ...r0 }; side1.forEach((id) => { cur[id] = clampR(r0[id] * kA); }); side2.forEach((id) => { cur[id] = clampR(r0[id] * kB); });
+      apply(); showGuide(dir === "r" ? snap : null); showGuideH(dir === "c" ? snap : null);
+    };
+  }
+  const up = () => {
+    cap.removeEventListener("pointermove", move); cap.removeEventListener("pointerup", up); showGuide(null); showGuideH(null);
+    const changed = Object.fromEntries(ids.filter((id) => Math.abs(cur[id] - r0[id]) > 0.001).map((id) => [id, cur[id]]));
+    if (Object.keys(changed).length) A().setRatios(changed); else layoutRows();
   };
-  const up = () => { cap.removeEventListener("pointermove", move); cap.removeEventListener("pointerup", up);
-    if (cur.some((r, k) => Math.abs(r - r0[k]) > 0.001)) A().setRatios(Object.fromEntries(ids.map((id, k) => [id, cur[k]]))); else layoutRows(); };
   cap.addEventListener("pointermove", move); cap.addEventListener("pointerup", up);
 });
+
+// Where "below this floating block" is: before the first block that already starts below it (the text beside it,
+// and a paragraph that runs past its bottom, stay before).
+function afterFloat(i) {
+  const f = document.querySelector(`.blk[data-i="${i}"]`); if (!f) return i + 1;
+  const bottom = f.getBoundingClientRect().bottom - 1;
+  for (const el of document.querySelectorAll(".article-body > .blk")) {
+    const k = Number(el.dataset.i); if (k <= i) continue;
+    if (el.getBoundingClientRect().top >= bottom) return k;
+  }
+  return E().blocks.length;
+}
 
 // ---- events ------------------------------------------------------------------
 let openMenu = null;
@@ -409,12 +461,13 @@ root.addEventListener("click", (e) => {
   const insBtn = t.closest(".ins > button");
   if (insBtn) {
     const bar = insBtn.parentElement; const was = openMenu && openMenu.parentElement === bar; closeMenu(); if (was) return;
+    if (bar.dataset.under) bar.dataset.at = afterFloat(Number(bar.closest(".blk").dataset.i));
     const m = document.createElement("div"); m.className = "ins-menu";
     m.innerHTML = (parent.INSERT_MENU || []).map(([k, l]) => (k ? `<button data-add="${k}">${l}</button>` : `<h6>${l}</h6>`)).join("");
     bar.appendChild(m); bar.classList.add("is-open"); openMenu = m; return;
   }
   const add = t.closest("[data-add]");
-  if (add) { const at = Number(add.closest(".ins").dataset.at); closeMenu(); A().add(add.dataset.add, at); return; }
+  if (add) { const bar = add.closest(".ins"), at = Number(bar.dataset.at); closeMenu(); A().add(add.dataset.add, at, { under: !!bar.dataset.under }); return; }
   closeMenu();
   const hero = t.closest("[data-hero]");
   if (hero && (t.closest('[data-hero="replace"]') || hero.dataset.hero === "pick")) { A().pickHero(); return; }
@@ -621,36 +674,157 @@ root.addEventListener("click", (e) => {
   A().setHeroPos(h.pos || "50% 50%", next);
 }, true);
 
-// ---- reorder blocks by dragging the grip ---------------------------------------
-let dragFrom = null;
+// ---- drag and drop ------------------------------------------------------------------------------
+// Three things can be dragged onto the page: a block by its grip (to move it between blocks), a photo of the page by its
+// grip ✥, and photos from the computer. Before they are dropped, a pink line or box shows where they will land:
+//   onto a photo: it joins that photo as a mosaic, on the side of the photo where it falls; near the edge of a mosaic,
+//     on that side of all its photos;
+//   beside the text (only photos of the page): the photo floats on that side of the text; further out it hangs out to
+//     the margin, or runs to the edge of the screen;
+//   anywhere else: between two blocks, on its own row.
+let dragFrom = null, dragPhoto = null, dragEl = null;
 root.addEventListener("dragstart", (e) => {
-  const h = e.target.closest(".blk-handle"); if (!h) return;
-  const blk = h.closest(".blk"); dragFrom = Number(blk.dataset.i);
-  e.dataTransfer.setData("text/x-blk", String(dragFrom)); e.dataTransfer.effectAllowed = "move";
-  e.dataTransfer.setDragImage(blk, 20, 20); setTimeout(() => blk.classList.add("blk-dragging"), 0);
+  const g = e.target.closest(".item-grip, .blk-handle"); if (!g) return;
+  const blk = g.closest(".blk"), i = Number(blk.dataset.i), b = E().blocks[i];
+  if (g.matches(".item-grip")) { const it = g.closest("[data-item]"); dragPhoto = { i, id: it.dataset.item }; dragEl = it; }
+  else if (b && b.type === "foto") { dragPhoto = { i, id: b.id }; dragEl = blk; }
+  else { dragFrom = i; dragEl = blk; }
+  e.dataTransfer.setData("text/x-relieve", "1"); e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setDragImage(dragPhoto ? dragEl.querySelector(".ratio") || dragEl : dragEl, 20, 20);
+  const el = dragEl; setTimeout(() => el.classList.add("blk-dragging"), 0);
+  e.stopPropagation();
 });
-root.addEventListener("dragend", () => { dragFrom = null; document.querySelectorAll(".blk-dragging,.is-drop").forEach((n) => n.classList.remove("blk-dragging", "is-drop")); });
+const endDrag = () => { dragFrom = null; dragPhoto = null; dragEl = null; showDrop(null); document.body.classList.remove("is-file-drag"); document.querySelectorAll(".blk-dragging,.is-drop").forEach((n) => n.classList.remove("blk-dragging", "is-drop")); };
+root.addEventListener("dragend", endDrag);
 
 const isFiles = (e) => [...(e.dataTransfer?.types || [])].includes("Files");
 function nearestBar(y) {
   let best = null, d = 1e9;
-  document.querySelectorAll(".ins").forEach((b) => { const r = b.getBoundingClientRect(); const dd = Math.abs(r.top - y); if (dd < d) { d = dd; best = b; } });
+  document.querySelectorAll(".article-body .ins:not(.ins-under)").forEach((b) => { const r = b.getBoundingClientRect(); const dd = Math.abs(r.top - y); if (dd < d) { d = dd; best = b; } });
   return best;
+}
+// Onto a photo or a mosaic: which photo, and which of its sides (left, right, top, bottom). Floating photos and panoramas
+// do not take other photos.
+function photoTarget(x, y, src) {
+  const el = document.elementFromPoint(x, y), blk = el && el.closest(".article-body > .blk");
+  if (!blk) return null;
+  const i = Number(blk.dataset.i), b = E().blocks[i];
+  if (!b || !(b.type === "fila" || (b.type === "foto" && !(b.wrap && b.wrap.side)))) return null;
+  const items = b.type === "foto" ? [{ id: b.id, r: blk.querySelector(".ratio")?.getBoundingClientRect() }] : [...blk.querySelectorAll(".fila-item[data-item]")].map((it) => ({ id: it.dataset.item, r: cellBox(it) }));
+  if (!items.length || !items[0].r) return null;
+  const R = { left: Math.min(...items.map((o) => o.r.left)), right: Math.max(...items.map((o) => o.r.right)), top: Math.min(...items.map((o) => o.r.top)), bottom: Math.max(...items.map((o) => o.r.bottom)) };
+  R.width = R.right - R.left; R.height = R.bottom - R.top;
+  if (x < R.left - 4 || x > R.right + 4 || y < R.top - 4 || y > R.bottom + 4) return null;   // e.g. over a caption: between blocks instead
+  if (src && src.i === i && b.type === "foto") return { kind: "none" };   // a photo onto itself
+  const many = items.length > 1;
+  let side = null, ref = "root", box = R;
+  if (many) {   // a band along the edge of the whole mosaic: on that side of all the photos
+    const bw = Math.min(36, Math.max(16, R.width * 0.05)), bh = Math.min(36, Math.max(16, R.height * 0.09));
+    if (y < R.top + bh) side = "top"; else if (y > R.bottom - bh) side = "bottom"; else if (x < R.left + bw) side = "left"; else if (x > R.right - bw) side = "right";
+  }
+  if (!side) {   // the photo under the pointer (or the nearest one, in a gap), and its nearest side
+    let best = null, bd = Infinity;
+    for (const it of items) { const r = it.r, d = Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom)); if (d < bd) { bd = d; best = it; } }
+    const r = best.r, fx = (x - r.left) / r.width, fy = (y - r.top) / r.height, ds = { left: fx, right: 1 - fx, top: fy, bottom: 1 - fy };
+    side = Object.keys(ds).reduce((a, k) => (ds[k] < ds[a] ? k : a));
+    if (src && src.i === i && best.id === src.id) return { kind: "none" };
+    if (many) { ref = best.id; box = r; }
+  }
+  return { kind: "mosaic", i, ref, side, box, all: many && ref === "root", items };
+}
+// Between two blocks; a photo of the page dragged beside the text floats on that side
+function barTarget(x, y, canFloat) {
+  const bar = nearestBar(y); if (!bar) return null;
+  const at = Number(bar.dataset.at);
+  if (canFloat) {
+    const C = contentBox(), colL = C.x0 + C.defL / 100 * C.cw, colR = C.x0 + C.defR / 100 * C.cw, colW = colR - colL;
+    const side = x < colL + colW * 0.28 ? "left" : x > colR - colW * 0.28 ? "right" : null;
+    if (side && innerWidth >= 768) {
+      const W = document.documentElement.clientWidth, margin = (W - C.cw) / 2, dist = side === "right" ? W - x : x;
+      const mode = dist < 70 ? "edge" : margin > 110 && dist < margin + 40 ? "hang" : "in";
+      return { kind: "bar", at, side, mode, bar, C, colL, colR };
+    }
+  }
+  return { kind: "bar", at, side: "center", bar };
+}
+function dropTarget(x, y, src) {
+  const el = document.elementFromPoint(x, y);
+  if (el && el.closest("[data-hero], .ed-hero-wrap")) return src ? { kind: "none" } : null;
+  return photoTarget(x, y, src) || barTarget(x, y, !!src);
+}
+// The pink line or box, with a short label of what will happen
+let ind = null;
+function showDrop(t, ratio = 1.5) {
+  document.querySelectorAll(".is-drop").forEach((n) => n.classList.remove("is-drop"));
+  if (!ind) { ind = document.createElement("div"); ind.className = "drop-ind"; ind.innerHTML = '<span class="drop-tag"></span>'; document.body.appendChild(ind); }
+  if (!t || t.kind === "none") { ind.hidden = true; return; }
+  let r, label, boxy = false;
+  if (t.kind === "mosaic") {
+    const b = t.box, L = 6;
+    r = t.side === "left" ? [b.left - L / 2, b.top, L, b.height] : t.side === "right" ? [b.right - L / 2, b.top, L, b.height]
+      : t.side === "top" ? [b.left, b.top - L / 2, b.width, L] : [b.left, b.bottom - L / 2, b.width, L];
+    // dropped in the gap between two photos: say so
+    // dropped in the gap between two photos: the line goes in the middle of the gap, and says so
+    const nb = t.all ? null : t.items.find((o) => {
+      if (t.side === "left") return Math.abs(o.r.right - b.left) < 30 && o.r.bottom > b.top + 4 && o.r.top < b.bottom - 4;
+      if (t.side === "right") return Math.abs(o.r.left - b.right) < 30 && o.r.bottom > b.top + 4 && o.r.top < b.bottom - 4;
+      if (t.side === "top") return Math.abs(o.r.bottom - b.top) < 30 && o.r.right > b.left + 4 && o.r.left < b.right - 4;
+      return Math.abs(o.r.top - b.bottom) < 30 && o.r.right > b.left + 4 && o.r.left < b.right - 4;
+    });
+    const between = !!nb;
+    if (nb) {
+      if (t.side === "left") r[0] = (nb.r.right + b.left) / 2 - L / 2; else if (t.side === "right") r[0] = (b.right + nb.r.left) / 2 - L / 2;
+      else if (t.side === "top") r[1] = (nb.r.bottom + b.top) / 2 - L / 2; else r[1] = (b.bottom + nb.r.top) / 2 - L / 2;
+    }
+    const single = t.items.length === 1;
+    label = t.all ? { top: "Arriba de todas las fotos", bottom: "Debajo de todas las fotos", left: "A la izquierda de todas", right: "A la derecha de todas" }[t.side]
+      : between ? "Entre estas fotos"
+      : { left: "A la izquierda de esta foto", right: "A la derecha de esta foto", top: "Encima de esta foto", bottom: "Debajo de esta foto" }[t.side];
+    if (single) label = "Mosaico: " + label.charAt(0).toLowerCase() + label.slice(1);
+  } else if (t.side === "center") {
+    t.bar.classList.add("is-drop");
+    const br = t.bar.getBoundingClientRect(); r = [br.left, br.top - 2, br.width, 4]; label = "Aquí, en su propia fila";
+  } else {
+    boxy = true;
+    const C = t.C, colW = t.colR - t.colL, W = document.documentElement.clientWidth, y0 = t.bar.getBoundingClientRect().top;
+    const w = t.mode === "hang" ? C.cw * 0.4 : colW * 0.4, outer = t.mode === "edge" ? 0 : t.mode === "hang" ? C.x0 : t.colL;
+    const width = t.mode === "edge" ? t.colL + colW * 0.4 : w, h = Math.max(80, Math.min(360, width / ratio));
+    r = t.side === "left" ? [outer, y0, width, h] : [W - outer - width, y0, width, h];
+    if (t.side === "right" && t.mode === "in") r[0] = t.colR - width;
+    label = (t.side === "left" ? "Flota a la izquierda del texto" : "Flota a la derecha del texto") + (t.mode === "hang" ? ", hasta el margen" : t.mode === "edge" ? ", hasta el borde" : "");
+  }
+  ind.hidden = false; ind.classList.toggle("is-box", boxy);
+  Object.assign(ind.style, { left: r[0] + "px", top: r[1] + "px", width: r[2] + "px", height: r[3] + "px" });
+  ind.firstChild.textContent = label;
 }
 document.addEventListener("dragenter", (e) => { if (isFiles(e)) document.body.classList.add("is-file-drag"); });
 document.addEventListener("dragover", (e) => {
-  if (dragFrom !== null) { e.preventDefault(); document.querySelectorAll(".is-drop").forEach((n) => n.classList.remove("is-drop")); nearestBar(e.clientY)?.classList.add("is-drop"); }
-  else if (isFiles(e)) { e.preventDefault(); document.querySelectorAll(".is-drop").forEach((n) => n.classList.remove("is-drop")); if (!e.target.closest("[data-hero]")) nearestBar(e.clientY)?.classList.add("is-drop"); }
+  const files = isFiles(e);
+  if (dragFrom === null && !dragPhoto && !files) return;
+  e.preventDefault();
+  if (dragFrom !== null) { showDrop(null); nearestBar(e.clientY)?.classList.add("is-drop"); return; }
+  const t = dropTarget(e.clientX, e.clientY, files ? null : dragPhoto);
+  const p = dragPhoto && E().photos[dragPhoto.id];
+  showDrop(t, p ? ratioOf(p) : 1.5);
 });
-document.addEventListener("dragleave", (e) => { if (!e.relatedTarget) document.body.classList.remove("is-file-drag"); });
+document.addEventListener("dragleave", (e) => { if (!e.relatedTarget) { document.body.classList.remove("is-file-drag"); showDrop(null); } });
 document.addEventListener("drop", (e) => {
   e.preventDefault(); document.body.classList.remove("is-file-drag");
-  if (dragFrom !== null) { const bar = nearestBar(e.clientY); const at = Number(bar.dataset.at); const f = dragFrom; dragFrom = null; A().moveTo(f, at); return; }
-  if (isFiles(e)) {
-    const files = [...e.dataTransfer.files].filter((f) => /^image\//.test(f.type) || /\.(jpe?g|png|webp|tif?f)$/i.test(f.name));
-    if (!files.length) return;
-    if (e.target.closest("[data-hero]")) A().setHeroFile(files[0]);
-    else A().dropFiles(files, Number(nearestBar(e.clientY).dataset.at));
+  const files = isFiles(e), src = dragPhoto, from = dragFrom;
+  const t = from === null ? dropTarget(e.clientX, e.clientY, files ? null : src) : null;
+  endDrag();
+  if (from !== null) { const bar = nearestBar(e.clientY); if (bar) A().moveTo(from, Number(bar.dataset.at)); return; }
+  if (src) {
+    if (!t || t.kind === "none") return;
+    A().movePhoto(src, t.kind === "mosaic" ? { kind: "mosaic", i: t.i, ref: t.ref, side: t.side } : { kind: "bar", at: t.at, side: t.side, mode: t.mode });
+    return;
+  }
+  if (files) {
+    const list = [...e.dataTransfer.files].filter((f) => /^image\//.test(f.type) || /\.(jpe?g|png|webp|tif?f)$/i.test(f.name));
+    if (!list.length) return;
+    if (e.target.closest && e.target.closest("[data-hero]")) A().setHeroFile(list[0]);
+    else if (t && t.kind === "mosaic") A().dropFilesOn(list, { i: t.i, ref: t.ref, side: t.side });
+    else { const bar = t && t.bar ? t.bar : nearestBar(e.clientY); A().dropFiles(list, bar ? Number(bar.dataset.at) : E().blocks.length); }
   }
 });
 addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && !e.altKey && ["z", "y"].includes(e.key.toLowerCase())) { e.preventDefault(); A().undoKey(e); } });
@@ -718,6 +892,8 @@ function contentBox() {
 }
 let guide = null;
 const showGuide = (x) => { if (!guide) { guide = document.createElement("div"); guide.className = "snap-guide"; document.body.appendChild(guide); } guide.style.left = x + "px"; guide.hidden = x == null; };
+let guideH = null;
+const showGuideH = (y) => { if (!guideH) { guideH = document.createElement("div"); guideH.className = "snap-guide snap-guide-h"; document.body.appendChild(guideH); } guideH.style.top = y + "px"; guideH.hidden = y == null; };
 const nearest = (v, list, tol) => { let best = null, d = tol; for (const t of list) { const dd = Math.abs(v - t); if (dd < d) { d = dd; best = t; } } return best; };
 root.addEventListener("pointerdown", (e) => {
   const h = e.target.closest(".box-handle"); if (!h || e.button !== 0) return;

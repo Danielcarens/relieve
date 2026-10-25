@@ -782,7 +782,7 @@ html[data-lang="en"] body [lang="es"] {
 .article-body > .article-center:has(> h2) { clear: both; }
 .article-body > :is(ul, ol) { padding-left: 1.5rem; margin-bottom: 1.25rem; }
 .article-body li + li { margin-top: 0.35rem; }
-.article-body > hr { clear: both; }
+.article-body > :is(hr, .article-space) { clear: both; }   /* a line or a space starts below a floating photo: that is how to leave room under it */
 .article-rule { border: 0; border-top: 2px solid var(--bs-body-color); opacity: 1; margin-block: 3rem; }
 .article-space-s { height: 1.5rem; }
 .article-space-m { height: 3rem; }

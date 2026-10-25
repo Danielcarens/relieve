@@ -4,7 +4,7 @@ permalink: false
 eleventyExcludeFromCollections: true
 guia: true
 section: viajes
-title: "Guía 2 · Fotos, filas, cuadrículas y panorámicas"
+title: "Guía 2 · Fotos, mosaicos y panorámicas"
 subtitle: "Todas las formas de mostrar una foto, y cómo hacer que el texto las rodee."
 description: "Guía del editor de RELIEVE: fotos."
 date: 2026-10-22
@@ -89,33 +89,33 @@ Para fotos muy anchas: ocupa todo el ancho con una altura limitada y el lector l
 
 {% pano "cresta", "", "45" %}
 
-## Dos fotos en fila
+## Mosaico: dos fotos en fila
 
-Varias fotos juntas tienen el mismo alto y suman el ancho de una foto sola. Selecciona una foto y pulsa *Poner junto a la siguiente foto*. La barra rosa de abajo cambia la altura de la fila; las barras entre fotos reparten el ancho y se pegan a los bordes de otras fotos; las barras de los lados cambian el ancho de toda la fila.
+Varias fotos juntas forman un **mosaico**. Para armarlo, arrastra una foto desde tu computadora, o por su manija ✥ si ya está en la página, y suéltala sobre otra foto: entra a su izquierda, a su derecha, encima o debajo, según el lado donde la sueltes. Una línea rosa muestra dónde va a quedar antes de soltarla. En una fila, las fotos tienen el mismo alto y suman el ancho de una foto sola. Las barras rosas entre fotos reparten el espacio y se pegan a los bordes de otras fotos; la de abajo cambia la altura de todo el mosaico; las de los lados, su ancho.
 
 {% fila "capas", "autor" %}
 
-## Una fila a ancho completo
+## Un mosaico a ancho completo
 
-La misma fila, de borde a borde: marca *Ancho completo de la pantalla* en el panel.
+El mismo mosaico, de borde a borde: marca *Ancho completo de la pantalla* en el panel.
 
 {% fila "agujas", "capas", "completa" %}
 
-## Mosaico: una foto alta junto a dos apiladas
+## Una foto alta junto a dos apiladas
 
-En una fila, selecciona una foto y pulsa *Apilar con la foto de la derecha*: quedan una encima de la otra.
+Suelta una foto sobre la parte de abajo de otra foto del mosaico (no sobre el borde del mosaico): queda debajo de esa foto, y la otra queda alta a su lado. La barra rosa entre las dos fotos apiladas reparte la altura entre ellas.
 
 {% fila "autor", ["agujas", "noche"] %}
 
 ## Cuadrícula
 
-*Ordenar todas en cuadrícula* reparte las fotos de la fila en filas de N columnas.
+Una foto soltada cerca del borde de arriba o de abajo de un mosaico forma una fila nueva que ocupa todo el ancho; otra soltada a su lado la completa, y quedan dos filas de dos fotos. En el panel, *Ordenar en cuadrícula* lo hace de una vez con todas las fotos del mosaico.
 
 {% fila [["agujas", "noche"], ["capas", "autor"]] %}
 
 ## Texto alrededor de una foto
 
-Como el «Cuadrado» de Word. Selecciona la foto y elige *Flotar a la izquierda* o *a la derecha*, y un tamaño (pequeño, mediano o grande), o arrastra el cuadrito rosa de su lado interior para darle el ancho exacto. La foto empieza al lado del párrafo que tiene debajo y el texto la rodea hasta que termina.
+Como el «Cuadrado» de Word. Arrastra la foto por su manija ✥ y suéltala a un lado de un párrafo, o selecciónala y elige *Flotar a la izquierda* o *a la derecha* en el panel. El tamaño se elige en el panel (pequeño, mediano o grande) o arrastrando el cuadrito rosa de su lado interior. La foto empieza al lado del párrafo que tiene debajo y el texto la rodea hasta que termina. Para agregar algo debajo de la foto, y no a su lado, usa el **+** que aparece bajo ella.
 
 {% foto "autor", "derecha 40 fuera" %}
 
@@ -125,7 +125,7 @@ Sigue el texto al lado de la foto. Cuando llega un título o una foto grande, to
 
 ## Hasta el borde de la pantalla
 
-Una foto flotante también puede llegar hasta el borde de la pantalla: arrastra la barra rosa que aparece en su costado hacia el borde, o marca *Hasta el borde de la pantalla*.
+Una foto flotante también puede llegar hasta el borde de la pantalla: suéltala cerca del borde de la pantalla, arrastra la barra rosa que aparece en su costado hacia el borde, o marca *Hasta el borde de la pantalla*.
 
 {% foto "capas", "izquierda 40 borde" %}
 
