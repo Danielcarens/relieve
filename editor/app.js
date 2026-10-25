@@ -859,6 +859,24 @@ $("#publish").onclick = async () => {
   });
 };
 
+// When a new version of the editor is published while someone is writing, say so (their draft is safe in the browser)
+function watchVersion() {
+  const stamp = async () => { try { const r = await fetch("app.js", { method: "HEAD", cache: "no-store" }); return r.headers.get("etag") || r.headers.get("last-modified") || ""; } catch { return ""; } };
+  let first = null, told = false;
+  const check = async () => {
+    const s = await stamp(); if (!s) return;
+    if (first === null) { first = s; return; }
+    if (s !== first && !told) {
+      told = true;
+      const t = document.createElement("div"); t.className = "alert rounded-0 border-2 mb-0 bg-body border-strong d-flex flex-wrap gap-2 align-items-center";
+      t.innerHTML = '<span class="flex-grow-1">Hay una versión nueva del editor. Tus cambios están guardados: recarga cuando quieras para usarla.</span><button class="btn btn-primary btn-sm">Recargar</button>';
+      t.querySelector("button").onclick = async () => { await save(); location.reload(); };
+      $("#toast").appendChild(t);
+    }
+  };
+  check(); setInterval(check, 5 * 60 * 1000);
+}
+
 // ---- start -----------------------------------------------------------------------------------
 (async () => {
   if (MODE === "web") {
@@ -868,6 +886,7 @@ $("#publish").onclick = async () => {
     await web.loadPending();
     $("#web-tools").hidden = false; $("#who").textContent = web.session.name;
     $("#sync").textContent = "Actualizar lista";
+    watchVersion();
   }
   try { const st = await api("/api/status"); ED.cfg = st.cfg; if (!st.ready) toast("El sitio no está preparado. Mira la ventana negra del editor.", true, 15000); } catch {}
   await showList().catch((e) => toast(e.message, true));
