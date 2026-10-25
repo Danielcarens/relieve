@@ -243,13 +243,21 @@ export async function loadUsers() {
   }
   return [];
 }
+// The newest list straight from GitHub (public repo, no key needed): a user added a minute ago is not on the site yet
+async function freshUsers() {
+  try { const r = await fetch(`${API()}${R}/contents/editor/acceso.json?ref=${REPO.branch}&t=${Date.now()}`, { headers: { Accept: "application/vnd.github.raw+json" }, cache: "no-store" }); if (r.ok) { const j = await r.json(); return Array.isArray(j.users) ? j.users : []; } } catch { }
+  return [];
+}
 export async function login(user, password) {
-  const u = (await loadUsers()).find((x) => x.user.toLowerCase() === String(user).trim().toLowerCase());
+  const name = String(user).trim().toLowerCase(), find = (list) => list.find((x) => x.user.toLowerCase() === name);
   const bad = new Error("Usuario o contraseña incorrectos.");
-  if (!u) throw bad;
-  let token;
-  try { const key = await keyFrom(password, b64ToBytes(u.salt), u.iter || ITER); token = dec.decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64ToBytes(u.iv) }, key, b64ToBytes(u.data))); }
-  catch { throw bad; }
+  const open = async (u) => { try { const key = await keyFrom(password, b64ToBytes(u.salt), u.iter || ITER); return dec.decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64ToBytes(u.iv) }, key, b64ToBytes(u.data))); } catch { return null; } };
+  let u = find(await loadUsers()), token = u ? await open(u) : null;
+  if (!token) {   // not on the site yet, or its password was just changed: try the newest list in GitHub
+    const f = find(await freshUsers());
+    if (f && (!u || f.data !== u.data)) { u = f; token = await open(f); }
+  }
+  if (!u || !token) throw bad;
   session.set(token, u.name || u.user);
   try { await gh("GET", R); } catch (e) { session.clear(); throw new Error("La contraseña es correcta, pero la llave de GitHub guardada para este usuario ya no sirve (venció o se borró). Pide que la renueven en «Usuarios»."); }
   return { name: u.name || u.user };
