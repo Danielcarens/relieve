@@ -392,6 +392,19 @@ window.act = {
       else if (a === "del") { b.splice(i, 1); ED.sel = null; if (!b.length) b.push({ type: "p", text: "" }); }
     });
   },
+  focusArticle(k) {   // the byline in the page: author and date are edited in the Artículo tab
+    ED.tab = "article"; renderInspector(); const el = $(`#insp [data-k="${k}"]`); if (el) { el.scrollIntoView({ block: "center" }); el.focus(); }
+    toast("El autor y la fecha se cambian aquí, en la pestaña Artículo. El tiempo de lectura se calcula solo.");
+  },
+  setPhotoFrame(i, { ratio, size, box }) {   // a photo resized by its handles: crop shape, floating width, free width
+    mutate(() => {
+      const b = ED.blocks[i], p = ED.photos[b.id];
+      if (ratio && p) p.ratio = ratio;
+      if (size && b.wrap) b.wrap.size = size;
+      if (box === null) delete b.box; else if (box) b.box = box;
+      ED.sel = { i };
+    });
+  },
   setBox(i, box) { mutate(() => { if (box) ED.blocks[i].box = box; else delete ED.blocks[i].box; ED.sel = { i }; }); },
   cycleLine(i) {   // rosa -> amarillo -> verde -> rojo -> sin línea -> rosa…
     const order = ["rosa", "amarillo", "verde", "rojo", ""];
@@ -515,7 +528,7 @@ $("#insp").addEventListener("click", (e) => {
 });
 $("#insp").addEventListener("input", (e) => {
   const t = e.target, k = t.dataset.k; if (!k) return;
-  if (k.startsWith("m.")) { const v = t.type === "checkbox" ? t.checked : t.value; act.setMeta(k.slice(2), v || undefined, t.type !== "checkbox"); if (k === "m.description") $("#desc-n").textContent = t.value.length; if (t.type === "checkbox") renderInspector(); }
+  if (k.startsWith("m.")) { const v = t.type === "checkbox" ? t.checked : t.value; act.setMeta(k.slice(2), v || undefined, t.type !== "checkbox"); if (k === "m.description") $("#desc-n").textContent = t.value.length; if (k === "m.date" || k === "m.author") { const w = frame().contentWindow; w.render && w.render(); } if (t.type === "checkbox") renderInspector(); }
   else if (k.startsWith("p.")) { const [, id, f] = k.split("."); act.setPhoto(id, { [f]: t.value }, true); t.classList.toggle("invalid", f === "alt" && !t.value.trim()); const h = t.parentElement.querySelector(".hint.bad"); if (h && f === "alt") h.hidden = !!t.value.trim(); }
   else if (k === "bt") { act.setText(ED.sel.i, t.value); renderInspectorSoft(); }
   else if (k.startsWith("route.") || k.startsWith("src.")) { editList(k, t.value); }
@@ -568,7 +581,7 @@ function doAction(a, d) {
     case "replace": return pickFiles(false).then(async ([f]) => { if (!f) return; try { const m = await newPhoto(f); mutate(() => { const old = ED.photos[d.id]; ED.photos[m.id] = { ...m.photo, alt: old.alt, caption: old.caption }; if (bl.type === "fila") { const sw = (t) => t.map((x) => (Array.isArray(x) ? sw(x) : x === d.id ? m.id : x)); const t = sw(treeOf(bl)); setTree(bl, t); } else bl.id = m.id; if (ED.sel) ED.sel.id = bl.type === "fila" ? m.id : null; }); } catch (er) { toast(er.message, true); } });
     case "present": return mutate(() => {   // one "Foto" block, three ways to show it
       const id = bl.id, h = bl.h;
-      ED.blocks[sel.i] = d.v === "normal" ? { type: "foto", id } : d.v === "pantalla" ? { type: "pano", id, mode: "completa" } : { type: "pano", id, mode: "", ...(h ? { h } : {}) };
+      ED.blocks[sel.i] = d.v === "normal" ? { type: "foto", id, ...(bl.box ? { box: bl.box } : {}) } : d.v === "pantalla" ? { type: "pano", id, mode: "completa" } : { type: "pano", id, mode: "", ...(h ? { h } : {}) };
     });
     case "drow-add": return mutate(() => { bl.rows.push({ label: "", value: "" }); });
     case "drow-del": return mutate(() => { bl.rows.splice(Number(d.i), 1); });
@@ -674,7 +687,7 @@ function wrapPane(b) {
 <button class="btn btn-outline-dark ${!w ? "active" : ""}" data-do="wrap-none">En su propia fila</button>
 <button class="btn btn-outline-dark ${w && w.side === "left" ? "active" : ""}" data-do="wrap-side" data-side="left">Flotar a la izquierda</button>
 <button class="btn btn-outline-dark ${w && w.side === "right" ? "active" : ""}" data-do="wrap-side" data-side="right">Flotar a la derecha</button></div>
-${w ? `<div class="btnrow">${[[33, "Pequeño"], [40, "Mediano"], [50, "Grande"]].map(([v, l]) => `<button class="btn btn-outline-dark ${w.size === v ? "active" : ""}" data-do="wrap-size" data-v="${v}">${l}</button>`).join("")}</div>
+${w ? `<div class="btnrow">${[[33, "Pequeño"], [40, "Mediano"], [50, "Grande"]].map(([v, l]) => `<button class="btn btn-outline-dark ${w.size === v ? "active" : ""}" data-do="wrap-size" data-v="${v}">${l}</button>`).join("")}</div><p class="hint">Ancho: ${w.size || 40} % de la columna de texto${w.hang ? " (del ancho de las fotos, porque sobresale)" : ""}.${b.type === "foto" ? " También se cambia arrastrando el cuadrito rosa del lado interior de la foto." : ""}</p>
 <div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="c-hang" data-k="whang" ${w.hang ? "checked" : ""}><label class="form-check-label" for="c-hang">Sobresale hasta el margen exterior</label></div>${b.type === "foto" ? `<div class="form-check"><input class="form-check-input" type="checkbox" id="c-edge" data-k="wedge" ${w.edge ? "checked" : ""}><label class="form-check-label" for="c-edge">Hasta el borde de la pantalla</label></div><p class="hint">También puedes arrastrar la barra rosa del lado de la foto hacia el borde de la pantalla.</p>` : ""}` : ""}
 <p class="hint">Como el "Cuadrado" de Word: el texto rodea el elemento y después vuelve a todo el ancho. Los títulos y las fotos grandes siempre empiezan debajo. En celular cada elemento ocupa su propia fila.</p></div>`;
 }
@@ -699,8 +712,9 @@ function calloutPane(b) {
 <p class="hint">El marco toma el color del fondo (negro si es gris o sin fondo). La línea también cambia con un clic en el borde izquierdo del recuadro. El texto no se mueve con ninguno de los dos.</p>`;
 }
 function boxPane(b) {
-  const normal = b.type === "datos" ? "el ancho de las fotos" : "la columna de texto", back = b.type === "datos" ? "al ancho de las fotos" : "a la columna de texto";
-  if (!b.box) return `<div><label class="form-label">Ancho</label><p class="hint">Normal: ${normal}. Arrastra las barras rosas a los lados del bloque para cambiarlo; los bordes se pegan a los márgenes de las fotos, a los de la columna de texto y al centro.</p></div>`;
+  const wide = ["datos", "foto", "fila"].includes(b.type);
+  const normal = wide ? "el ancho de las fotos" : "la columna de texto", back = wide ? "al ancho de las fotos" : "a la columna de texto";
+  if (!b.box) return `<div><label class="form-label">Ancho</label><p class="hint">Normal: ${normal}. ${b.type === "foto" ? "Arrastra los cuadritos rosas de los lados de la foto" : "Arrastra las barras rosas a los lados del bloque"} para cambiarlo; los bordes se pegan a los márgenes de las fotos, a los de la columna de texto, al centro y a los bordes de las otras fotos.</p></div>`;
   const edge = (v, side) => v === "texto" ? "el margen de la columna de texto" : v === 0 || v === 100 ? "el margen de las fotos" : v === 50 ? "el centro" : `${side === "l" ? v : 100 - v}% ${side === "l" ? "desde el margen izquierdo" : "antes del margen derecho"} de las fotos`;
   return `<div><label class="form-label">Ancho</label><p class="hint mb-2">Izquierda: ${edge(b.box.l, "l")}. Derecha: ${edge(b.box.r, "r")}. Doble clic en una barra rosa, o el botón, lo devuelve ${back}. En celular vuelve a la columna normal.</p><button class="btn btn-outline-dark" data-do="box-reset">Volver al ancho normal</button></div>`;
 }
@@ -760,13 +774,13 @@ ${fld("Nombre del lugar (opcional)", inp("bf.label", b.label, "Caprock Canyons")
   if (b.type === "ficha") return `${wrapPane(b)}<hr>${fichaPane(b)}`;
   if (b.type === "foto") {
     const nx = ED.blocks[sel.i + 1]; const canJoin = nx && (nx.type === "foto" || nx.type === "fila");
-    return `${presentPane(b)}<hr>${wrapPane(b)}<hr>${photoForm(b.id)}<hr><div class="btnrow">${canJoin && !b.wrap ? '<button class="btn btn-outline-dark" data-do="join">Poner junto a la siguiente foto</button>' : ""}<button class="btn btn-outline-dark" data-do="replace" data-id="${esc(b.id)}">Cambiar foto</button></div>${canJoin ? '<p class="hint">Las fotos de una fila tienen el mismo alto y suman el ancho de una foto sola.</p>' : ""}`;
+    return `${presentPane(b)}<hr>${wrapPane(b)}${b.wrap ? "" : `<hr>${boxPane(b)}`}<p class="hint">Los cuadritos rosas alrededor de la foto cambian su tamaño: los lados, el ancho; arriba y abajo, el alto (el recorte); las esquinas, las dos cosas. Sus bordes se pegan a los de las otras fotos, a los márgenes y a la columna de texto.</p><hr>${photoForm(b.id)}<hr><div class="btnrow">${canJoin && !b.wrap ? '<button class="btn btn-outline-dark" data-do="join">Poner junto a la siguiente foto</button>' : ""}<button class="btn btn-outline-dark" data-do="replace" data-id="${esc(b.id)}">Cambiar foto</button></div>${canJoin ? '<p class="hint">Las fotos de una fila tienen el mismo alto y suman el ancho de una foto sola.</p>' : ""}`;
   }
   if (b.type === "fila") {
     const id = sel.id && b.ids.includes(sel.id) ? sel.id : b.ids[0];
     const nx = ED.blocks[sel.i + 1]; const canJoin = nx && (nx.type === "foto" || nx.type === "fila");
     const alto = Math.round(100 / rowR(b));
-    return `<div class="form-check"><input class="form-check-input" type="checkbox" id="c-full" data-k="rowfull" ${b.full ? "checked" : ""}><label class="form-check-label" for="c-full">Ancho completo de la pantalla</label></div>${fld("Altura de la fila", `<input class="form-range" type="range" min="14" max="80" step="1" data-k="rowh" value="${alto}">`, '<p class="hint">También puedes arrastrar la barra rosa bajo la fila. En filas simples, arrastra las barras entre fotos para repartir el ancho.</p>')}<hr><div><label class="form-label">Fotos de la fila</label><div class="thumbs">${b.ids.map((x) => `<button class="thumb ${x === id ? "on" : ""} ${ED.photos[x]?.alt ? "" : "miss"}" data-do="pick-item" data-id="${esc(x)}"><img src="${imgSrc(ED.meta.imgBase, ED.photos[x]?.file, "-sm.jpg")}" alt=""><span>${ED.photos[x]?.alt ? "Foto " + (b.ids.indexOf(x) + 1) : "Falta texto alternativo"}</span></button>`).join("")}</div></div>
+    return `${b.full ? "" : `${boxPane(b)}<hr>`}<div class="form-check"><input class="form-check-input" type="checkbox" id="c-full" data-k="rowfull" ${b.full ? "checked" : ""}><label class="form-check-label" for="c-full">Ancho completo de la pantalla</label></div>${fld("Altura de la fila", `<input class="form-range" type="range" min="14" max="80" step="1" data-k="rowh" value="${alto}">`, '<p class="hint">También puedes arrastrar la barra rosa bajo la fila. En filas simples, arrastra las barras entre fotos para repartir el ancho.</p>')}<hr><div><label class="form-label">Fotos de la fila</label><div class="thumbs">${b.ids.map((x) => `<button class="thumb ${x === id ? "on" : ""} ${ED.photos[x]?.alt ? "" : "miss"}" data-do="pick-item" data-id="${esc(x)}"><img src="${imgSrc(ED.meta.imgBase, ED.photos[x]?.file, "-sm.jpg")}" alt=""><span>${ED.photos[x]?.alt ? "Foto " + (b.ids.indexOf(x) + 1) : "Falta texto alternativo"}</span></button>`).join("")}</div></div>
 ${structPane(b, id)}<hr>${photoForm(id)}<hr><div class="btnrow"><button class="btn btn-outline-dark" data-do="row-add">Agregar foto a la fila</button>${canJoin ? '<button class="btn btn-outline-dark" data-do="join">Unir con la siguiente</button>' : ""}<button class="btn btn-outline-dark" data-do="out-row" data-id="${esc(id)}">Sacar esta foto de la fila</button><button class="btn btn-outline-dark" data-do="replace" data-id="${esc(id)}">Cambiar esta foto</button><button class="btn btn-outline-dark" data-do="split-row">Separar todas</button></div>`;
   }
   if (b.type === "pano") {

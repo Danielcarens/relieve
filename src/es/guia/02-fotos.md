@@ -70,7 +70,7 @@ Las fotos se agregan con Insertar → *Foto…*, con el botón **+** entre bloqu
 
 ## Una foto normal
 
-Una foto sola siempre mide lo mismo: el ancho de la columna de fotos. Para encuadrarla, arrástrala con el mouse. Para hacerla más alta o más baja, arrastra la barra de abajo o elige una proporción en el panel (3:2, 16:9, 1:1…).
+Una foto sola mide, de entrada, el ancho de la columna de fotos. Para encuadrarla, arrástrala con el mouse. Al seleccionarla aparecen cuadritos rosas en sus bordes, como en Word: los de los lados cambian el ancho, los de arriba y abajo el alto (el recorte) y los de las esquinas las dos cosas. Al acercarte, los bordes se pegan a los de las otras fotos (también a cada foto de una fila), a los márgenes y a la columna de texto. También puedes elegir una proporción en el panel (3:2, 16:9, 1:1…).
 
 {% foto "agujas" %}
 
@@ -88,7 +88,7 @@ Para fotos muy anchas: ocupa todo el ancho con una altura limitada y el lector l
 
 ## Dos fotos en fila
 
-Varias fotos juntas tienen el mismo alto y suman el ancho de una foto sola. Selecciona una foto y pulsa *Poner junto a la siguiente foto*. La barra rosa de abajo cambia la altura de la fila; las barras entre fotos reparten el ancho.
+Varias fotos juntas tienen el mismo alto y suman el ancho de una foto sola. Selecciona una foto y pulsa *Poner junto a la siguiente foto*. La barra rosa de abajo cambia la altura de la fila; las barras entre fotos reparten el ancho y se pegan a los bordes de otras fotos; las barras de los lados cambian el ancho de toda la fila.
 
 {% fila "capas", "autor" %}
 
@@ -112,7 +112,7 @@ En una fila, selecciona una foto y pulsa *Apilar con la foto de la derecha*: que
 
 ## Texto alrededor de una foto
 
-Como el «Cuadrado» de Word. Selecciona la foto y elige *Flotar a la izquierda* o *a la derecha*, y un tamaño (pequeño, mediano o grande). La foto empieza al lado del párrafo que tiene debajo y el texto la rodea hasta que termina.
+Como el «Cuadrado» de Word. Selecciona la foto y elige *Flotar a la izquierda* o *a la derecha*, y un tamaño (pequeño, mediano o grande), o arrastra el cuadrito rosa de su lado interior para darle el ancho exacto. La foto empieza al lado del párrafo que tiene debajo y el texto la rodea hasta que termina.
 
 {% foto "autor", "derecha 40 fuera" %}
 

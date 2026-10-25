@@ -88,15 +88,17 @@ export default function (eleventyConfig) {
   // in `fila`: they get the same height and add up to the same full width.
   //
   // Text wrapping (like Word's "Square"): foto, ficha and cita take an optional
-  // last argument, a few words: "izquierda" or "derecha" (side), 33 / 40 / 50
-  // (width as a share of the text column), "borde" (run out to the edge of the screen) and "fuera" (hang out to the outer
+  // last argument, a few words: "izquierda" or "derecha" (side), 15-70
+  // (width as a share of the text column, normally 33 / 40 / 50), "borde" (run out to the edge of the screen) and "fuera" (hang out to the outer
   // margin of the page container). Without it the block gets its own row.
   function wrapOf(opts, extra = "") {
     const w = String(opts || "").toLowerCase().split(/\s+/).filter(Boolean);
     const side = w.includes("izquierda") ? "left" : w.includes("derecha") ? "right" : "";
     if (!side) return "";
-    const n = w.map(Number).find((x) => [33, 40, 50].includes(x)) || 40;
-    return ` wrap wrap-${side} wrap-s${n}${w.includes("borde") ? " wrap-edge" : w.includes("fuera") ? " wrap-hang" : ""}${extra}`;
+    const n = w.map(Number).find((x) => x >= 15 && x <= 70) || 40;   // any width (the editor's edges are dragged freely)
+    // Callers write it inside class="…": a width other than 33 / 40 / 50 closes the class and adds style="--ws: …"
+    const cls = ` wrap wrap-${side}${[33, 40, 50].includes(n) ? ` wrap-s${n}` : ""}${w.includes("borde") ? " wrap-edge" : w.includes("fuera") ? " wrap-hang" : ""}${extra}`;
+    return [33, 40, 50].includes(n) ? cls : `${cls}" style="--ws: ${n / 100}`;
   }
 
   function frame(p, base, sizes) {

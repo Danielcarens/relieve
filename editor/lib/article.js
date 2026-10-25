@@ -20,7 +20,7 @@ export function parseWrap(str) {
   const w = String(str || "").toLowerCase().split(/\s+/).filter(Boolean);
   const side = w.includes("izquierda") ? "left" : w.includes("derecha") ? "right" : "";
   if (!side) return undefined;
-  const size = w.map(Number).find((x) => [33, 40, 50].includes(x)) || 40;
+  const size = w.map(Number).find((x) => x >= 15 && x <= 70) || 40;   // width: % of the text column (any value since the edges can be dragged)
   const edge = w.includes("borde");
   return { side, size, hang: !edge && w.includes("fuera"), ...(edge ? { edge: true } : {}) };
 }
@@ -59,7 +59,8 @@ export const recuadroStr = (b) => [FONDOS.includes(b.fondo) ? b.fondo : "gris", 
 const edgeTok = (v) => (v === "texto" ? "texto" : String(Math.round(v * 10) / 10));
 const boxStr = (x) => `${edgeTok(x.l)} ${edgeTok(x.r)}`;
 const edgeOf = (s) => (s === "texto" ? "texto" : Number(s));
-const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details", "datos"];
+const BOXABLE = ["p", "h2", "h3", "ul", "ol", "callout", "details", "datos", "foto", "fila"];
+const boxable = (b) => BOXABLE.includes(b.type) && !(b.wrap && b.wrap.side) && !b.full;   // floating photos and full-bleed rows have their own width
 const LIST_UL = /^[-*+]\s+/, LIST_OL = /^\d+[.)]\s+/;
 
 export function parseBody(body) {
@@ -98,7 +99,7 @@ export function parseBody(body) {
     else if ((m = t.match(/^\{%\s*caja\s*"([\d.]+|texto)\s+([\d.]+|texto)"\s*%\}([\s\S]*?)\{%\s*endcaja\s*%\}$/))) {
       const inner = parseBody(m[3]), l = edgeOf(m[1]), r = edgeOf(m[2]);
       const ok = typeof l !== "number" || typeof r !== "number" || r > l;
-      if (inner.length === 1 && BOXABLE.includes(inner[0].type) && ok) blocks.push({ ...inner[0], box: { l, r } }); else blocks.push({ type: "raw", text: t });
+      if (inner.length === 1 && boxable(inner[0]) && ok) blocks.push({ ...inner[0], box: { l, r } }); else blocks.push({ type: "raw", text: t });
     }
     else if (/^\{%\s*separador\s*%\}$/.test(t)) blocks.push({ type: "hr" });
     else if ((m = t.match(/^\{%\s*espacio\s*(.*?)\s*%\}$/))) { const a = args(m[1]); blocks.push({ type: "space", size: { s: 1.5, m: 3, l: 6 }[a[0]] ?? (Number(a[0]) || 3) }); }
@@ -132,7 +133,7 @@ export function parseBody(body) {
 export function serializeBlocks(blocks) {
   const isEmptyText = (b) => b.type === "p" && !b.text.trim();
   return blocks.filter((b) => !isEmptyText(b)).map((b) => {
-    if (b.box && BOXABLE.includes(b.type)) return `{% caja "${boxStr(b.box)}" %}\n${serializeBlocks([{ ...b, box: undefined }])}\n{% endcaja %}`;
+    if (b.box && boxable(b)) return `{% caja "${boxStr(b.box)}" %}\n${serializeBlocks([{ ...b, box: undefined }])}\n{% endcaja %}`;
     if (b.align === "center" && ["p", "h2", "h3"].includes(b.type)) return `{% centrado %}\n${serializeBlocks([{ ...b, align: undefined }])}\n{% endcentrado %}`;
     switch (b.type) {
       case "p": return b.text.trim();
