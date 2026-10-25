@@ -32,26 +32,19 @@
     });
   });
 
-  /* ---- Navbar line: a flat hand-drawn line with a mountain range under the menu links (theme.css,
-          ".navbar-ridge"). Measures where the links start and end, so the range always sits right
-          under them. Below 992px the links are inside the folded menu: flat line only. ---------- */
+  /* ---- Navbar line: a flat hand-drawn line with a low mountain range right under the logo (theme.css,
+          ".navbar-ridge"). Measures where the logo starts and ends, so the range always sits right
+          under it, on phones and on desktop. ---------------------------------------------------- */
   (function () {
     var nav = document.querySelector(".navbar-ridge");
-    if (!nav) return;
-    var wide = window.matchMedia("(min-width: 992px)");
+    var logo = nav && nav.querySelector(".navbar-brand .wordmark");
+    if (!logo) return;
 
     function place() {
-      var links = nav.querySelectorAll(".navbar-nav .nav-link");
-      if (!wide.matches || !links.length) {
-        nav.style.removeProperty("--ridge-x1");
-        nav.style.removeProperty("--ridge-x2");
-        return;
-      }
       var box = nav.getBoundingClientRect();
-      var first = links[0].getBoundingClientRect();
-      var last = links[links.length - 1].getBoundingClientRect();
-      nav.style.setProperty("--ridge-x1", Math.round(first.left - box.left) + "px");
-      nav.style.setProperty("--ridge-x2", Math.round(last.right - box.left) + "px");
+      var rect = logo.getBoundingClientRect();
+      nav.style.setProperty("--ridge-x1", Math.round(rect.left - box.left) + "px");
+      nav.style.setProperty("--ridge-x2", Math.round(rect.right - box.left) + "px");
     }
 
     place();
