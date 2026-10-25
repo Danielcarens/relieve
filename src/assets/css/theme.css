@@ -188,7 +188,7 @@ p { text-wrap: pretty; }
    same as every other rule on the site) that, closer to the logo, starts to waver by hand, turns into a low mountain
    range right under the arrow and RELIEVE, and calms down again on the other side. Five masks filled with the text
    color: a straight 2px bar, the left piece (relieve-ridge-izq.svg), the range (relieve-ridge-cadena.svg), the right
-   piece (relieve-ridge-der.svg) and another straight bar. The pieces next to the range are 440px wide at most and end
+   piece (relieve-ridge-der.svg) and another straight bar. The pieces next to the range are 100px wide at most and end
    perfectly straight, with the strokes exactly 2px, so they join the bars without a seam; on narrow screens they
    shrink to the room there is. ridge.js measures the logo and sets the position (--r*-x) and width (--r*-w) of each
    piece; without JavaScript only the first bar is drawn, across the whole width. The tiles are 56 units tall and shown
