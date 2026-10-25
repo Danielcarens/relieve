@@ -31,13 +31,13 @@
   <script src="/assets/js/site.js" defer></script>
   {% if site.goatcounter and not draft %}<script data-goatcounter="https://{{ site.goatcounter }}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>{% endif %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">   {# the footer always reaches the bottom of the screen, even on short pages #}
   {% include "partials/logo-defs.njk" %}
   <a class="visually-hidden-focusable" href="#main">{{ ui.skip }}</a>
 
   {% include "partials/navbar.njk" %}
 
-  <main id="main">
+  <main id="main" class="flex-grow-1">
     {{ content | safe }}
   </main>
 
