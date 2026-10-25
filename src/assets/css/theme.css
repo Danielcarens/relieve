@@ -184,6 +184,30 @@ p { text-wrap: pretty; }
   --bs-navbar-toggler-border-radius: 0;
 }
 
+/* The navbar's bottom edge is a mountain ridge instead of a straight 2px rule. It is a mask (relieve-ridge.svg,
+   a 4000 x 72 tile, flat at both ends so tiles join) filled with the text color, so it follows the theme.
+   The navbar keeps --ridge-h of free space at the bottom for the peaks; to go back to the plain rule, replace
+   `navbar-ridge` with `border-bottom border-2 border-strong` in partials/navbar.njk. */
+.navbar-ridge {
+  --ridge-h: 1.5rem;
+  position: relative;
+  border-bottom: 0 !important;
+  padding-bottom: var(--ridge-h) !important;
+}
+@media (min-width: 992px) { .navbar-ridge { --ridge-h: 2rem; } }
+.navbar-ridge::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--ridge-h);
+  background-color: var(--bs-body-color);
+  -webkit-mask: url("../img/relieve-ridge.svg") repeat-x left bottom / auto 100%;
+  mask: url("../img/relieve-ridge.svg") repeat-x left bottom / auto 100%;
+  pointer-events: none;
+}
+
 .navbar-brand { line-height: 1; }
 
 .navbar .nav-link {
