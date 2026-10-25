@@ -47,12 +47,14 @@ jobs:
         working-directory: sitio
         env:
           GH_TOKEN: ${{ github.token }}
+          # The commit message goes in through a variable: quotes or several lines in it must not break the script
+          MENSAJE: ${{ github.event.head_commit.message || 'actualización' }}
         run: |
           git config user.name "RELIEVE bot"
           git config user.email "actions@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then echo "Nada que publicar"; exit 0; fi
-          git commit -m "Publica: ${{ github.event.head_commit.message || 'actualización' }}" -m "Construido por Eleventy desde ${GITHUB_SHA::7}"
+          git commit -m "Publica: $(printf '%s' "$MENSAJE" | head -n 1)" -m "Construido por Eleventy desde ${GITHUB_SHA::7}"
           git push origin main
           # Un empujón con el token de Actions no siempre arranca la publicación de Pages: se pide a mano.
           gh api -X POST "repos/${{ github.repository }}/pages/builds" >/dev/null || true
