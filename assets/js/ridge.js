@@ -23,7 +23,7 @@
     var width = box.width / k;
     var x1 = (r.left - box.left) / k, x2 = (r.right - box.left) / k;
     var h = parseFloat(getComputedStyle(nav, "::after").height) || 28;
-    var natural = 880 * (h / 56);                       // the side pieces are 880 units wide for a 56 unit tall tile
+    var natural = 200 * (h / 56);                       // the side pieces are 200 units wide for a 56 unit tall tile (100px at 28px)
     var left = Math.min(natural, x1), right = Math.min(natural, width - x2);
     set("--rl-s", x1 - left);  set("--rl-x", x1 - left);  set("--rl-w", left);        // straight line, then the left piece
     set("--rc-x", x1);         set("--rc-w", x2 - x1);                                 // the range under the logo
