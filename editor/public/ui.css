@@ -4,7 +4,8 @@
 html, body { height: 100%; }
 html { zoom: .9; }   /* the whole editor (bars, panel and page) at 90 %, like zooming the browser out one step */
 body { display: flex; flex-direction: column; overflow: hidden; }
-.navbar { flex: none; }
+.navbar { flex: none; zoom: calc(1 / .9); }   /* the top bar stays at 100 %: logo and links the same size and spacing as on the site */
+.navbar .navbar-nav .nav-link { padding-inline: .5rem; }   /* as in the site's expanded navbar (navbar-expand-lg) */
 #nav-crumb { max-width: 32rem; }
 @media (max-width: 1199.98px) { #nav-crumb { display: none; } }
 #save-state { min-width: 7.5rem; text-align: right; }
