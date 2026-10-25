@@ -270,28 +270,44 @@ function blockHTML(b, i, S) {
 // The same list feeds the "+" between blocks and the ribbon's "Insertar" button (parent.INSERT_MENU)
 const ins = (at) => `<div class="ins" data-at="${at}"><button type="button" title="Agregar" aria-label="Agregar bloque aquí">+</button></div>`;
 
+// The cover. "" = full-bleed photo with the title over it (as on the site from 992 px up; under it on narrower
+// screens), "debajo" = full-bleed photo with the title under it, "titulo" = title, then the photo, "texto" = no photo.
+// The photo is the uncropped original placed in a 16:9 frame: drag it to move it, + / − to zoom; what the frame shows
+// is exactly the crop that gets saved.
+const heroZoom = (h) => Math.min(3, Math.max(1, Number(h.zoom) || 1));
+function heroBox(h) {   // size and place of the original inside the frame, in % of the frame
+  const ir = h.srcW / h.srcH, fr = 16 / 9, z = heroZoom(h);
+  const w = ir > fr ? 100 * z * ir / fr : 100 * z, hh = ir > fr ? 100 * z : 100 * z * fr / ir;
+  const [px, py] = (POS.test(h.pos || "") ? h.pos : "50% 50%").split(" ").map(parseFloat);
+  return { w, h: hh, left: (100 - w) * px / 100, top: (100 - hh) * py / 100 };
+}
+const heroStyle = (h) => { const b = heroBox(h); return `width:${b.w}%;height:${b.h}%;left:${b.left}%;top:${b.top}%`; };
+window.layoutHero = () => { const h = E().meta.hero, img = $(".ed-hero-img.has-src img"); if (h && img) img.style.cssText = heroStyle(h); };
 function heroHTML(S) {
-  const m = S.meta, h = m.hero;
-  const dirMatch = /\/assets\/img\/([^/]+)\//.exec(m.imgBase || "");
-  let inner;
+  const m = S.meta, h = m.hero, cab = m.cabecera || "";
+  let inner, src = false;
   if (h) {
-    const orig = h.srcW && dirMatch;   // the original lets you drag to frame it
-    const src = parent.heroSrc ? parent.heroSrc(m) : orig ? `/originals/${dirMatch[1]}/hero-source.jpg?v=${S.heroV || 0}` : `${m.imgBase}${h.file}-1280.jpg?v=${S.heroV || 0}`;
-    const hint = !h.srcW ? "La portada siempre es 16:9. Para encuadrarla de nuevo, elige la foto otra vez con «Cambiar foto»."
-      : Math.abs(h.srcW / h.srcH - 16 / 9) < 0.02 ? "Esta foto ya tiene forma 16:9: se ve completa, no hay nada que encuadrar."
-      : `La portada siempre es 16:9. Arrastra la foto ${h.srcW / h.srcH > 16 / 9 ? "a los lados" : "hacia arriba o abajo"} para encuadrarla.`;
-    inner = `<img src="${src}" style="object-position: ${esc(h.pos || "50% 50%")}" alt="" draggable="false"><div class="ed-hero-actions"><button class="btn btn-light btn-sm rounded-0" data-hero="replace">Cambiar foto</button></div><div class="ed-hero-hint">${hint}</div>`;
+    src = !!h.srcW;
+    const url = parent.heroSrc ? parent.heroSrc(m) : `${m.imgBase}${h.file}-1280.jpg?v=${S.heroV || 0}`;
+    const crop = src ? ((h.srcW / h.srcH > 16 / 9 ? h.srcH * 16 / 9 : h.srcW) / heroZoom(h)) : 0;
+    const hint = !src ? "Para encuadrar o acercar esta portada, elige la foto otra vez con «Cambiar foto»."
+      : `Arrastra la foto para moverla; con + y − la acercas.${crop && crop < 1600 ? (heroZoom(h) > 1 ? " Ojo: tan cerca, la foto queda con poca resolución para pantallas grandes." : " Ojo: esta foto tiene poca resolución para una portada; en pantallas grandes se verá algo borrosa.") : ""}`;
+    const zoom = src ? `<button class="btn btn-light btn-sm rounded-0" data-hero="zoom-out" title="Alejar" aria-label="Alejar">−</button><span class="ed-hero-zoom">${Math.round(heroZoom(h) * 100)} %</span><button class="btn btn-light btn-sm rounded-0" data-hero="zoom-in" title="Acercar" aria-label="Acercar">+</button>` : "";
+    inner = `<img src="${url}" style="${src ? heroStyle(h) : `object-position: ${esc(h.pos || "50% 50%")}`}" alt="" draggable="false"><div class="ed-hero-actions">${zoom}<button class="btn btn-light btn-sm rounded-0" data-hero="replace">Cambiar foto</button></div><div class="ed-hero-hint">${hint}</div>`;
   } else inner = `<div class="ed-hero-empty"><div><strong>Foto principal</strong><br>Arrastra una foto aquí o haz clic para elegirla</div></div>`;
-  const cab = m.cabecera || "";
-  const drag = h && h.srcW && Math.abs(h.srcW / h.srcH - 16 / 9) >= 0.02;
-  const photo = `<div class="ed-hero-img ${h ? "" : "ed-hero-empty"}${drag ? " can-drag" : ""}" data-hero="${h ? "img" : "pick"}">${inner}</div>${h ? `<div class="container pt-2">${inl('data-m="hero.caption"', h.caption, "Descripción de la portada (opcional)", "figure-caption cap-field")}</div>` : ""}`;
-  const titles = `<div class="container ed-head"><div class="ed-date font-ui">${esc(m.date || "")}${m.draft ? " · Borrador" : ""}${cab ? ` · Cabecera: ${cab === "texto" ? "solo título" : "título arriba"}` : ""}</div>
-<textarea class="ed-field ed-title" rows="1" data-m="title" placeholder="Título del artículo">${esc(m.title || "")}</textarea>
-${inl('data-m="subtitle"', m.subtitle, "Subtítulo (opcional)", "ed-field ed-sub mt-2")}</div>`;
+  const photo = `<div class="ed-hero-img ${h ? "" : "ed-hero-empty"}${src ? " has-src can-drag" : ""}" data-hero="${h ? "img" : "pick"}">${inner}</div>`;
+  const caption = h ? `<div class="container pt-2">${inl('data-m="hero.caption"', h.caption, "Descripción de la portada (opcional)", "figure-caption cap-field")}</div>` : "";
+  const tape = `<span class="tape">${esc((parent.SECTION_NAMES || {})[m.section] || m.section || "Sección")}</span>`;
+  const title = `<textarea class="ed-field ed-title" rows="1" data-m="title" placeholder="Título del artículo">${esc(m.title || "")}</textarea>`;
+  const label = { debajo: "título debajo de la foto", titulo: "título arriba", texto: "solo título" }[cab];
+  const date = `<div class="ed-date font-ui">${esc(m.date || "")}${m.draft ? " · Borrador" : ""}${label ? ` · Cabecera: ${label}` : ""}</div>`;
+  const sub = inl('data-m="subtitle"', m.subtitle, "Subtítulo (opcional)", "ed-field ed-sub mt-2");
   const ai = m.ai ? `<div class="notice-band tone-amarillo mt-4" role="note"><div class="container py-3"><strong>Versión de prueba.</strong> Este artículo fue escrito enteramente con inteligencia artificial, solo para probar el diseño de la revista. El texto definitivo lo escribirá el autor.</div></div>` : "";
-  if (cab === "texto") return `<header class="ed-hero-wrap ed-cab-texto pt-4">${titles}</header>${ai}`;
-  if (cab === "titulo") return `<header class="ed-hero-wrap ed-cab-titulo pt-4">${titles}<div class="container mt-4">${photo}</div></header>${ai}`;
-  return `<header class="ed-hero-wrap">${photo}${titles}</header>${ai}`;
+  const head = (withTitle) => `<div class="container ed-head">${date}${withTitle ? `<div class="d-grid gap-3 ed-titles">${tape}${title}</div>` : ""}${sub}</div>`;
+  if (cab === "texto") return `<header class="ed-hero-wrap ed-cab-texto pt-4">${head(true)}</header>${ai}`;
+  if (cab === "titulo") return `<header class="ed-hero-wrap ed-cab-titulo pt-4"><div class="container ed-head pb-0"><div class="d-grid gap-3 ed-titles">${tape}${title}</div></div><div class="container mt-4">${photo}</div>${caption}<div class="container ed-head">${date}${sub}</div></header>${ai}`;
+  if (cab === "debajo" || !h) return `<header class="ed-hero-wrap ed-cab-debajo">${photo}${caption}${head(true)}</header>${ai}`;
+  return `<header class="ed-hero-wrap ed-cab-foto"><div class="ed-hero-stack">${photo}<div class="ed-hero-text"><div class="container d-grid gap-3">${tape}${title}</div></div></div>${caption}${head(false)}</header>${ai}`;
 }
 
 function render() {
@@ -560,26 +576,31 @@ root.addEventListener("pointerdown", (e) => {
   frame.addEventListener("pointermove", move); frame.addEventListener("pointerup", up);
 });
 
-// Hero: drag to frame it (works on the original photo; the server re-crops when you let go)
+// Cover: drag the photo inside its 16:9 frame (both directions when it is zoomed in); + / − zoom
 root.addEventListener("pointerdown", (e) => {
   const box = e.target.closest('[data-hero="img"]'); if (!box || e.target.closest("button") || e.button !== 0) return;
   const S = E(), h = S.meta.hero, img = box.querySelector("img"); if (!h || !box.classList.contains("can-drag")) return;
   e.preventDefault(); box.setPointerCapture(e.pointerId);
-  const rect = box.getBoundingClientRect(), sx = e.clientX, sy = e.clientY;
+  const rect = box.getBoundingClientRect(), sx = e.clientX, sy = e.clientY, b = heroBox(h);
   const [px0, py0] = (POS.test(h.pos || "") ? h.pos : "50% 50%").split(" ").map(parseFloat);
-  const ir = h.srcW / h.srcH, fr = rect.width / rect.height;
+  const overW = rect.width * (b.w / 100 - 1), overH = rect.height * (b.h / 100 - 1);
   let pos = h.pos || "50% 50%";
   const move = (ev) => {
-    let px = px0, py = py0;
-    if (ir > fr) { const over = rect.height * ir - rect.width; if (over > 1) px = px0 - ((ev.clientX - sx) / over) * 100; }
-    else { const over = rect.width / ir - rect.height; if (over > 1) py = py0 - ((ev.clientY - sy) / over) * 100; }
+    const px = overW > 1 ? px0 - ((ev.clientX - sx) / overW) * 100 : px0, py = overH > 1 ? py0 - ((ev.clientY - sy) / overH) * 100 : py0;
     pos = `${Math.round(Math.max(0, Math.min(100, px)))}% ${Math.round(Math.max(0, Math.min(100, py)))}%`;
-    img.style.objectPosition = pos;
+    img.style.cssText = heroStyle({ ...h, pos });
   };
   box.classList.add("is-dragging");
   const up = () => { box.classList.remove("is-dragging"); box.removeEventListener("pointermove", move); box.removeEventListener("pointerup", up); if (pos !== (h.pos || "50% 50%")) A().setHeroPos(pos); };
   box.addEventListener("pointermove", move); box.addEventListener("pointerup", up);
 });
+const ZOOMS = [1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+root.addEventListener("click", (e) => {
+  const z = e.target.closest('[data-hero="zoom-in"], [data-hero="zoom-out"]'); if (!z) return;
+  e.stopPropagation(); const h = E().meta.hero, cur = heroZoom(h);
+  const next = z.dataset.hero === "zoom-in" ? ZOOMS.find((x) => x > cur + 0.001) ?? 3 : [...ZOOMS].reverse().find((x) => x < cur - 0.001) ?? 1;
+  A().setHeroPos(h.pos || "50% 50%", next);
+}, true);
 
 // ---- reorder blocks by dragging the grip ---------------------------------------
 let dragFrom = null;

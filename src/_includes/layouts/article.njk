@@ -5,8 +5,8 @@ layout: layouts/base.njk
 <article>
 
   <!-- HEADER ========================================================== -->
-  <!-- cabecera: "foto" (default) = photo full bleed with the title over it; "titulo" = title on white, then the
-       photo; "texto" = no photo. If the article has a video, a small control plays it in place of the photo. -->
+  <!-- cabecera: "foto" (default) = photo full bleed with the title over it; "debajo" = photo full bleed with the
+       title under it; "titulo" = title on white, then the photo; "texto" = no photo. If the article has a video, a small control plays it in place of the photo. -->
   {% set cab = cabecera or "foto" %}
   {% if not hero %}{% set cab = "texto" %}{% endif %}
   {% macro heroFrame() %}
@@ -29,8 +29,8 @@ layout: layouts/base.njk
     </div>
   {% endmacro %}
   {% set sectionName %}{% for s in site.sections %}{% if s.id == section %}{{ s[lang] }}{% endif %}{% endfor %}{% endset %}
-  {% if cab == "foto" %}
-  <header class="article-hero" data-hero>
+  {% if cab == "foto" or cab == "debajo" %}
+  <header class="article-hero{% if cab == 'debajo' %} hero-below{% endif %}" data-hero>
     {{ heroFrame() }}
     {% if hero.caption %}<p class="hero-credit figure-caption container mb-0 pt-2">{{ hero.caption | mdi | safe }}</p>{% endif %}
     <div class="hero-text">

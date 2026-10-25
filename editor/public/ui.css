@@ -2,6 +2,7 @@
    this file only lays out the editor's own panels. No colors of its own. */
 [hidden] { display: none !important; }   /* Bootstrap's d-flex would otherwise win over the hidden attribute */
 html, body { height: 100%; }
+html { zoom: .9; }   /* the whole editor (bars, panel and page) at 90 %, like zooming the browser out one step */
 body { display: flex; flex-direction: column; overflow: hidden; }
 .navbar { flex: none; }
 #nav-crumb { max-width: 32rem; }

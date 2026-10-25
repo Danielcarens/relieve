@@ -32,10 +32,10 @@ function findOriginal(origDir, base) {
   return fs.readdirSync(origDir).find((f) => path.parse(f).name === base);
 }
 
-// The hero is always 16:9: crop it from the original around `pos` ("50% 40%").
+// The hero is always 16:9: crop it from the original around `pos` ("50% 40%"), `zoom` times closer.
 // A copy of the uncropped photo (hero-source.jpg, at most 2600 px wide) goes into the article's image folder, so the
 // cover can be reframed later from any computer or from the web editor, not only where it was first chosen.
-export async function makeHero({ buf, imgDir, origDir, pos = "50% 50%" }) {
+export async function makeHero({ buf, imgDir, origDir, pos = "50% 50%", zoom = 1 }) {
   fs.mkdirSync(imgDir, { recursive: true });
   fs.mkdirSync(origDir, { recursive: true });
   const repoCopy = path.join(imgDir, "hero-source.jpg");
@@ -50,13 +50,12 @@ export async function makeHero({ buf, imgDir, origDir, pos = "50% 50%" }) {
   const { width, height } = await sharp(rot).metadata();
   if (buf || !fs.existsSync(repoCopy)) await sharp(rot).resize({ width: Math.min(2600, width), withoutEnlargement: true }).jpeg({ ...JPG, quality: 80 }).toFile(repoCopy);
   const [px, py] = pos.split(" ").map((v) => Math.min(100, Math.max(0, parseFloat(v))) / 100);
-  const target = 16 / 9;
-  let cw = width, ch = height;
-  if (width / height > target) cw = Math.round(height * target); else ch = Math.round(width / target);
+  const target = 16 / 9, z = Math.min(4, Math.max(1, Number(zoom) || 1));   // zoom: 1 = the largest 16:9 crop, 2 = half as wide…
+  const cw = Math.round((width / height > target ? height * target : width) / z), ch = Math.round(cw / target);
   const left = Math.round((width - cw) * px), top = Math.round((height - ch) * py);
   const crop = await sharp(rot).extract({ left, top, width: cw, height: ch }).toBuffer();
   for (const w of [1280, 1920, 2560]) {
     await sharp(crop).resize({ width: w, withoutEnlargement: true }).jpeg(JPG).toFile(path.join(imgDir, `hero-${w}.jpg`));
   }
-  return { file: "hero", w: 2560, h: 1440, srcW: width, srcH: height, pos };
+  return { file: "hero", w: 2560, h: 1440, srcW: width, srcH: height, pos, ...(z > 1 ? { zoom: z } : {}) };
 }

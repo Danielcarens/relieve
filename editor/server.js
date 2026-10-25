@@ -120,7 +120,7 @@ const api = {
   async "POST /api/hero-pos"(req, res, q) {
     const { meta } = parseArticle(fs.readFileSync(articlePath(q.get("article")), "utf8"));
     const dirName = imgDirOf(meta);
-    return await makeHero({ imgDir: path.join(SITE, "src", "assets", "img", dirName), origDir: path.join(ORIG, dirName), pos: q.get("pos") });
+    return await makeHero({ imgDir: path.join(SITE, "src", "assets", "img", dirName), origDir: path.join(ORIG, dirName), pos: q.get("pos"), zoom: q.get("zoom") });
   },
   async "GET /api/dashboard"() {
     const imgRoot = path.join(SITE, "src", "assets", "img"), imgByDir = {}; let images = 0, texts = 0;

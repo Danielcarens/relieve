@@ -72,7 +72,7 @@ fichas:
       - { label: Precio, value: "**6.999 USD**" }
 ---
 {% recuadro "sin-fondo marco linea-rosa" %}
-**Cómo está hecho:** la portada es la de siempre, de borde a borde y en 16:9 (en la pestaña *Artículo*, **Cabecera** → «Foto grande con el título encima»). Debajo van los datos clave en fila, la ficha técnica flotando a la derecha del texto, fotos en fila, una cita y una foto que flotan, dos recuadros (verde y rojo) para lo bueno y lo malo, y un veredicto centrado con un botón. Las fotos son de la marca y sirven solo para esta guía: en un artículo publicado usa fotos tuyas o con permiso.
+**Cómo está hecho:** la portada es la de siempre, de borde a borde y en 16:9 (en la pestaña *Artículo*, **Cabecera** → «Foto grande con el título encima»). Para elegir el recorte de la portada, acércala con los botones + y − que aparecen sobre ella y arrástrala. Debajo van los datos clave en fila, la ficha técnica flotando a la derecha del texto, fotos en fila, una cita y una foto que flotan, dos recuadros (verde y rojo) para lo bueno y lo malo, y un veredicto centrado con un botón. Las fotos son de la marca y sirven solo para esta guía: en un artículo publicado usa fotos tuyas o con permiso.
 {% endrecuadro %}
 
 {% datos "Uso", "Enduro", "Recorrido", "170 mm", "Peso", "15,8 kg", "Precio", "6.999 USD" %}
