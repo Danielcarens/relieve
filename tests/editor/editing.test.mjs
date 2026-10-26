@@ -90,11 +90,17 @@ test("la cinta: estilo, negrita, alineación, buscar y reemplazar", async () => 
   for (let k = 0; k < "importante".length; k++) await ed.page.keyboard.press("Shift+ArrowLeft");
   await ed.page.click('[data-rb="bold"]'); await ed.wait(200);
   assert.deepEqual(await texts(ed), ["una palabra **importante**"]);
+  // Ctrl+K on the selected word: a link
+  await caret(ed, 0);
+  for (let k = 0; k < "importante**".length - 2; k++) await ed.page.keyboard.press("Shift+ArrowLeft");
+  await ed.page.keyboard.press("Control+k"); await ed.page.waitForSelector("#l-url");
+  await ed.page.fill("#l-url", "relievemag.com"); await ed.page.click("#l-ok"); await ed.wait(200);
+  assert.deepEqual(await texts(ed), ["una palabra **[importante](https://relievemag.com)**"]);
   await ed.page.click('[data-rb="center"]'); await ed.wait(200);
   assert.equal(await ed.page.evaluate(() => window.ED.blocks[0].align), "center");
   await ed.page.keyboard.press("Control+h"); await ed.wait(200);
   await ed.page.fill("#fr-a", "palabra"); await ed.page.fill("#fr-b", "idea"); await ed.page.click("#fr-ok"); await ed.wait(200);
-  assert.deepEqual(await texts(ed), ["una idea **importante**"]);
+  assert.deepEqual(await texts(ed), ["una idea **[importante](https://relievemag.com)**"]);
   assert.deepEqual(ed.errors, []);
   await ed.close();
 });

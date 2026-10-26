@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Pruebas automáticas: artículos (ida y vuelta) y el editor en un navegador.",
   "scripts": {
-    "test": "node --test --test-concurrency=1 articles.test.mjs editor/*.test.mjs",
+    "test": "node --test --test-concurrency=1 articles.test.mjs mosaic.test.mjs editor/*.test.mjs",
     "test:articulos": "node --test articles.test.mjs"
   },
   "devDependencies": {
