@@ -131,7 +131,8 @@ export function parseBody(body) {
 }
 
 export function serializeBlocks(blocks) {
-  const isEmptyText = (b) => b.type === "p" && !b.text.trim();
+  // An empty paragraph, title or list is not written: "## " or "- " alone would come back as code, not as a title or a list
+  const isEmptyText = (b) => (["p", "h2", "h3"].includes(b.type) && !String(b.text || "").trim()) || (["ul", "ol"].includes(b.type) && !(b.items || []).some((x) => String(x).trim()));
   return blocks.filter((b) => !isEmptyText(b)).map((b) => {
     if (b.box && boxable(b)) return `{% caja "${boxStr(b.box)}" %}\n${serializeBlocks([{ ...b, box: undefined }])}\n{% endcaja %}`;
     if (b.align === "center" && ["p", "h2", "h3"].includes(b.type)) return `{% centrado %}\n${serializeBlocks([{ ...b, align: undefined }])}\n{% endcentrado %}`;

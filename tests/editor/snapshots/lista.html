@@ -1,0 +1,248 @@
+
+  <div class="container py-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 border-bottom border-2 border-strong pb-3 mb-4">
+      <h1 class="mb-0">Artículos</h1>
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <span id="git-state" class="font-ui small text-secondary">Todo publicado</span>
+        <button class="btn btn-outline-dark" id="sync">Actualizar lista</button>
+        <button class="btn btn-primary" id="new">Nuevo artículo</button>
+      </div>
+    </div>
+    <ul class="list-unstyled mb-0" id="articles">
+<li class="art border-bottom border-strong" data-path="src/es/viajes/caprock-canyons.md">
+    <img class="art-thumb" src="/assets/img/caprock-10-2026/hero-1280.jpg" alt="">
+    <div class="min-w-0">
+<span class="tape tape-secondary mb-2">Viajes</span>
+<h2 class="h3 mb-1">El mirador de los primeros cazadores de Texas</h2>
+<div class="small-meta">2026-10-21</div>
+</div>
+    <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
+<span class="ed-tag tone-amarillo">Texto con IA</span>
+</div>
+</li>
+</ul>
+    <div id="guides-wrap" class="mt-5">
+      <div class="border-bottom border-2 border-strong pb-3 mb-2 d-flex flex-wrap justify-content-between align-items-end gap-2">
+        <h2 class="tape mb-0">Guía para escribir</h2>
+        <span class="font-ui small text-secondary">Ejemplos que muestran cada función con su explicación. No se publican en el sitio.</span>
+      </div>
+      <ul class="list-unstyled mb-0" id="guides">
+<li class="art border-bottom border-strong" data-path="src/es/guia/01-texto.md">
+    <img class="art-thumb" src="/assets/img/guia-texto/hero-1280.jpg" alt="">
+    <div class="min-w-0">
+<span class="tape tape-secondary mb-2">Guía</span>
+<h2 class="h3 mb-1">Guía 1 · Escribir y dar formato al texto</h2>
+<div class="small-meta">2026-10-21</div>
+</div>
+    <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
+</div>
+</li>
+<li class="art border-bottom border-strong" data-path="src/es/guia/02-fotos.md">
+    <img class="art-thumb" src="/assets/img/guia-fotos/hero-1280.jpg" alt="">
+    <div class="min-w-0">
+<span class="tape tape-secondary mb-2">Guía</span>
+<h2 class="h3 mb-1">Guía 2 · Fotos, mosaicos y panorámicas</h2>
+<div class="small-meta">2026-10-22</div>
+</div>
+    <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
+</div>
+</li>
+<li class="art border-bottom border-strong" data-path="src/es/guia/03-datos-y-medios.md">
+    <img class="art-thumb" src="/assets/img/caprock-10-2026/hero-1280.jpg" alt="">
+    <div class="min-w-0">
+<span class="tape tape-secondary mb-2">Guía</span>
+<h2 class="h3 mb-1">Guía 3 · Fichas de datos, datos en fila, video y mapa</h2>
+<div class="small-meta">2026-10-23</div>
+</div>
+    <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
+</div>
+</li>
+<li class="art border-bottom border-strong" data-path="src/es/guia/04-ejemplo-review.md">
+    <img class="art-thumb" src="/assets/img/guia-review/hero-1280.jpg" alt="">
+    <div class="min-w-0">
+<span class="tape tape-secondary mb-2">Guía</span>
+<h2 class="h3 mb-1">Ejemplo · Review de una bici</h2>
+<div class="small-meta">2026-10-24</div>
+</div>
+    <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
+</div>
+</li>
+<li class="art border-bottom border-strong" data-path="src/es/guia/05-ejemplo-cronica.md">
+    <img class="art-thumb" src="/assets/img/guia-cronica/hero-1280.jpg" alt="">
+    <div class="min-w-0">
+<span class="tape tape-secondary mb-2">Guía</span>
+<h2 class="h3 mb-1">Ejemplo · Crónica de viaje</h2>
+<div class="small-meta">2026-10-25</div>
+</div>
+    <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
+</div>
+</li>
+</ul>
+    </div>
+  </div>
+<nav class="navbar navbar-ridge bg-body py-2 py-lg-3 flex-nowrap" style="--rl-s: 31px; --rl-x: 31px; --rl-w: 100px; --rc-x: 131px; --rc-w: 197px; --rr-x: 327px; --rr-w: 100px; --rs-x: 427px; --rs-w: 1013px; padding-right: 15px;">
+  <div class="container flex-nowrap gap-3">
+    <a class="navbar-brand me-0" href="#" id="go-list" aria-label="RELIEVE: volver a los artículos">
+<svg class="wordmark" viewBox="-11 -11 3399 622" role="img" aria-label="RELIEVE">
+<use href="#logo-lockup">
+</use>
+</svg>
+</a>
+    <ul class="navbar-nav flex-row gap-3 ms-lg-4 me-auto">
+      <li class="nav-item">
+<a class="nav-link active" href="#" id="nav-list" aria-current="page">Artículos</a>
+</li>
+      <li class="nav-item">
+<a class="nav-link" href="#" id="nav-panel">Panel</a>
+</li>
+      <li class="nav-item min-w-0" id="nav-crumb" hidden="">
+<span class="nav-link active text-truncate d-block" id="crumb" aria-current="page">
+</span>
+</li>
+    </ul>
+    <div class="d-flex align-items-center gap-2 flex-nowrap" id="web-tools">
+      <span class="font-ui small text-secondary text-nowrap" id="who">Prueba</span>
+      <button class="btn btn-outline-dark" id="users-btn">Usuarios</button>
+      <button class="btn btn-outline-dark" id="logout-btn">Salir</button>
+    </div>
+    <div class="d-flex align-items-center gap-2 flex-nowrap" id="tools" hidden="">
+      <span id="save-state" class="font-ui small text-secondary text-nowrap me-1">
+</span>
+      <div class="btn-group" role="group" aria-label="Tamaño de la vista">
+        <button class="btn btn-outline-dark active" id="dev-desktop" title="Ver como en computadora" aria-label="Computadora">
+<span class="lbl">Computadora</span>
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+<rect x="3" y="4" width="18" height="12" rx="1">
+</rect>
+<path d="M8 20h8M12 16v4">
+</path>
+</svg>
+</button>
+        <button class="btn btn-outline-dark" id="dev-phone" title="Ver como en celular" aria-label="Celular">
+<span class="lbl">Celular</span>
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+<rect x="7" y="2.5" width="10" height="19" rx="1.5">
+</rect>
+<path d="M11 18.5h2">
+</path>
+</svg>
+</button>
+      </div>
+      <button class="btn btn-outline-dark" id="preview" title="Vista previa" aria-label="Vista previa">
+<span class="lbl">Vista previa</span>
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z">
+</path>
+<circle cx="12" cy="12" r="3">
+</circle>
+</svg>
+</button>
+      <button class="btn btn-primary" id="publish">Publicar</button>
+    </div>
+  </div>
+<div style="position: absolute; visibility: hidden; width: 100px; height: 0px;">
+</div>
+</nav>
+<div class="ribbon bg-body border-bottom border-2 border-strong" id="ribbon" hidden="">
+  <div class="btn-group" role="group" aria-label="Historial">
+    <button class="btn btn-outline-dark btn-icon" id="undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">
+<svg viewBox="0 0 24 24">
+<path d="M9 14L4 9l5-5">
+</path>
+<path d="M4 9h11a5 5 0 0 1 0 10h-3">
+</path>
+</svg>
+</button>
+    <button class="btn btn-outline-dark btn-icon" id="redo" title="Rehacer (Ctrl+Y)" aria-label="Rehacer">
+<svg viewBox="0 0 24 24">
+<path d="M15 14l5-5-5-5">
+</path>
+<path d="M20 9H9a5 5 0 0 0 0 10h3">
+</path>
+</svg>
+</button>
+  </div>
+  <select class="form-select ribbon-style" id="rb-style" title="Estilo del párrafo" aria-label="Estilo del párrafo">
+    <option value="p">Párrafo</option>
+    <option value="h2">Título</option>
+    <option value="h3">Subtítulo</option>
+    <option value="ul">Lista con viñetas</option>
+    <option value="ol">Lista numerada</option>
+    <option value="quote">Cita destacada</option>
+    <option value="callout">Recuadro de texto</option>
+    <option value="" disabled="" hidden="">—</option>
+  </select>
+  <div class="btn-group" role="group" aria-label="Formato">
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="bold" title="Negrita (Ctrl+B)" aria-label="Negrita">
+<b>N</b>
+</button>
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="italic" title="Cursiva (Ctrl+I)" aria-label="Cursiva">
+<i class="font-serif">K</i>
+</button>
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="link" title="Enlace (Ctrl+K)" aria-label="Enlace">
+<svg viewBox="0 0 24 24">
+<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1">
+</path>
+<path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1">
+</path>
+</svg>
+</button>
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="unlink" title="Quitar enlace" aria-label="Quitar enlace">
+<svg viewBox="0 0 24 24">
+<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1">
+</path>
+<path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1">
+</path>
+<path d="M4 4l16 16">
+</path>
+</svg>
+</button>
+  </div>
+  <div class="btn-group" role="group" aria-label="Listas">
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="ul" title="Lista con viñetas (Ctrl+Shift+L)" aria-label="Lista con viñetas">
+<svg viewBox="0 0 24 24">
+<path d="M9 6h11M9 12h11M9 18h11">
+</path>
+<circle cx="4.5" cy="6" r="1.2">
+</circle>
+<circle cx="4.5" cy="12" r="1.2">
+</circle>
+<circle cx="4.5" cy="18" r="1.2">
+</circle>
+</svg>
+</button>
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="ol" title="Lista numerada" aria-label="Lista numerada">
+<svg viewBox="0 0 24 24">
+<path d="M10 6h10M10 12h10M10 18h10">
+</path>
+<path d="M4 4.5h1.5V9M3.5 9h3M3.5 13.5a1.5 1.5 0 0 1 3 0c0 1.5-3 2.2-3 4h3">
+</path>
+</svg>
+</button>
+  </div>
+  <div class="btn-group" role="group" aria-label="Alineación">
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="left" title="Alinear a la izquierda (Ctrl+L)" aria-label="Alinear a la izquierda">
+<svg viewBox="0 0 24 24">
+<path d="M4 6h16M4 10h10M4 14h16M4 18h10">
+</path>
+</svg>
+</button>
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="center" title="Centrar (Ctrl+E)" aria-label="Centrar">
+<svg viewBox="0 0 24 24">
+<path d="M4 6h16M7 10h10M4 14h16M7 18h10">
+</path>
+</svg>
+</button>
+  </div>
+  <div class="dropdown-host">
+    <button class="btn btn-outline-dark" id="rb-insert" aria-haspopup="true" aria-expanded="false">Insertar</button>
+    <div class="rb-menu" id="rb-menu" hidden="">
+</div>
+  </div>
+  <button class="btn btn-outline-dark" data-rb="find" title="Buscar y reemplazar (Ctrl+H)">Reemplazar</button>
+  <div class="flex-grow-1">
+</div>
+  <span class="font-ui small text-secondary text-nowrap" id="rb-count">
+</span>
+  <button class="btn btn-outline-dark btn-icon" data-rb="help" title="Atajos de teclado" aria-label="Atajos de teclado">?</button>
+</div>

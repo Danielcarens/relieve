@@ -908,7 +908,7 @@ ${b.tree ? '<button class="btn btn-outline-dark" data-do="ungrid">Todas en una f
 <div class="d-flex flex-wrap gap-2 align-items-center mt-2"><button class="btn btn-outline-dark" data-do="grid">Ordenar en cuadrícula de</button><input class="form-control" style="width: 4.5rem" type="number" min="1" max="6" value="2" id="grid-cols" aria-label="Columnas"><span class="hint m-0">columnas</span></div>
 <p class="hint">${MOVE_HINT}</p></div>`;
 }
-const MOVE_HINT = "Para armar un mosaico, arrastra una foto desde tu computadora, o la manija ✥ de otra foto de la página, y suéltala sobre una foto: entra a la izquierda, a la derecha, arriba o abajo de esa foto según el lado donde la sueltes; cerca del borde del mosaico, entra arriba, abajo o a un lado de todas. Una línea rosa muestra dónde va a quedar. Arrastrada junto a un párrafo, la foto flota a ese lado del texto.";
+const MOVE_HINT = "Para armar un mosaico, arrastra una foto desde tu computadora, o la manija ✥ de otra foto de la página, y suéltala sobre una foto: entra a la izquierda, a la derecha, arriba o abajo de esa foto según el lado donde la sueltes; cerca del borde de arriba o de abajo del mosaico, entra en una fila nueva arriba o abajo de todas. Una línea rosa muestra dónde va a quedar. Arrastrada junto a un párrafo, la foto flota a ese lado del texto.";
 
 function panePhotos() {
   const used = usedIds(); const ids = Object.keys(ED.photos);

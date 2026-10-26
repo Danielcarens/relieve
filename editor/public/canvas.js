@@ -718,9 +718,9 @@ function photoTarget(x, y, src) {
   if (src && src.i === i && b.type === "foto") return { kind: "none" };   // a photo onto itself
   const many = items.length > 1;
   let side = null, ref = "root", box = R;
-  if (many) {   // a band along the edge of the whole mosaic: on that side of all the photos
-    const bw = Math.min(36, Math.max(16, R.width * 0.05)), bh = Math.min(36, Math.max(16, R.height * 0.09));
-    if (y < R.top + bh) side = "top"; else if (y > R.bottom - bh) side = "bottom"; else if (x < R.left + bw) side = "left"; else if (x > R.right - bw) side = "right";
+  if (many) {   // a band along the top or the bottom of the whole mosaic: a new row above or below all the photos
+    const bh = Math.min(36, Math.max(16, R.height * 0.09));
+    if (y < R.top + bh) side = "top"; else if (y > R.bottom - bh) side = "bottom";
   }
   if (!side) {   // the photo under the pointer (or the nearest one, in a gap), and its nearest side
     let best = null, bd = Infinity;
@@ -765,11 +765,13 @@ function showDrop(t, ratio = 1.5) {
       : t.side === "top" ? [b.left, b.top - L / 2, b.width, L] : [b.left, b.bottom - L / 2, b.width, L];
     // dropped in the gap between two photos: say so
     // dropped in the gap between two photos: the line goes in the middle of the gap, and says so
+    // (only a neighbour in the same row, or the same column: same top and bottom, or same left and right edges)
+    const sameRow = (o) => Math.abs(o.r.top - b.top) < 4 && Math.abs(o.r.bottom - b.bottom) < 4, sameCol = (o) => Math.abs(o.r.left - b.left) < 4 && Math.abs(o.r.right - b.right) < 4;
     const nb = t.all ? null : t.items.find((o) => {
-      if (t.side === "left") return Math.abs(o.r.right - b.left) < 30 && o.r.bottom > b.top + 4 && o.r.top < b.bottom - 4;
-      if (t.side === "right") return Math.abs(o.r.left - b.right) < 30 && o.r.bottom > b.top + 4 && o.r.top < b.bottom - 4;
-      if (t.side === "top") return Math.abs(o.r.bottom - b.top) < 30 && o.r.right > b.left + 4 && o.r.left < b.right - 4;
-      return Math.abs(o.r.top - b.bottom) < 30 && o.r.right > b.left + 4 && o.r.left < b.right - 4;
+      if (t.side === "left") return Math.abs(o.r.right - b.left) < 30 && sameRow(o);
+      if (t.side === "right") return Math.abs(o.r.left - b.right) < 30 && sameRow(o);
+      if (t.side === "top") return Math.abs(o.r.bottom - b.top) < 30 && sameCol(o);
+      return Math.abs(o.r.top - b.bottom) < 30 && sameCol(o);
     });
     const between = !!nb;
     if (nb) {

@@ -1,0 +1,13 @@
+{
+  "name": "relieve-tests",
+  "private": true,
+  "type": "module",
+  "description": "Pruebas automáticas: artículos (ida y vuelta) y el editor en un navegador.",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 articles.test.mjs editor/*.test.mjs",
+    "test:articulos": "node --test articles.test.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
