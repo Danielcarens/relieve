@@ -1,5 +1,5 @@
 // Drag and drop: blocks, photos of the page and photos from the computer, with the pink mark of where they land.
-import { A, E, nearest, ratioOf, root } from "./base.js";
+import { A, E, ratioOf, root } from "./base.js";
 import { cellBox } from "./mosaic.js";
 import { contentBox } from "./sizes.js";
 

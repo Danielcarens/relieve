@@ -4,10 +4,12 @@
   "type": "module",
   "description": "Pruebas automáticas: artículos (ida y vuelta) y el editor en un navegador.",
   "scripts": {
-    "test": "node --test --test-concurrency=1 articles.test.mjs mosaic.test.mjs editor/*.test.mjs",
-    "test:articulos": "node --test articles.test.mjs"
+    "test": "node --test --test-concurrency=1 code.test.mjs articles.test.mjs mosaic.test.mjs editor/*.test.mjs",
+    "test:articulos": "node --test articles.test.mjs",
+    "formato": "prettier --write ../editor/public/app.js ../editor/public/web.js ../editor/lib/article.js ../editor/public/js ../editor/public/canvas"
   },
   "devDependencies": {
-    "playwright": "1.63.0"
+    "playwright": "1.63.0",
+    "prettier": "3.3.3"
   }
 }

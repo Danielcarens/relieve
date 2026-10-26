@@ -1,5 +1,5 @@
 // Drawing each block of the article with the site's own classes, plus the editing aids around it.
-import { A, IMG, esc, fit, posOf, ratioOf, svg } from "./base.js";
+import { IMG, esc, posOf, ratioOf, svg } from "./base.js";
 import { inl, mdMulti, mdToHtml } from "./markdown.js";
 
 // ---- grids: a row's tree may hold arrays (vertical stacks, and rows inside them) ------------------

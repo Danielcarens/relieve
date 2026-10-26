@@ -1,6 +1,6 @@
 // Changing the article: one undoable step at a time (mutate), undo / redo, and saving.
 import { TEXTY } from "./config.js";
-import { api, post } from "./env.js";
+import { post } from "./env.js";
 import { findReplace, updateCount } from "./ribbon.js";
 import { ED, S } from "./store.js";
 import { $, toast } from "./util.js";
