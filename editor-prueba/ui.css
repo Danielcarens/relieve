@@ -1,0 +1,149 @@
+/* Editor shell. Look and feel come from the site's theme.css (Bootstrap + brand variables);
+   this file only lays out the editor's own panels. No colors of its own. */
+[hidden] { display: none !important; }   /* Bootstrap's d-flex would otherwise win over the hidden attribute */
+html, body { height: 100%; }
+html { zoom: .9; scrollbar-gutter: auto; }   /* the whole editor (bars, panel and page) at 90 %, like zooming the browser out one step */
+body { display: flex; flex-direction: column; overflow: hidden; }
+.navbar { flex: none; zoom: calc(1 / .9); }   /* the top bar stays at 100 %: logo and links the same size and spacing as on the site */
+.navbar .navbar-nav .nav-link { padding-inline: .5rem; }   /* as in the site's expanded navbar (navbar-expand-lg) */
+#nav-crumb { display: none; }   /* the bar sits in the site's centered column, like on the site; there is no room for the article's title (it is on the page) */
+#save-state { min-width: 7.5rem; text-align: right; }
+.navbar .navbar-nav { flex-shrink: 0; }   /* the menu never gets covered by the buttons */
+#tools .ico { display: none; width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 1399.98px) { #save-state { min-width: 0; } }
+@media (max-width: 1199.98px) {   /* the site's column is narrower here: icons for the view size and the preview, so everything stays inside it */
+  #tools .lbl { display: none; }
+  #tools .ico { display: block; }
+}
+@media (max-width: 991.98px) { .navbar > .container { max-width: none; } }   /* below this the site shows a menu button; the editor uses the full width */
+/* The page lists and the panel sit in the same centered column as the bar and as the site. The site's .container widths (theme.css)
+   already include the 90 % look, and the editor's own 90 % zoom would shrink them a second time, so they are divided by .9 here:
+   the column's edges (and the 0.75rem inner margin) land on the same screen pixels as the bar's and the site's. */
+main > .container { padding-inline: calc(var(--bs-gutter-x, 1.5rem) * .5 / .9); }
+@media (min-width: 992px)  { main > .container { max-width: calc(864px / .9); } }
+@media (min-width: 1200px) { main > .container { max-width: calc(1026px / .9); } }
+@media (min-width: 1400px) { main > .container { max-width: calc(1188px / .9); } }
+@media (max-width: 991.98px) { main > .container { max-width: none; } }
+/* Ribbon (Word-style formatting bar) */
+.ribbon { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .5rem 1rem; }
+@media (min-width: 1200px) { .ribbon { padding-inline: 1.5rem; } }
+.ribbon svg, .rb-menu svg { flex: none; min-width: 1.25rem; width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ribbon svg circle { fill: currentColor; stroke: none; }
+.ribbon .btn-icon b, .ribbon .btn-icon i { font-size: 1.1rem; line-height: 1; }
+.ribbon .font-serif { font-family: Georgia, "Times New Roman", serif; font-weight: 700; }
+.ribbon-style { width: 13rem; flex: none; }
+.dropdown-host { position: relative; }
+.rb-menu { position: absolute; top: calc(100% + .35rem); left: 0; z-index: 60; background: var(--bs-body-bg); border: 2px solid var(--bs-body-color); min-width: 17rem; max-height: 75vh; overflow: auto; padding: .35rem 0; }
+.rb-menu h6 { font-family: var(--font-display); font-size: .75rem; font-weight: 700; text-transform: none; color: var(--bs-secondary-color); margin: .6rem 1rem .25rem; }
+.rb-menu button { display: block; width: 100%; border: 0; background: transparent; color: var(--bs-body-color); text-align: left; padding: .5rem 1rem; font: 600 .95rem/1.2 var(--font-display); }
+.rb-menu button:hover, .rb-menu button:focus-visible { background: var(--bs-secondary-bg); outline: 0; }
+.rb-menu kbd, .ribbon kbd { font: inherit; color: var(--bs-secondary-color); float: right; background: none; padding: 0; }
+.list-view { flex: 1; scrollbar-gutter: stable; }   /* the scrollbar's room is always reserved, like the site's page; index.html gives the bar the same room */
+
+.edit-view { flex: 1; display: flex; min-height: 0; }
+.stage { flex: 1; min-width: 0; overflow: auto; display: flex; justify-content: center; }
+.stage iframe { border: 0; width: 100%; height: 100%; display: block; background: var(--bs-body-bg); }
+.stage.is-phone { padding: 1rem 0; }
+.stage.is-phone iframe { width: 390px; max-width: 100%; border: 2px solid var(--bs-body-color); }
+.inspector { width: 24rem; flex: none; overflow-y: auto; }
+@media (max-width: 1100px) { .inspector { width: 19rem; } }
+.insp-tabs { position: sticky; top: 0; z-index: 2; background: var(--bs-body-bg); padding: 1rem 1rem 0; }
+.pane textarea.form-control { height: auto; min-height: 5.5rem; padding-top: .6rem; padding-bottom: .6rem; line-height: 1.4; resize: vertical; }
+.pane .form-select { height: var(--control-height); }
+.pane .form-check-label { font-family: var(--font-display); }
+.rowpair { display: grid; grid-template-columns: 1fr 1.6fr auto; gap: .5rem; align-items: center; }
+.rowpair.single { grid-template-columns: 1fr auto; }
+.thumbs { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; }
+.thumb { border: 2px solid transparent; background: var(--bs-secondary-bg); padding: 0; text-align: left; color: inherit; }
+.thumb img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; display: block; }
+.thumb span { display: block; font-family: var(--font-display); font-size: .8rem; padding: .35rem .5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thumb:hover, .thumb.on { border-color: var(--bs-body-color); }
+.thumb.miss span { color: var(--bs-danger); font-weight: 700; }
+.modal-bg { position: fixed; inset: 0; background: rgba(var(--bs-body-color-rgb), .6); display: grid; place-items: center; z-index: 100; padding: 1rem; }
+.modal-bg[hidden] { display: none; }
+.dlg { width: min(34rem, 100%); max-height: 90vh; overflow: auto; }
+.dlg.wide { width: min(96vw, 80rem); height: 92vh; display: flex; flex-direction: column; }
+.dlg.wide .card-body { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.pv { flex: 1; display: flex; justify-content: center; background: var(--bs-secondary-bg); min-height: 0; }
+.pv iframe { border: 0; background: var(--bs-body-bg); width: 100%; height: 100%; }
+.pv.is-phone iframe { width: 390px; border-inline: 2px solid var(--bs-body-color); }
+.toast-box { position: fixed; right: 1rem; bottom: 1rem; display: grid; gap: .5rem; z-index: 200; max-width: 28rem; }
+.art-thumb { aspect-ratio: 16 / 9; object-fit: cover; width: 100%; display: block; background: var(--bs-secondary-bg); }
+
+/* Small helpers used by app.js templates */
+.pane { padding: 1.25rem 1rem 3rem; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.1rem; align-content: start; }   /* nothing wide pushes the panel out of the window */
+.pane hr { margin: 0; border-top: 1px solid var(--bs-border-color); opacity: 1; }   /* a fine line between the panel's groups */
+.pane .form-label { margin-bottom: .35rem; }
+.hint { font-size: .85rem; line-height: 1.4; color: var(--bs-secondary-color); margin: .4rem 0 0; }
+.hint.bad { color: var(--bs-danger); font-weight: 700; }
+.hint[hidden] { display: none; }
+.btnrow { display: flex; flex-wrap: wrap; gap: .5rem; }
+.form-control.invalid { border-color: var(--bs-danger); }
+.acts { display: flex; justify-content: flex-end; gap: .5rem; flex-wrap: wrap; }
+.empty { color: var(--bs-secondary-color); padding: 2rem 0; }
+.dlg { background: var(--bs-body-bg); border: 2px solid var(--bs-body-color); padding: 1.5rem; display: grid; gap: 1rem; align-content: start; }
+.dlg h2 { font-size: 2rem; margin: 0; }
+.dlg.wide { display: flex; }
+.min-w-0 { min-width: 0; }
+.art { display: grid; grid-template-columns: 11rem 1fr auto; gap: 1.25rem; align-items: center; padding: 1.25rem .5rem; cursor: pointer; }
+.art:hover { background: var(--bs-secondary-bg); }
+.art:first-child { border-top: 0; }
+.art h2 { text-wrap: balance; }
+/* Status tags (list and panel): the same height, type and alignment as the buttons beside them, and the site's colours:
+   yellow = the yellow text box (pending, AI text), red = error, green = done, dark = draft */
+.ed-tag { display: inline-flex; align-items: center; height: var(--control-height); padding: 0 1rem; font-family: var(--font-display); font-weight: 700; font-size: 1rem; line-height: 1; white-space: nowrap; }
+.ed-tag:is(.tone-amarillo, .tone-rojo, .tone-verde) { background: var(--tone-bg); color: var(--tone-text); }
+.ed-tag.is-dark { background: var(--bs-body-color); color: var(--bs-body-bg); }
+.ed-tag-sm { height: 1.75rem; padding: 0 .6rem; font-size: .85rem; vertical-align: middle; }
+@media (max-width: 575.98px) { .art { grid-template-columns: 6rem 1fr; } .art > :last-child { grid-column: 2; } }
+#grid-cols { width: 5rem; flex: none; }
+.form-range::-webkit-slider-thumb { background: var(--bs-primary); } .form-range::-moz-range-thumb { background: var(--bs-primary); }
+
+/* Sign-in on the web */
+.login-view { position: fixed; inset: 0; z-index: 300; background: var(--bs-secondary-bg); display: grid; place-items: center; padding: 1rem; overflow: auto; }
+.login-view[hidden] { display: none; }
+.login-card { width: min(30rem, 100%); }
+.login-card .wordmark { height: 2.5rem; color: var(--bs-body-color); }
+.justify-self-start { justify-self: start; }
+/* Panel */
+.bar { height: .6rem; background: var(--bs-secondary-bg); }
+.bar > span { display: block; height: 100%; background: var(--bs-primary); }
+.chart { display: grid; grid-template-columns: repeat(12, 1fr); gap: .4rem; height: 11rem; align-items: end; }
+.chart-col { display: grid; grid-template-rows: auto 1fr auto; height: 100%; text-align: center; }
+.chart-bar { align-self: end; background: var(--bs-body-color); min-height: 2px; }
+.chart-n, .chart-l { font: 600 .75rem var(--font-display); color: var(--bs-secondary-color); }
+
+/* Inspector: what kind of block is selected */
+.kind .tape { font-size: .95rem; }
+.kind-tag { font: 600 .75rem var(--font-display); border: 1px solid currentColor; padding: .1rem .4rem; color: var(--bs-secondary-color); }
+
+/* ---- Fewer boxes -----------------------------------------------------------------------------------------
+   Bars, dialogs and the preview: buttons without a box (as .btn-quiet in theme.css): light fill on hover, a bar
+   under the chosen one. The panel's buttons are light grey blocks, so they still read as buttons; the chosen
+   option of a choice stays dark. Fields have a 1px border. Publicar and the other filled buttons don't change. */
+:root { --field-border: #7f8b86; }   /* 3.5:1 on white, enough for a field's edge */
+.btn-outline-dark {
+  --bs-btn-border-color: transparent;
+  --bs-btn-hover-color: var(--bs-body-color);
+  --bs-btn-hover-bg: var(--bs-secondary-bg);
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-color: var(--bs-body-color);
+  --bs-btn-active-bg: transparent;
+  --bs-btn-active-border-color: transparent;
+  --bs-btn-disabled-border-color: transparent;
+}
+.btn-outline-dark.active { box-shadow: inset 0 -2px 0 var(--bs-body-color); }
+.btn-outline-dark.active:hover { background-color: var(--bs-secondary-bg); }
+.pane .btn-outline-dark {
+  --bs-btn-bg: var(--bs-secondary-bg);
+  --bs-btn-hover-bg: #e3e6e0;
+  --bs-btn-active-color: var(--bs-body-bg);
+  --bs-btn-active-bg: var(--bs-body-color);
+}
+.pane .btn-outline-dark.active { box-shadow: none; }
+.pane .btn-outline-dark.active:hover { background-color: var(--bs-body-color); }
+.insp-tabs .btn-group { border-bottom: 1px solid var(--bs-border-color); }   /* tabs: text, a bar under the open one */
+.ribbon > .btn-group:not(:first-child), .ribbon > .dropdown-host { padding-left: .5rem; border-left: 1px solid var(--bs-border-color); }
+.form-control, .form-select { border-width: 1px; border-color: var(--field-border); }
+.form-control:focus, .form-select:focus { border-color: var(--bs-body-color); box-shadow: inset 0 0 0 1px var(--bs-body-color), 0 0 0 .25rem rgba(var(--bs-primary-rgb), .35); }
+

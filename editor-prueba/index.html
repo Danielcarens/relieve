@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta name="editor-version" content="f5ae615">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRUEBA · Editor de RELIEVE</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap.min.css">
+<link rel="stylesheet" href="/assets/css/theme.css?v=f5ae615">
+<link rel="stylesheet" href="ui.css?v=f5ae615">
+<script src="/assets/js/ridge.js?v=f5ae615" defer></script>
+<script>
+/* The site's scrollbar sits at the window's edge and the column is centred in what is left; here the scrollbar belongs to the
+   list/panel under the bar. Give the bar the same room on the right so both columns are centred on the same line. */
+addEventListener("DOMContentLoaded", function () {
+  var nav = document.querySelector(".navbar-ridge");
+  function fit() {
+    var m = document.querySelector("main.list-view:not([hidden])");
+    var sb = m ? (m.offsetWidth - m.clientWidth) * .9 : 0;    /* .9 = the editor's zoom (ui.css); the bar is back at 100 % */
+    nav.style.paddingRight = Math.round(sb) + "px";
+    nav.dispatchEvent(new Event("ridge"));
+  }
+  fit(); addEventListener("resize", fit);
+  var mo = new MutationObserver(fit);
+  document.querySelectorAll("main.list-view").forEach(function (m) { mo.observe(m, { attributes: true, attributeFilter: ["hidden"] }); });
+});
+</script>
+<meta name="robots" content="noindex, nofollow">
+<script type="importmap">{"imports":{"./js/access.js":"./js/access.js?v=f5ae615","./js/actions.js":"./js/actions.js?v=f5ae615","./js/config.js":"./js/config.js?v=f5ae615","./js/env.js":"./js/env.js?v=f5ae615","./js/errors.js":"./js/errors.js?v=f5ae615","./js/inspector.js":"./js/inspector.js?v=f5ae615","./js/mosaic-blocks.js":"./js/mosaic-blocks.js?v=f5ae615","./js/mosaic.js":"./js/mosaic.js?v=f5ae615","./js/panel.js":"./js/panel.js?v=f5ae615","./js/photos.js":"./js/photos.js?v=f5ae615","./js/publish.js":"./js/publish.js?v=f5ae615","./js/ribbon.js":"./js/ribbon.js?v=f5ae615","./js/state.js":"./js/state.js?v=f5ae615","./js/store.js":"./js/store.js?v=f5ae615","./js/util.js":"./js/util.js?v=f5ae615","./js/views.js":"./js/views.js?v=f5ae615","./web.js":"./web.js?v=f5ae615","./lib/article.js":"./lib/article.js?v=f5ae615","./app.js":"./app.js?v=f5ae615","js-yaml":"./vendor/js-yaml.js?v=f5ae615"}}</script>
+</head>
+<body class="bg-body">
+<div style="position:fixed;left:1rem;bottom:1rem;z-index:300;background:var(--bs-warning-bg-subtle);color:var(--bs-warning-text-emphasis);font:700 .9rem/1.2 var(--font-display);padding:.6rem .9rem;pointer-events:none">Versión de prueba del editor (rama editor-orden). «Publicar» publica de verdad.</div>
+<!--LOGO-DEFS-->
+<!-- Same bar as the site (src/_includes/partials/navbar.njk): logo, links, square controls -->
+<nav class="navbar navbar-ridge bg-body py-2 py-lg-3 flex-nowrap">
+  <div class="container flex-nowrap gap-3">
+    <a class="navbar-brand me-0" href="#" id="go-list" aria-label="RELIEVE: volver a los artículos"><svg class="wordmark" viewBox="-11 -11 3399 622" role="img" aria-label="RELIEVE"><use href="#logo-lockup"/></svg></a>
+    <ul class="navbar-nav flex-row gap-3 ms-lg-4 me-auto">
+      <li class="nav-item"><a class="nav-link" href="#" id="nav-list">Artículos</a></li>
+      <li class="nav-item"><a class="nav-link" href="#" id="nav-panel">Panel</a></li>
+      <li class="nav-item min-w-0" id="nav-crumb" hidden><span class="nav-link active text-truncate d-block" id="crumb" aria-current="page"></span></li>
+    </ul>
+    <div class="d-flex align-items-center gap-2 flex-nowrap" id="web-tools" hidden>
+      <span class="font-ui small text-secondary text-nowrap" id="who"></span>
+      <button class="btn btn-outline-dark" id="users-btn">Usuarios</button>
+      <button class="btn btn-outline-dark" id="logout-btn">Salir</button>
+    </div>
+    <div class="d-flex align-items-center gap-2 flex-nowrap" id="tools" hidden>
+      <span id="save-state" class="font-ui small text-secondary text-nowrap me-1"></span>
+      <div class="btn-group" role="group" aria-label="Tamaño de la vista">
+        <button class="btn btn-outline-dark" id="dev-desktop" title="Ver como en computadora" aria-label="Computadora"><span class="lbl">Computadora</span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg></button>
+        <button class="btn btn-outline-dark" id="dev-phone" title="Ver como en celular" aria-label="Celular"><span class="lbl">Celular</span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="1.5"/><path d="M11 18.5h2"/></svg></button>
+      </div>
+      <button class="btn btn-outline-dark" id="preview" title="Vista previa" aria-label="Vista previa"><span class="lbl">Vista previa</span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      <button class="btn btn-primary" id="publish">Publicar</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Word-style ribbon: always acts on the paragraph where the cursor is -->
+<div class="ribbon bg-body border-bottom border-2 border-strong" id="ribbon" hidden>
+  <div class="btn-group" role="group" aria-label="Historial">
+    <button class="btn btn-outline-dark btn-icon" id="undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="btn btn-outline-dark btn-icon" id="redo" title="Rehacer (Ctrl+Y)" aria-label="Rehacer"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+  </div>
+  <select class="form-select ribbon-style" id="rb-style" title="Estilo del párrafo" aria-label="Estilo del párrafo">
+    <option value="p">Párrafo</option>
+    <option value="h2">Título</option>
+    <option value="h3">Subtítulo</option>
+    <option value="ul">Lista con viñetas</option>
+    <option value="ol">Lista numerada</option>
+    <option value="quote">Cita destacada</option>
+    <option value="callout">Recuadro de texto</option>
+    <option value="" disabled hidden>—</option>
+  </select>
+  <div class="btn-group" role="group" aria-label="Formato">
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="bold" title="Negrita (Ctrl+B)" aria-label="Negrita"><b>N</b></button>
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="italic" title="Cursiva (Ctrl+I)" aria-label="Cursiva"><i class="font-serif">K</i></button>
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="link" title="Enlace (Ctrl+K)" aria-label="Enlace"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></button>
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="unlink" title="Quitar enlace" aria-label="Quitar enlace"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/><path d="M4 4l16 16"/></svg></button>
+  </div>
+  <div class="btn-group" role="group" aria-label="Listas">
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="ul" title="Lista con viñetas (Ctrl+Shift+L)" aria-label="Lista con viñetas"><svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg></button>
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="ol" title="Lista numerada" aria-label="Lista numerada"><svg viewBox="0 0 24 24"><path d="M10 6h10M10 12h10M10 18h10"/><path d="M4 4.5h1.5V9M3.5 9h3M3.5 13.5a1.5 1.5 0 0 1 3 0c0 1.5-3 2.2-3 4h3"/></svg></button>
+  </div>
+  <div class="btn-group" role="group" aria-label="Alineación">
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="left" title="Alinear a la izquierda (Ctrl+L)" aria-label="Alinear a la izquierda"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg></button>
+    <button class="btn btn-outline-dark btn-icon rb-fmt" data-rb="center" title="Centrar (Ctrl+E)" aria-label="Centrar"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 10h10M4 14h16M7 18h10"/></svg></button>
+  </div>
+  <div class="dropdown-host">
+    <button class="btn btn-outline-dark" id="rb-insert" aria-haspopup="true" aria-expanded="false">Insertar</button>
+    <div class="rb-menu" id="rb-menu" hidden></div>
+  </div>
+  <button class="btn btn-outline-dark" data-rb="find" title="Buscar y reemplazar (Ctrl+H)">Reemplazar</button>
+  <div class="flex-grow-1"></div>
+  <span class="font-ui small text-secondary text-nowrap" id="rb-count"></span>
+  <button class="btn btn-outline-dark btn-icon" data-rb="help" title="Atajos de teclado" aria-label="Atajos de teclado">?</button>
+</div>
+
+<main id="view-list" class="list-view overflow-auto">
+  <div class="container py-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 border-bottom border-2 border-strong pb-3 mb-4">
+      <h1 class="mb-0">Artículos</h1>
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <span id="git-state" class="font-ui small text-secondary"></span>
+        <button class="btn btn-outline-dark" id="sync">Traer cambios de GitHub</button>
+        <button class="btn btn-primary" id="new">Nuevo artículo</button>
+      </div>
+    </div>
+    <ul class="list-unstyled mb-0" id="articles"></ul>
+    <div id="guides-wrap" class="mt-5" hidden>
+      <div class="border-bottom border-2 border-strong pb-3 mb-2 d-flex flex-wrap justify-content-between align-items-end gap-2">
+        <h2 class="tape mb-0">Guía para escribir</h2>
+        <span class="font-ui small text-secondary">Ejemplos que muestran cada función con su explicación. No se publican en el sitio.</span>
+      </div>
+      <ul class="list-unstyled mb-0" id="guides"></ul>
+    </div>
+  </div>
+</main>
+
+<main id="view-panel" class="list-view overflow-auto" hidden>
+  <div class="container py-5" id="panel"></div>
+</main>
+
+<div id="login" class="login-view" hidden></div>
+
+<div id="view-edit" class="edit-view" hidden>
+  <div class="stage bg-secondary-bg" id="stage"><iframe id="canvas" src="canvas.html" title="Artículo"></iframe></div>
+  <aside class="inspector bg-body border-start border-2 border-strong" id="insp"></aside>
+</div>
+
+<div id="modal" class="modal-bg" hidden></div>
+<div id="toast" class="toast-box"></div>
+<input type="file" id="file" accept="image/*" hidden>
+<script src="app.js?v=f5ae615" type="module"></script>
+</body>
+</html>
