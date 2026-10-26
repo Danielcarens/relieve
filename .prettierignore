@@ -1,0 +1,4 @@
+node_modules
+_site
+tests/editor/snapshots
+editor/public/vendor

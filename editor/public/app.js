@@ -10,18 +10,28 @@ import { watchVersion } from "./js/publish.js";
 import { ED } from "./js/store.js";
 import { $, toast } from "./js/util.js";
 import { showList } from "./js/views.js";
+
 // ---- start -----------------------------------------------------------------------------------
 (async () => {
   if (MODE === "web") {
     env.web = await import("./web.js");
-    if (!document.getElementById("logo-lockup")) { try { const r = await fetch("logo-defs.svg"); if (r.ok) document.body.insertAdjacentHTML("afterbegin", await r.text()); } catch { } }
+    if (!document.getElementById("logo-lockup")) {
+      try {
+        const r = await fetch("logo-defs.svg");
+        if (r.ok) document.body.insertAdjacentHTML("afterbegin", await r.text());
+      } catch {}
+    }
     if (!env.web.session.token) await loginScreen();
     await env.web.loadPending();
-    $("#web-tools").hidden = false; $("#who").textContent = env.web.session.name;
+    $("#web-tools").hidden = false;
+    $("#who").textContent = env.web.session.name;
     $("#sync").textContent = "Actualizar lista";
     watchVersion();
   }
-  try { const st = await api("/api/status"); ED.cfg = st.cfg; if (!st.ready) toast("El sitio no está preparado. Mira la ventana negra del editor.", true, 15000); } catch {}
+  try {
+    const st = await api("/api/status");
+    ED.cfg = st.cfg;
+    if (!st.ready) toast("El sitio no está preparado. Mira la ventana negra del editor.", true, 15000);
+  } catch {}
   await showList().catch((e) => toast(e.message, true));
 })();
-

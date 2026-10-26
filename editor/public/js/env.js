@@ -2,8 +2,10 @@
 // ---- where the editor runs -------------------------------------------------------------------
 // local: started with "Iniciar editor.bat" (Node server on this computer, git, Eleventy preview)
 // web:   opened from the website (relievemag.com/editor/): GitHub API + the browser (web.js)
-export const MODE = new URLSearchParams(location.search).get("modo") || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? "local" : "web");
-export const env = { web: null };   // web.js (GitHub) once the web editor has loaded it
+export const MODE =
+  new URLSearchParams(location.search).get("modo") ||
+  (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? "local" : "web");
+export const env = { web: null }; // web.js (GitHub) once the web editor has loaded it
 window.EDITOR_MODE = MODE;
 
 // ---- tiny API client -------------------------------------------------------------------
