@@ -85,7 +85,7 @@ main > .container { padding-inline: calc(var(--bs-gutter-x, 1.5rem) * .5 / .9); 
 .dlg h2 { font-size: 2rem; margin: 0; }
 .dlg.wide { display: flex; }
 .min-w-0 { min-width: 0; }
-.art { display: grid; grid-template-columns: 11rem 1fr auto; gap: 1.25rem; align-items: center; padding: 1.25rem .5rem; cursor: pointer; }
+.art { display: grid; grid-template-columns: 11rem 1fr auto; gap: 1.25rem; align-items: center; padding: 1.25rem 0; cursor: pointer; }   /* no side padding: the photo, the tags and the buttons line up with the title and the buttons above */
 .art:hover { background: var(--bs-secondary-bg); }
 .art:first-child { border-top: 0; }
 .art h2 { text-wrap: balance; }
