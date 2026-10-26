@@ -1,7 +1,6 @@
 // Typing: text and fields, Word keys (Enter, Backspace, arrows), shortcuts, pasting, the selection the ribbon formats.
 import { A, E, esc, fit, root } from "./base.js";
 import {
-
   blkOf,
   blockIndex,
   caretParts,
