@@ -1,6 +1,6 @@
 // window.act: everything the canvas (canvas/, inside the iframe) asks the editor to do.
 import { BLOCK_DEFAULTS, NEEDS_CLEAR, textTypes } from "./config.js";
-import { api, post } from "./env.js";
+import { post } from "./env.js";
 import { renderInspector, renderInspectorSoft } from "./inspector.js";
 import { insertNode, nodeOfBlock, removeNode } from "./mosaic.js";
 import { putNode } from "./mosaic-blocks.js";

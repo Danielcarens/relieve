@@ -1,5 +1,5 @@
 // Preview, publishing, and the notice when a new version of the editor is out.
-import { MODE, api, post } from "./env.js";
+import { MODE, post } from "./env.js";
 import { save, setState } from "./state.js";
 import { ED, S } from "./store.js";
 import { $, closeModal, esc, modal, toast } from "./util.js";

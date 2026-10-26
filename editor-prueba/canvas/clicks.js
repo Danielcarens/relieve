@@ -1,6 +1,5 @@
 // Clicks on the page: the + menus (also the one under a floating photo), block tools, selecting.
 import { A, E, root } from "./base.js";
-import { ins } from "./blocks.js";
 
 // Where "below this floating block" is: before the first block that already starts below it (the text beside it,
 // and a paragraph that runs past its bottom, stay before).

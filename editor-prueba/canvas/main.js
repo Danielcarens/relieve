@@ -10,7 +10,7 @@ import "./typing.js";
 import "./crop.js";
 import "./drag.js";
 import "./sizes.js";
-import { PREVIEW, root } from "./base.js";
+import { PREVIEW } from "./base.js";
 import { render } from "./render.js";
 
 // ---- preview mode (web editor's "Vista previa"): the same page without editing aids ----

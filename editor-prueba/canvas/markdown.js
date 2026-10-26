@@ -1,5 +1,5 @@
 // Text: Markdown <-> what the page shows, pasting from Word or Google Docs, the cursor.
-import { A, IMG, esc } from "./base.js";
+import { esc } from "./base.js";
 
 // ---- inline formatting: the page shows real bold / italic / links; the file keeps **bold**, *italic*, [text](url) ----
 export function mdToHtml(md) {

@@ -1,6 +1,6 @@
 // Mosaics on the page: the bars between photos and the handle under them.
 import { A, E, nearest, ratioOf, root } from "./base.js";
-import { caption, patchGrid } from "./blocks.js";
+import { patchGrid } from "./blocks.js";
 import { blkOf } from "./markdown.js";
 import { photoEdges, showGuide, showGuideH } from "./sizes.js";
 

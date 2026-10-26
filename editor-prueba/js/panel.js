@@ -67,7 +67,7 @@ export async function showPanel() {
   const issues = arts.filter((a) => a.issues.length);
   const heavy = [...arts].sort((a, b) => b.imgBytes - a.imgBytes).slice(0, 5);
   const kpi = (n, l, sub = "") =>
-    `<div class="col"><div class="border border-2 border-strong p-3 h-100"><div class="small-meta fw-semibold font-ui">${l}</div><div class="h3 mb-0 text-nowrap">${n}</div>${sub ? `<div class="small-meta mt-1">${sub}</div>` : ""}</div></div>`;
+    `<div class="col"><div class="py-2 h-100"><div class="small-meta fw-semibold font-ui">${l}</div><div class="h3 mb-0 text-nowrap">${n}</div>${sub ? `<div class="small-meta mt-1">${sub}</div>` : ""}</div></div>`;
   const sec = (title, inner, extra = "") =>
     `<section class="mt-5"><div class="d-flex justify-content-between align-items-end border-bottom border-2 border-strong pb-2 mb-3 gap-2 flex-wrap"><h2 class="tape mb-0">${title}</h2>${extra}</div>${inner}</section>`;
   el.innerHTML = `<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 border-bottom border-2 border-strong pb-3"><h1 class="mb-0">Panel</h1><span class="font-ui small text-secondary">${MODE === "web" ? "Datos del repositorio en GitHub" : "Datos de la copia del sitio en esta computadora"} · ${new Date().toLocaleString("es")}</span></div>
