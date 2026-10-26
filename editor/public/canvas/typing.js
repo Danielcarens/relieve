@@ -280,6 +280,15 @@ addEventListener("keydown", (e) => {
 
 // Remember the last text selection so the inspector's Bold / Italic / Link buttons still work after focus leaves the page.
 window.lastRange = null;
+// The browser tells about a new selection a moment later (selectionchange): before using the last one, read the
+// current one, in case the ribbon or a shortcut comes faster than that.
+function syncRange() {
+  const sel = getSelection();
+  if (!sel.rangeCount) return;
+  const r = sel.getRangeAt(0),
+    el = richOf(r.commonAncestorContainer);
+  if (el) window.lastRange = { range: r.cloneRange(), el };
+}
 document.addEventListener("selectionchange", () => {
   const sel = getSelection();
   if (!sel.rangeCount) return;
@@ -298,6 +307,7 @@ document.addEventListener("selectionchange", () => {
   }
 });
 window.formatText = (cmd, url) => {
+  syncRange();
   // cmd: bold | italic | createLink
   const L = window.lastRange;
   if (!L || !L.el.isConnected) return false;
@@ -322,6 +332,7 @@ window.formatText = (cmd, url) => {
   return true;
 };
 window.linkAt = () => {
+  syncRange();
   // cursor inside a link: select all of it and return its address
   const L = window.lastRange;
   if (!L || !L.el.isConnected) return null;
@@ -334,6 +345,7 @@ window.linkAt = () => {
   return a.getAttribute("href") || "";
 };
 window.hasTextSelection = () => {
+  syncRange();
   const L = window.lastRange;
   return !!(L && L.el.isConnected && !L.range.collapsed);
 };
