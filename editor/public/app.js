@@ -13,13 +13,13 @@ window.INSERT_MENU = [
   ["", "Diseño"], ["datos", "Datos en fila (lugar, distancia…)"], ["button", "Botón"], ["hr", "Línea separadora"], ["space", "Espacio en blanco"], ["ficha", "Ficha de datos"], ["raw", "Código HTML"],
 ];
 const ED = window.ED = { path: null, meta: null, photos: {}, fichas: {}, blocks: [], sel: null, tab: "article", problems: [], heroV: 0, cfg: {} };
-let hist = [], fut = [], lastType = 0, saveTimer = null, saving = false, dirty = false, device = "desktop";
+const S = { hist: [], fut: [], lastType: 0, saveTimer: null, saving: false, dirty: false, device: "desktop", lastCaret: null, heroTimer: null };   // the editor's own state (history, saving, view)
 const frame = () => $("#canvas");
-window.imgSrc = (base, file, suf) => (MODE === "web" && web && web.pendingUrl(`src${base}${file}${suf}`)) || `${base}${file}${suf}`;
+window.imgSrc = (base, file, suf) => (MODE === "web" && env.web && env.web.pendingUrl(`src${base}${file}${suf}`)) || `${base}${file}${suf}`;
 window.SECTION_NAMES = Object.fromEntries(SECTIONS);
 window.heroSrc = (m) => {
   const h = m.hero, dir = (/\/assets\/img\/([^/]+)\//.exec(m.imgBase || "") || [])[1];
-  if (MODE === "web") return (web && web.heroSourceUrl(m)) || window.imgSrc(m.imgBase, h.file, "-1280.jpg");
+  if (MODE === "web") return (env.web && env.web.heroSourceUrl(m)) || window.imgSrc(m.imgBase, h.file, "-1280.jpg");
   return h.srcW && dir ? `/originals/${dir}/${h.file || "hero"}-source.jpg?v=${ED.heroV || 0}` : `${m.imgBase}${h.file}-1280.jpg?v=${ED.heroV || 0}`;
 };
 const cdoc = () => frame().contentDocument;
@@ -28,12 +28,12 @@ const cdoc = () => frame().contentDocument;
 // local: started with "Iniciar editor.bat" (Node server on this computer, git, Eleventy preview)
 // web:   opened from the website (relievemag.com/editor/): GitHub API + the browser (web.js)
 const MODE = new URLSearchParams(location.search).get("modo") || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? "local" : "web");
-let web = null;
+const env = { web: null };   // web.js (GitHub) once the web editor has loaded it
 window.EDITOR_MODE = MODE;
 
 // ---- tiny API client -------------------------------------------------------------------
 async function api(path, opts = {}) {
-  if (MODE === "web") return web.handle(opts.method || "GET", path, opts.body);
+  if (MODE === "web") return env.web.handle(opts.method || "GET", path, opts.body);
   const r = await fetch(path, opts);
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error(j.error || `Error ${r.status}`), { conflict: !!j.conflict });
@@ -57,7 +57,7 @@ const closeModal = () => { $("#modal").hidden = true; $("#modal").innerHTML = ""
 const snap = () => JSON.stringify({ meta: ED.meta, photos: ED.photos, fichas: ED.fichas, blocks: ED.blocks });
 function restore(s) {
   const o = JSON.parse(s); ED.meta = o.meta; ED.photos = o.photos; ED.fichas = o.fichas || {}; ED.blocks = o.blocks;
-  const i = Math.min(lastCaret ?? -1, ED.blocks.length - 1);
+  const i = Math.min(S.lastCaret ?? -1, ED.blocks.length - 1);
   ED.sel = i >= 0 ? { i } : null; if (i >= 0 && TEXTY.includes(ED.blocks[i].type)) ED.focus = { i };
   refresh(); markDirty();
 }
@@ -65,32 +65,32 @@ function mutate(fn, { typing = false } = {}) {
   const before = snap();
   fn();
   const now = Date.now();
-  if (!typing || now - lastType > 1200) { hist.push(before); if (hist.length > 200) hist.shift(); fut = []; }
-  lastType = typing ? now : 0;
+  if (!typing || now - S.lastType > 1200) { S.hist.push(before); if (S.hist.length > 200) S.hist.shift(); S.fut = []; }
+  S.lastType = typing ? now : 0;
   markDirty();
   if (!typing) refresh();
   updateUndo();
 }
-function updateUndo() { $("#undo").disabled = !hist.length; $("#redo").disabled = !fut.length; }
-function undo() { if (!hist.length) return; fut.push(snap()); restore(hist.pop()); updateUndo(); }
-function redo() { if (!fut.length) return; hist.push(snap()); restore(fut.pop()); updateUndo(); }
-function markDirty() { dirty = true; setState("Sin guardar"); updateCount(); clearTimeout(saveTimer); saveTimer = setTimeout(save, 1200); }
+function updateUndo() { $("#undo").disabled = !S.hist.length; $("#redo").disabled = !S.fut.length; }
+function undo() { if (!S.hist.length) return; S.fut.push(snap()); restore(S.hist.pop()); updateUndo(); }
+function redo() { if (!S.fut.length) return; S.hist.push(snap()); restore(S.fut.pop()); updateUndo(); }
+function markDirty() { S.dirty = true; setState("Sin guardar"); updateCount(); clearTimeout(S.saveTimer); S.saveTimer = setTimeout(save, 1200); }
 function setState(t) { $("#save-state").textContent = t; }
 async function save() {
-  clearTimeout(saveTimer);
-  if (!ED.path || !dirty) return;
-  if (saving) { saveTimer = setTimeout(save, 400); return; }
-  saving = true; setState("Guardando…"); dirty = false;
-  try { const r = await post("/api/article", { path: ED.path, meta: ED.meta, photos: ED.photos, fichas: ED.fichas, blocks: ED.blocks }); ED.problems = r.problems; setState(dirty ? "Sin guardar" : "Guardado"); }
-  catch (e) { dirty = true; setState("Sin guardar"); toast("No se pudo guardar: " + e.message, true); }
-  saving = false;
+  clearTimeout(S.saveTimer);
+  if (!ED.path || !S.dirty) return;
+  if (S.saving) { S.saveTimer = setTimeout(save, 400); return; }
+  S.saving = true; setState("Guardando…"); S.dirty = false;
+  try { const r = await post("/api/article", { path: ED.path, meta: ED.meta, photos: ED.photos, fichas: ED.fichas, blocks: ED.blocks }); ED.problems = r.problems; setState(S.dirty ? "Sin guardar" : "Guardado"); }
+  catch (e) { S.dirty = true; setState("Sin guardar"); toast("No se pudo guardar: " + e.message, true); }
+  S.saving = false;
 }
 addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "h" && ED.meta) { e.preventDefault(); findReplace(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); save(); }
   else if ((e.ctrlKey || e.metaKey) && !(e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) && ["z", "y"].includes(e.key.toLowerCase())) { e.preventDefault(); e.key.toLowerCase() === "z" && !e.shiftKey ? undo() : redo(); }
 });
-addEventListener("beforeunload", (e) => { if (dirty || saving) { e.preventDefault(); e.returnValue = ""; } });
+addEventListener("beforeunload", (e) => { if (S.dirty || S.saving) { e.preventDefault(); e.returnValue = ""; } });
 
 // ---- rendering ---------------------------------------------------------------------
 function refresh() {
@@ -114,7 +114,7 @@ function showView(v) {
   navFollow(0);   // every view starts with the bar in sight
   for (const id of ["view-list", "view-edit", "view-panel"]) $("#" + id).hidden = id !== "view-" + v;
   $("#tools").hidden = v !== "edit"; $("#ribbon").hidden = v !== "edit"; $("#nav-crumb").hidden = v !== "edit";
-  if (MODE === "web" && web && web.session.token) $("#web-tools").hidden = v === "edit";   // Usuarios / Salir only outside an article: the bar keeps the site's width
+  if (MODE === "web" && env.web && env.web.session.token) $("#web-tools").hidden = v === "edit";   // Usuarios / Salir only outside an article: the bar keeps the site's width
   for (const [id, on] of [["nav-list", v === "list"], ["nav-panel", v === "panel"]]) { $("#" + id).classList.toggle("active", on); if (on) $("#" + id).setAttribute("aria-current", "page"); else $("#" + id).removeAttribute("aria-current"); }
 }
 const artItem = (a) => `<li class="art border-bottom border-strong" data-path="${esc(a.path)}" ${a.error ? `data-error="${esc(a.error)}"` : ""}>
@@ -123,7 +123,7 @@ const artItem = (a) => `<li class="art border-bottom border-strong" data-path="$
     <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">${a.error ? `<span class="ed-tag tone-rojo" title="${esc(a.error)}">Con error</span>` : ""}${a.local ? `<span class="ed-tag tone-amarillo" title="Los cambios están guardados en este navegador. Se suben con «Publicar».">${a.isNew ? "Nuevo, sin publicar" : "Cambios sin publicar"}</span>` : ""}${a.draft && !a.guia ? '<span class="ed-tag is-dark">Borrador</span>' : ""}${a.ai ? '<span class="ed-tag tone-amarillo">Texto con IA</span>' : ""}${a.local && MODE === "web" ? `<button class="btn btn-primary" data-discard="${esc(a.path)}">Descartar cambios</button>` : ""}</div></li>`;
 async function showList() {
   await save();
-  ED.path = null; ED.meta = null; hist = []; fut = [];
+  ED.path = null; ED.meta = null; S.hist = []; S.fut = [];
   showView("list"); $("#crumb").textContent = "";
   const [list, st] = await Promise.all([api("/api/articles"), api("/api/status")]);
   $("#git-state").textContent = MODE === "web" ? (st.changes ? `${st.changes} artículo${st.changes === 1 ? "" : "s"} con cambios sin publicar en este navegador` : "Todo publicado") : st.ready ? `Rama ${st.branch}${st.changes ? ` · ${st.changes} cambios sin publicar` : ""}` : "El sitio no está listo";
@@ -146,7 +146,7 @@ async function open(path) {
   }
   migrate(m);
   Object.assign(ED, { path, meta: m.meta, photos: m.photos, fichas: m.fichas || {}, blocks: m.blocks, problems: m.problems, sel: null, tab: "article", heroV: Date.now() });
-  hist = []; fut = []; dirty = false; setState("Guardado"); updateUndo();
+  S.hist = []; S.fut = []; S.dirty = false; setState("Guardado"); updateUndo();
   showView("edit"); $("#crumb").textContent = ED.meta.title || "Sin título"; updateCount();
   const w = frame().contentWindow;
   if (w && w.render) refresh(); else frame().addEventListener("load", refresh, { once: true });
@@ -172,7 +172,7 @@ $("#sync").onclick = async () => { try { setBusy("#sync", true); await post("/ap
 const setBusy = (sel, b) => { const el = $(sel); el.disabled = b; };
 
 // ---- device toggle ---------------------------------------------------------------------
-function setDevice(d) { device = d; $("#stage").classList.toggle("is-phone", d === "phone"); $("#dev-phone").classList.toggle("active", d === "phone"); $("#dev-desktop").classList.toggle("active", d === "desktop"); setTimeout(() => frame().contentWindow.render && frame().contentWindow.render(), 60); }
+function setDevice(d) { S.device = d; $("#stage").classList.toggle("is-phone", d === "phone"); $("#dev-phone").classList.toggle("active", d === "phone"); $("#dev-desktop").classList.toggle("active", d === "desktop"); setTimeout(() => frame().contentWindow.render && frame().contentWindow.render(), 60); }
 $("#dev-desktop").onclick = () => setDevice("desktop"); $("#dev-phone").onclick = () => setDevice("phone"); setDevice("desktop");
 $("#undo").onclick = undo; $("#redo").onclick = redo;
 
@@ -224,7 +224,7 @@ function shortcutsHelp() {
 
 // ---- ribbon (Word-style bar) ----------------------------------------------------------------
 function ribbonCmd(cmd) {
-  const i = lastCaret ?? ED.sel?.i, b = i != null ? ED.blocks[i] : null;
+  const i = S.lastCaret ?? ED.sel?.i, b = i != null ? ED.blocks[i] : null;
   if (cmd === "bold" || cmd === "italic") return wrapSelection(cmd === "bold" ? "**" : "*");
   if (cmd === "link") return linkSelection();
   if (cmd === "unlink") { if (!cdoc().defaultView.formatText("unlink")) toast("Pon el cursor dentro del enlace primero.", true); return; }
@@ -250,7 +250,7 @@ $("#ribbon").addEventListener("click", (e) => {
 });
 document.addEventListener("click", (e) => { if (!e.target.closest(".dropdown-host")) $("#rb-menu").hidden = true; });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("#rb-menu").hidden = true; });
-$("#rb-style").addEventListener("change", (e) => { const i = lastCaret ?? ED.sel?.i; if (i != null && e.target.value) convertBlock(i, e.target.value); });
+$("#rb-style").addEventListener("change", (e) => { const i = S.lastCaret ?? ED.sel?.i; if (i != null && e.target.value) convertBlock(i, e.target.value); });
 
 // ---- uploads ---------------------------------------------------------------------------
 function pickFiles(multiple) {
@@ -287,7 +287,6 @@ async function addPhotos(files, at, as) {
 const textTypes = ["p", "h2", "h3", "quote"];
 const NEEDS_CLEAR = ["p", "h3", "ul", "ol", "callout", "details", "button", "raw"];   // blocks that would sit beside a floating photo
 const TEXTY = ["p", "h2", "h3", "quote", "ul", "ol", "callout"];          // blocks the ribbon's "Estilo" can turn into each other
-let lastCaret = null, heroTimer = null;                                                   // block where the cursor was last
 const BLOCK_DEFAULTS = {
   ul: () => ({ type: "ul", items: [""] }), ol: () => ({ type: "ol", items: [""] }),
   callout: () => ({ type: "callout", fondo: "gris", marco: false, linea: "", text: "" }), details: () => ({ type: "details", title: "", text: "" }),
@@ -307,7 +306,7 @@ function convertBlock(i, type) {
   else if (type === "callout") out = [{ type, fondo: "gris", marco: false, linea: "", text: paras.join("\n\n") }];
   else out = (paras.length ? paras : [""]).map((t) => ({ type, text: t, ...(b.align && ["p", "h2", "h3"].includes(type) ? { align: b.align } : {}) }));
   if (b.box && type !== "quote") out.forEach((x) => { x.box = { ...b.box }; });
-  mutate(() => { ED.blocks.splice(i, 1, ...out); ED.sel = { i }; ED.focus = { i }; lastCaret = i; });
+  mutate(() => { ED.blocks.splice(i, 1, ...out); ED.sel = { i }; ED.focus = { i }; S.lastCaret = i; });
 }
 function countWords() {
   let n = 0; const add = (t) => { const w = String(t || "").replace(/[*_#>\[\]()`]/g, " ").replace(/https?:\/\/\S+/g, " ").trim(); if (w) n += w.split(/\s+/).length; };
@@ -317,14 +316,14 @@ function countWords() {
 }
 function updateCount() { if (!ED.meta) return; const n = countWords(); $("#rb-count").textContent = `${n.toLocaleString("es")} palabras · ${Math.max(1, Math.round(n / 220))} min de lectura`; }
 function updateRibbon() {
-  const i = lastCaret ?? ED.sel?.i, b = i != null ? ED.blocks[i] : null;
+  const i = S.lastCaret ?? ED.sel?.i, b = i != null ? ED.blocks[i] : null;
   const sel = $("#rb-style"); sel.value = b && TEXTY.includes(b.type) ? b.type : "";
   sel.disabled = !(b && TEXTY.includes(b.type));
   $('[data-rb="center"]').classList.toggle("active", b?.align === "center"); $('[data-rb="left"]').classList.toggle("active", !!b && ["p", "h2", "h3", "button"].includes(b.type) && b.align !== "center");
 }
-function insertAfterCurrent(type) { const i = lastCaret ?? ED.sel?.i; act.add(type, i == null ? ED.blocks.length : i + 1); }
+function insertAfterCurrent(type) { const i = S.lastCaret ?? ED.sel?.i; act.add(type, i == null ? ED.blocks.length : i + 1); }
 window.act = {
-  caretIn(i) { if (i === lastCaret && ED.sel?.i === i) { updateRibbon(); return; } lastCaret = i; if (ED.sel?.i !== i) { ED.sel = { i }; ED.tab = "block"; highlight(); renderInspector(); } updateRibbon(); },
+  caretIn(i) { if (i === S.lastCaret && ED.sel?.i === i) { updateRibbon(); return; } S.lastCaret = i; if (ED.sel?.i !== i) { ED.sel = { i }; ED.tab = "block"; highlight(); renderInspector(); } updateRibbon(); },
   setField(i, key, value, rerender) {
     mutate(() => {
       const ks = String(key).split("."); let o = ED.blocks[i]; while (ks.length > 1) o = o[ks.shift()];
@@ -337,20 +336,20 @@ window.act = {
       const b = ED.blocks[i], before = b.items.slice(0, n), after = b.items.slice(n + 1);
       const out = []; if (before.length) out.push({ type: b.type, items: before });
       out.push({ type: "p", text: "" }); if (after.length) out.push({ type: b.type, items: after });
-      ED.blocks.splice(i, 1, ...out); const at = i + (before.length ? 1 : 0); ED.sel = { i: at }; ED.focus = { i: at, caret: 0 }; lastCaret = at;
+      ED.blocks.splice(i, 1, ...out); const at = i + (before.length ? 1 : 0); ED.sel = { i: at }; ED.focus = { i: at, caret: 0 }; S.lastCaret = at;
     });
   },
   listUnwrapFirst(i) {   // Backspace at the start of the first bullet: that line becomes a normal paragraph
     mutate(() => {
       const b = ED.blocks[i], [first, ...rest] = b.items;
       ED.blocks.splice(i, 1, { type: "p", text: first || "" }, ...(rest.length ? [{ type: b.type, items: rest }] : []));
-      ED.sel = { i }; ED.focus = { i, caret: 0 }; lastCaret = i;
+      ED.sel = { i }; ED.focus = { i, caret: 0 }; S.lastCaret = i;
     });
   },
   autoformat(i, type, rest) {
     mutate(() => {
       const nb = type === "ul" || type === "ol" ? { type, items: [rest] } : { type, text: rest };
-      ED.blocks.splice(i, 1, nb); ED.sel = { i }; ED.focus = { i, caret: 0, li: 0 }; lastCaret = i;
+      ED.blocks.splice(i, 1, nb); ED.sel = { i }; ED.focus = { i, caret: 0, li: 0 }; S.lastCaret = i;
     });
   },
   ribbon(cmd) { ribbonCmd(cmd); },
@@ -358,13 +357,13 @@ window.act = {
   continueAtEnd() {   // click under the last block, like in Word: write at the end
     const n = ED.blocks.length, last = ED.blocks[n - 1];
     if (last && last.type === "p" && !last.text.trim()) { ED.focus = { i: n - 1 }; frame().contentWindow.render(); return; }
-    mutate(() => { ED.blocks.push({ type: "p", text: "" }); ED.sel = { i: n }; ED.focus = { i: n, caret: 0 }; lastCaret = n; });
+    mutate(() => { ED.blocks.push({ type: "p", text: "" }); ED.sel = { i: n }; ED.focus = { i: n, caret: 0 }; S.lastCaret = n; });
   },
-  toRule(i) { mutate(() => { ED.blocks.splice(i, 1, { type: "hr" }, { type: "p", text: "" }); ED.sel = { i: i + 1 }; ED.focus = { i: i + 1, caret: 0 }; lastCaret = i + 1; }); },
+  toRule(i) { mutate(() => { ED.blocks.splice(i, 1, { type: "hr" }, { type: "p", text: "" }); ED.sel = { i: i + 1 }; ED.focus = { i: i + 1, caret: 0 }; S.lastCaret = i + 1; }); },
   selState(st) { for (const k of ["bold", "italic", "link"]) $(`[data-rb="${k}"]`)?.classList.toggle("active", !!st[k]); },
   select(i, id = null) {
     ED.sel = i === null ? null : { i, id };
-    if (i === null) { if (ED.tab === "block") ED.tab = "article"; } else { ED.tab = "block"; lastCaret = i; }
+    if (i === null) { if (ED.tab === "block") ED.tab = "article"; } else { ED.tab = "block"; S.lastCaret = i; }
     highlight(); renderInspector(); updateRibbon();
   },
   setText(i, text) { mutate(() => { ED.blocks[i].text = text; }, { typing: true }); },
@@ -392,10 +391,10 @@ window.act = {
         ED.sel = { i: at }; ED.tab = "block";
       });
     } else if (textTypes.includes(type)) {
-      mutate(() => { ED.blocks.splice(at0, 0, ...pre, { type, text: "" }); ED.focus = { i: at, caret: 0 }; ED.sel = { i: at }; ED.tab = "block"; lastCaret = at; });
+      mutate(() => { ED.blocks.splice(at0, 0, ...pre, { type, text: "" }); ED.focus = { i: at, caret: 0 }; ED.sel = { i: at }; ED.tab = "block"; S.lastCaret = at; });
     } else if (BLOCK_DEFAULTS[type]) {
       mutate(() => {
-        ED.blocks.splice(at0, 0, ...pre, BLOCK_DEFAULTS[type]()); ED.sel = { i: at }; ED.tab = "block"; lastCaret = at;
+        ED.blocks.splice(at0, 0, ...pre, BLOCK_DEFAULTS[type]()); ED.sel = { i: at }; ED.tab = "block"; S.lastCaret = at;
         if (["ul", "ol", "callout", "details", "button"].includes(type)) ED.focus = { i: at, caret: 0, field: type === "details" || type === "button" };
       });
     } else if (type === "foto") pickFiles(true).then((f) => addPhotos(f, at));
@@ -490,7 +489,7 @@ window.act = {
   mergePrev(i) {
     const prev = ED.blocks[i - 1], cur = ED.blocks[i];
     if (prev && cur && (prev.type === "ul" || prev.type === "ol") && textTypes.includes(cur.type)) {
-      mutate(() => { const k = prev.items.length - 1; const caret = cdoc().defaultView.plainLen(prev.items[k] || ""); prev.items[k] = (prev.items[k] || "") + (prev.items[k] && cur.text ? " " : "") + cur.text; ED.blocks.splice(i, 1); ED.focus = { i: i - 1, caret, li: k }; ED.sel = { i: i - 1 }; lastCaret = i - 1; });
+      mutate(() => { const k = prev.items.length - 1; const caret = cdoc().defaultView.plainLen(prev.items[k] || ""); prev.items[k] = (prev.items[k] || "") + (prev.items[k] && cur.text ? " " : "") + cur.text; ED.blocks.splice(i, 1); ED.focus = { i: i - 1, caret, li: k }; ED.sel = { i: i - 1 }; S.lastCaret = i - 1; });
       return true;
     }
     if (!prev || !cur || !textTypes.includes(prev.type) || !textTypes.includes(cur.type)) return false;
@@ -516,7 +515,7 @@ window.act = {
       let at = i + 1;
       ED.blocks.splice(at, 0, ...rest);
       if (!b.text && b.type === "p" && rest.length) { ED.blocks.splice(i, 1); at = i; }
-      const end = at + rest.length - 1; ED.sel = { i: Math.max(i, end) }; ED.focus = { i: Math.max(i, end) }; lastCaret = Math.max(i, end);
+      const end = at + rest.length - 1; ED.sel = { i: Math.max(i, end) }; ED.focus = { i: Math.max(i, end) }; S.lastCaret = Math.max(i, end);
     });
     toast(`Pegado: ${blocks.length} bloque${blocks.length === 1 ? "" : "s"} con su formato.`);
   },
@@ -530,8 +529,8 @@ window.act = {
   setHeroPos(pos, zoom, live) {   // live: while dragging the slider, move the photo without redrawing the page
     mutate(() => { const h = ED.meta.hero; h.pos = pos; if (zoom != null) { if (zoom > 1) h.zoom = zoom; else delete h.zoom; } }, { typing: !!live });
     if (live) { const w = frame().contentWindow; w.layoutHero && w.layoutHero(); }
-    clearTimeout(heroTimer);
-    heroTimer = setTimeout(async () => { const h = ED.meta.hero; try {
+    clearTimeout(S.heroTimer);
+    S.heroTimer = setTimeout(async () => { const h = ED.meta.hero; try {
       const r = await post("/api/hero-pos?" + new URLSearchParams({ article: ED.path, pos: h.pos || "50% 50%", zoom: h.zoom || 1 }), {});
       if (r && r.file && r.file !== ED.meta.hero.file) mutate(() => { ED.meta.hero.file = r.file; ED.heroV = Date.now(); });   // its own name if the folder is shared
     } catch (e) { toast(e.message, true); } }, 700);
@@ -952,7 +951,7 @@ $("#publish").onclick = async () => {
     $("#pub-ok").onclick = async () => {
       const b = $("#pub-ok"); b.disabled = true; b.textContent = "Publicando…";
       const go = async (force) => {
-        try { await post("/api/publish", { message: $("#pub-msg") ? $("#pub-msg").value : "", path: ED.path, force }); closeModal(); toast("Enviado a GitHub. En unos 2 minutos el sitio se actualiza solo.", false, 9000); if (MODE === "web") { dirty = false; setState("Publicado"); } }
+        try { await post("/api/publish", { message: $("#pub-msg") ? $("#pub-msg").value : "", path: ED.path, force }); closeModal(); toast("Enviado a GitHub. En unos 2 minutos el sitio se actualiza solo.", false, 9000); if (MODE === "web") { S.dirty = false; setState("Publicado"); } }
         catch (e) {
           if (e.conflict) return modal(`<div class="dlg"><h2>Alguien más cambió este artículo</h2><p>${esc(e.message)}</p><p>Si publicas igual, tu versión reemplaza la otra. Si no estás seguro, cancela y habla con esa persona.</p><div class="acts"><button class="btn btn-outline-dark" id="cf-c">Cancelar</button><button class="btn btn-danger" id="cf-ok">Publicar mi versión</button></div></div>`, () => { $("#cf-c").onclick = closeModal; $("#cf-ok").onclick = () => go(true); });
           b.disabled = false; b.textContent = "Publicar ahora"; toast("No se pudo publicar: " + e.message, true, 15000);
@@ -984,11 +983,11 @@ function watchVersion() {
 // ---- start -----------------------------------------------------------------------------------
 (async () => {
   if (MODE === "web") {
-    web = await import("./web.js");
+    env.web = await import("./web.js");
     if (!document.getElementById("logo-lockup")) { try { const r = await fetch("logo-defs.svg"); if (r.ok) document.body.insertAdjacentHTML("afterbegin", await r.text()); } catch { } }
-    if (!web.session.token) await loginScreen();
-    await web.loadPending();
-    $("#web-tools").hidden = false; $("#who").textContent = web.session.name;
+    if (!env.web.session.token) await loginScreen();
+    await env.web.loadPending();
+    $("#web-tools").hidden = false; $("#who").textContent = env.web.session.name;
     $("#sync").textContent = "Actualizar lista";
     watchVersion();
   }
@@ -1006,7 +1005,7 @@ const TOKEN_HELP = `<details class="small"><summary class="fw-semibold">Cómo cr
 function loginScreen() {
   return new Promise(async (resolve) => {
     const box = $("#login"); box.hidden = false;
-    const users = await web.loadUsers();
+    const users = await env.web.loadUsers();
     const shell = (inner) => `<div class="login-card bg-body border border-2 border-strong p-4 p-md-5 d-grid gap-3"><svg class="wordmark" viewBox="-11 -11 3399 622" role="img" aria-label="RELIEVE"><use href="#logo-lockup"/></svg><span class="tape tape-secondary justify-self-start">Editor</span>${inner}</div>`;
     if (!users.length) {
       box.innerHTML = shell(`<h1 class="h2 mb-0">Primer acceso</h1><p class="mb-0">Todavía no hay usuarios. Crea el tuyo: el nombre de usuario y la contraseña sirven para entrar desde cualquier computadora.</p>
@@ -1020,9 +1019,9 @@ function loginScreen() {
         const name = $("#su-name").value, user = $("#su-user").value.trim(), pass = $("#su-pass").value, token = $("#su-token").value.trim(), msg = $("#su-msg");
         if (!user || pass.length < 12) { msg.textContent = "Escribe un usuario y una contraseña de 12 caracteres o más."; msg.classList.add("bad"); return; }
         if (pass !== $("#su-pass2").value) { msg.textContent = "Las contraseñas no coinciden."; msg.classList.add("bad"); return; }
-        try { msg.classList.remove("bad"); msg.textContent = "Comprobando la llave con GitHub…"; await web.checkToken(token);
-          msg.textContent = "Cifrando y guardando…"; await web.saveUsers([await web.makeUser({ user, name, password: pass, token })], token);
-          web.session.set(token, name.trim() || user); box.hidden = true; toast("Listo. El usuario se guardó cifrado en GitHub; en unos 2 minutos también funciona desde el sitio."); resolve();
+        try { msg.classList.remove("bad"); msg.textContent = "Comprobando la llave con GitHub…"; await env.web.checkToken(token);
+          msg.textContent = "Cifrando y guardando…"; await env.web.saveUsers([await env.web.makeUser({ user, name, password: pass, token })], token);
+          env.web.session.set(token, name.trim() || user); box.hidden = true; toast("Listo. El usuario se guardó cifrado en GitHub; en unos 2 minutos también funciona desde el sitio."); resolve();
         } catch (e) { msg.textContent = e.message; msg.classList.add("bad"); }
       };
       return;
@@ -1032,13 +1031,13 @@ function loginScreen() {
       <div><label class="form-label" for="li-pass">Contraseña</label><input class="form-control" type="password" id="li-pass" autocomplete="current-password"></div>
       <p class="hint" id="li-msg"></p><button class="btn btn-primary" id="li-ok">Entrar</button>`);
     const go = async () => { const msg = $("#li-msg"); msg.classList.remove("bad"); msg.textContent = "Comprobando…"; $("#li-ok").disabled = true;
-      try { await web.login($("#li-user").value, $("#li-pass").value); box.hidden = true; resolve(); } catch (e) { msg.textContent = e.message; msg.classList.add("bad"); $("#li-ok").disabled = false; } };
+      try { await env.web.login($("#li-user").value, $("#li-pass").value); box.hidden = true; resolve(); } catch (e) { msg.textContent = e.message; msg.classList.add("bad"); $("#li-ok").disabled = false; } };
     $("#li-ok").onclick = go; $("#li-pass").onkeydown = (e) => { if (e.key === "Enter") go(); }; $("#li-user").focus();
   });
 }
-$("#logout-btn").onclick = async () => { await save(); web.session.clear(); location.reload(); };
+$("#logout-btn").onclick = async () => { await save(); env.web.session.clear(); location.reload(); };
 $("#users-btn").onclick = async () => {
-  let users = await web.loadUsers();
+  let users = await env.web.loadUsers();
   const draw = () => modal(`<div class="dlg"><h2>Usuarios</h2>
     <p class="hint mt-0">Cada persona entra con su usuario y contraseña. La contraseña descifra una llave de GitHub que solo puede tocar el repositorio de la revista.</p>
     <ul class="list-unstyled mb-0 d-grid gap-2">${users.map((u, k) => `<li class="d-flex justify-content-between align-items-center border-bottom pb-2"><span><b>${esc(u.name || u.user)}</b> <span class="text-secondary">· ${esc(u.user)}${u.created ? ` · desde ${esc(u.created)}` : ""}</span></span><button class="btn btn-outline-danger btn-sm" data-rm="${k}" ${users.length === 1 ? "disabled title='Debe quedar al menos un usuario'" : ""}>Quitar</button></li>`).join("")}</ul>
@@ -1052,13 +1051,13 @@ $("#users-btn").onclick = async () => {
     <div class="acts"><button class="btn btn-outline-dark" id="nu-c">Cerrar</button><button class="btn btn-primary" id="nu-ok">Agregar</button></div></div>`, () => {
     $("#nu-c").onclick = closeModal;
     $("#nu-same").onchange = () => { $("#nu-tok-wrap").hidden = $("#nu-same").checked; };
-    document.querySelectorAll("[data-rm]").forEach((b) => (b.onclick = async () => { const next = users.filter((_, k) => k !== Number(b.dataset.rm)); try { await web.saveUsers(next); users = next; draw(); toast("Usuario quitado. Para cortarle el acceso del todo, borra también su llave en GitHub."); } catch (e) { toast(e.message, true); } }));
+    document.querySelectorAll("[data-rm]").forEach((b) => (b.onclick = async () => { const next = users.filter((_, k) => k !== Number(b.dataset.rm)); try { await env.web.saveUsers(next); users = next; draw(); toast("Usuario quitado. Para cortarle el acceso del todo, borra también su llave en GitHub."); } catch (e) { toast(e.message, true); } }));
     $("#nu-ok").onclick = async () => {
-      const msg = $("#nu-msg"), user = $("#nu-user").value.trim(), pass = $("#nu-pass").value, token = $("#nu-same").checked ? web.session.token : $("#nu-token").value.trim();
+      const msg = $("#nu-msg"), user = $("#nu-user").value.trim(), pass = $("#nu-pass").value, token = $("#nu-same").checked ? env.web.session.token : $("#nu-token").value.trim();
       if (!user || pass.length < 12) { msg.textContent = "Escribe un usuario y una contraseña de 12 caracteres o más."; msg.classList.add("bad"); return; }
       if (users.some((u) => u.user === user.toLowerCase())) { msg.textContent = "Ese usuario ya existe."; msg.classList.add("bad"); return; }
-      try { msg.classList.remove("bad"); msg.textContent = "Guardando…"; if (!$("#nu-same").checked) await web.checkToken(token);
-        const next = [...users, await web.makeUser({ user, name: $("#nu-name").value, password: pass, token })]; await web.saveUsers(next); users = next; draw(); toast("Usuario agregado. Ya puede entrar con su usuario y contraseña."); }
+      try { msg.classList.remove("bad"); msg.textContent = "Guardando…"; if (!$("#nu-same").checked) await env.web.checkToken(token);
+        const next = [...users, await env.web.makeUser({ user, name: $("#nu-name").value, password: pass, token })]; await env.web.saveUsers(next); users = next; draw(); toast("Usuario agregado. Ya puede entrar con su usuario y contraseña."); }
       catch (e) { msg.textContent = e.message; msg.classList.add("bad"); }
     };
   });
@@ -1136,7 +1135,7 @@ async function loadTraffic() {
 async function loadDeploy() {
   const box = $("#deploy"); if (!box) return;
   try {
-    const headers = MODE === "web" && web.session.token ? { Authorization: `Bearer ${web.session.token}` } : {};
+    const headers = MODE === "web" && env.web.session.token ? { Authorization: `Bearer ${env.web.session.token}` } : {};
     const r = await fetch("https://api.github.com/repos/Danielcarens/relieve/actions/runs?per_page=3&branch=eleventy-prueba", { headers }); if (!r.ok) throw new Error(`GitHub respondió ${r.status}`);
     const runs = (await r.json()).workflow_runs || [];
     const label = (x) => x.status !== "completed" ? ["Publicando ahora…", "tone-amarillo"] : x.conclusion === "success" ? ["Publicado", "tone-verde"] : ["Falló", "tone-rojo"];
