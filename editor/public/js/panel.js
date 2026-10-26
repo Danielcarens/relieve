@@ -134,10 +134,9 @@ export async function loadDeploy() {
   if (!box) return;
   try {
     const headers = MODE === "web" && env.web.session.token ? { Authorization: `Bearer ${env.web.session.token}` } : {};
-    const r = await fetch(
-      "https://api.github.com/repos/Danielcarens/relieve/actions/runs?per_page=3&branch=eleventy-prueba",
-      { headers },
-    );
+    const r = await fetch("https://api.github.com/repos/Danielcarens/relieve/actions/runs?per_page=3&branch=source", {
+      headers,
+    });
     if (!r.ok) throw new Error(`GitHub respondió ${r.status}`);
     const runs = (await r.json()).workflow_runs || [];
     const label = (x) =>

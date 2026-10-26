@@ -1,11 +1,11 @@
 name: Publicar sitio
 
-# Cada vez que alguien guarda cambios en el código fuente (rama eleventy-prueba), Eleventy construye
+# Cada vez que alguien guarda cambios en el código fuente (rama source), Eleventy construye
 # el sitio y deja las páginas nuevas en la rama main, que es la que sirve GitHub Pages. También publica
 # el editor web en relievemag.com/editor/ (carpeta editor/ del código fuente).
 on:
   push:
-    branches: [eleventy-prueba]
+    branches: [source]
     paths: ["src/**", "editor/**", "eleventy.config.js", "package.json", "package-lock.json", ".github/**"]
   workflow_dispatch:
 
@@ -29,7 +29,7 @@ jobs:
       - name: Código fuente
         uses: actions/checkout@v4
         with:
-          ref: eleventy-prueba
+          ref: source
           path: fuente
       - name: Sitio publicado
         uses: actions/checkout@v4

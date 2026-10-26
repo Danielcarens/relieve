@@ -8,7 +8,7 @@
 // editor/acceso.json. Nothing secret is stored in clear anywhere; the decrypted token only lives in this tab.
 import { parseArticle, serializeArticle, problems, articleStats } from "./lib/article.js";
 
-export const REPO = { owner: "Danielcarens", repo: "relieve", branch: "eleventy-prueba" };
+export const REPO = { owner: "Danielcarens", repo: "relieve", branch: "source" };
 // For tests on this computer only: ?api=http://127.0.0.1:… (ignored on the real site, so nobody can redirect the token)
 const API = () =>
   (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).get("api")) ||

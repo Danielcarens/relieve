@@ -11,7 +11,7 @@ import { parseArticle, serializeArticle, problems, articleStats } from "../../ed
 export const ROOT = path.resolve(import.meta.dirname, "../..");
 const FIX = path.join(import.meta.dirname, "fixtures");
 const TYPES = { ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".html": "text/html", ".jpg": "image/jpeg", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".json": "application/json", ".ico": "image/x-icon" };
-export const OWNER = "Danielcarens", REPO = "relieve", BRANCH = "eleventy-prueba";
+export const OWNER = "Danielcarens", REPO = "relieve", BRANCH = "source";
 
 // ---- a tiny git: blobs, trees (flat: path -> blob sha), commits, one branch -------------------------------------
 function makeGit() {

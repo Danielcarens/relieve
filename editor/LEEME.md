@@ -69,7 +69,7 @@ Se agregan con **Insertar** o con el botón **+** entre bloques; se reordenan ar
 - **Texto alternativo:** el editor te lo pide para cada foto (marcado en rojo) y avisa antes de publicar, igual que si falta la dirección de un botón, el enlace de un video o el lugar de un mapa.
 - **Vista previa:** construye el artículo real con Eleventy y lo muestra tal cual saldrá.
 - **Traer cambios de GitHub:** guarda primero tus borradores y nunca los mezcla con los de otra persona; si alguien cambió el mismo artículo, cancela y te avisa.
-- **Publicar:** envía los cambios a GitHub (rama `eleventy-prueba`). Allí, una automatización (GitHub Actions) construye el sitio con Eleventy y lo publica sola en unos 2 minutos.
+- **Publicar:** envía los cambios a GitHub (rama `source`). Allí, una automatización (GitHub Actions) construye el sitio con Eleventy y lo publica sola en unos 2 minutos.
 
 ## Limitaciones actuales
 

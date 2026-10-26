@@ -12,7 +12,7 @@ const CONFIG_FILE = path.join(HERE, "config.json");
 const DEFAULTS = {
   port: 4321,
   repo: "https://github.com/Danielcarens/relieve.git",
-  sourceBranch: "eleventy-prueba", // Eleventy source
+  sourceBranch: "source",          // Eleventy source
   liveBranch: "main",              // what GitHub Pages serves
   sitePath: "site",                // clone of the source branch
   author: "Daniel",

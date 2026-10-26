@@ -6,7 +6,7 @@ name: Pruebas
 # publica si fallan).
 on:
   push:
-    branches-ignore: [main, eleventy-prueba]
+    branches-ignore: [main, source]
   pull_request:
   workflow_call:
   workflow_dispatch:
