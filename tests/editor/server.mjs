@@ -11,7 +11,7 @@ import { parseArticle, serializeArticle, problems, articleStats } from "../../ed
 export const ROOT = path.resolve(import.meta.dirname, "../..");
 const FIX = path.join(import.meta.dirname, "fixtures");
 const TYPES = { ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".html": "text/html", ".jpg": "image/jpeg", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".json": "application/json", ".ico": "image/x-icon" };
-const OWNER = "Danielcarens", REPO = "relieve", BRANCH = "eleventy-prueba";
+export const OWNER = "Danielcarens", REPO = "relieve", BRANCH = "eleventy-prueba";
 
 // ---- a tiny git: blobs, trees (flat: path -> blob sha), commits, one branch -------------------------------------
 function makeGit() {
@@ -29,6 +29,8 @@ function makeGit() {
   git.putBlob = putBlob; git.putTree = putTree; git.putCommit = putCommit;
   git.files = (commit = git.head) => trees.get(commits.get(commit).tree);
   git.read = (p, commit = git.head) => { const s = git.files(commit).get(p); return s ? blobs.get(s).toString("utf8") : null; };
+  // a commit that writes one file (as someone else changing the repository)
+  git.write = (p, text, message = "prueba") => { const t = new Map(git.files()); t.set(p, putBlob(Buffer.from(text))); git.head = putCommit(putTree(t), [git.head], message); };
   return git;
 }
 

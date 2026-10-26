@@ -1,7 +1,7 @@
 // Drives the editor in a real browser (Chromium through Playwright) against the test server (server.mjs).
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
-import { start } from "./server.mjs";
+import { start, OWNER, REPO, BRANCH } from "./server.mjs";
 
 async function chromium() {
   try { return (await import("playwright")).chromium; } catch {
@@ -17,17 +17,23 @@ export async function setup(opts) {
   return { server, browser, close: async () => { await browser.close(); await server.close(); } };
 }
 
-export async function editor(env, { mode = "web", width = 1440, height = 900 } = {}) {
+// login: false starts without an open session (the sign-in screen), as a new visitor of relievemag.com/editor/
+export async function editor(env, { mode = "web", width = 1440, height = 900, login = true } = {}) {
   const ctx = await env.browser.newContext({ viewport: { width, height } });
   const page = await ctx.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource|ERR_|net::/.test(m.text())) errors.push(m.text()); });
-  await page.route(/^https:\/\/(api\.github\.com|raw\.githubusercontent\.com|www\.openstreetmap\.org|i\.ytimg\.com|gc\.zgo\.at)\//, (r) => r.fulfill({ status: 404, body: "" }));
-  if (mode === "web") await page.addInitScript(() => { sessionStorage.setItem("relieve-token", "test-token"); sessionStorage.setItem("relieve-name", "Prueba"); });
+  await page.route(/^https:\/\/(api\.github\.com|raw\.githubusercontent\.com|www\.openstreetmap\.org|i\.ytimg\.com|gc\.zgo\.at)\//, (r) => {
+    // the public copy of a repository file, as raw.githubusercontent.com gives it: only from the right branch
+    const u = new URL(r.request().url()), m = u.pathname.match(/^\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/);
+    const text = u.hostname === "raw.githubusercontent.com" && m && m[1] === OWNER && m[2] === REPO && m[3] === BRANCH ? env.server.git.read(m[4]) : null;
+    return text === null ? r.fulfill({ status: 404, body: "" }) : r.fulfill({ status: 200, body: text, contentType: "text/plain" });
+  });
+  if (mode === "web" && login) await page.addInitScript(() => { sessionStorage.setItem("relieve-token", "test-token"); sessionStorage.setItem("relieve-name", "Prueba"); });
   const q = mode === "web" ? `?modo=web&api=${encodeURIComponent(env.server.url + "/gh")}` : "?modo=local";
   await page.goto(env.server.url + "/" + q);
-  await page.waitForSelector("#articles .art, #articles .empty", { timeout: 20000 });
+  await page.waitForSelector(mode === "web" && !login ? "#login:not([hidden]) h1" : "#articles .art, #articles .empty", { timeout: 20000 });
   const ed = {
     page, ctx, errors,
     frame: () => page.frames().find((f) => f.url().includes("canvas.html") && !f.url().includes("preview")),
