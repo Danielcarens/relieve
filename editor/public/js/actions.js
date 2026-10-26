@@ -1,4 +1,4 @@
-// window.act: everything the canvas (canvas.js, inside the iframe) asks the editor to do.
+// window.act: everything the canvas (canvas/, inside the iframe) asks the editor to do.
 import { BLOCK_DEFAULTS, NEEDS_CLEAR, textTypes } from "./config.js";
 import { api, post } from "./env.js";
 import { renderInspector, renderInspectorSoft } from "./inspector.js";

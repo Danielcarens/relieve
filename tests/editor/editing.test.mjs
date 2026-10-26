@@ -161,3 +161,18 @@ test("vista previa y panel", async () => {
   assert.deepEqual(ed.errors, []);
   await ed.close();
 });
+
+test("un error que nadie atrapa se muestra con sus detalles para copiar", async () => {
+  const ed = await editor(env);
+  await ed.open("src/es/guia/01-texto.md");
+  await ed.frame().evaluate(() => setTimeout(() => { throw new Error("falla de prueba en la página"); }));
+  await ed.page.waitForSelector(".err-box");
+  assert.match(await ed.page.textContent(".err-box"), /Algo falló en la página del artículo\..*falla de prueba en la página/s);
+  await ed.page.evaluate(() => setTimeout(() => { throw new Error("falla de prueba en el editor"); }));
+  await ed.page.waitForFunction(() => document.querySelectorAll(".err-box").length === 2);
+  await ed.ctx.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await ed.page.click(".err-box [data-copy]");
+  assert.match(await ed.page.evaluate(() => navigator.clipboard.readText()), /Mensaje: falla de prueba en la página[\s\S]*Artículo: src\/es\/guia\/01-texto\.md/);
+  assert.deepEqual(ed.errors.filter((e) => !/falla de prueba/.test(e)), []);
+  await ed.close();
+});

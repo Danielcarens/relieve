@@ -42,3 +42,13 @@ export const nearest = (v, list, tol) => {
   }
   return best;
 };
+
+// Errors in the page: the editor (parent window) shows them with the details to copy (js/errors.js)
+addEventListener(
+  "error",
+  (e) => parent.reportError && parent.reportError(e.error || e.message, "la página del artículo"),
+);
+addEventListener(
+  "unhandledrejection",
+  (e) => parent.reportError && parent.reportError(e.reason, "la página del artículo"),
+);

@@ -1,5 +1,6 @@
 // RELIEVE editor. The interface lives in js/: one module per part (see the first line of each). This file starts it.
-// The canvas (canvas.js, inside the iframe) talks to it through window.ED (the article) and window.act (actions).
+// The canvas (canvas.html + canvas/, inside the iframe) talks to it through window.ED (the article) and window.act (actions).
+import "./js/errors.js"; // first: from here on, an error nobody catches is shown, not lost
 import "./js/state.js";
 import "./js/ribbon.js";
 import "./js/inspector.js";
