@@ -18,7 +18,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Primero las pruebas (pruebas.yml): si alguna falla, no se publica nada y el sitio queda como estaba.
+  pruebas:
+    uses: ./.github/workflows/pruebas.yml
+
   construir:
+    needs: pruebas
     runs-on: ubuntu-latest
     steps:
       - name: Código fuente

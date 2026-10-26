@@ -1,0 +1,42 @@
+name: Pruebas
+
+# Las pruebas automáticas (carpeta tests/): todos los artículos leídos y escritos de nuevo sin perder nada, el armado
+# de los mosaicos, y el editor web manejado en un navegador de verdad contra un GitHub simulado. También construye
+# el sitio con Eleventy. Corren en cada cambio de cualquier rama y antes de publicar (publicar.yml las llama y no
+# publica si fallan).
+on:
+  push:
+    branches-ignore: [main, eleventy-prueba]
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            tests/package-lock.json
+      - name: Dependencias del sitio
+        run: npm ci
+      - name: El sitio se construye
+        run: npx eleventy --quiet
+      - name: Dependencias de las pruebas y el navegador
+        working-directory: tests
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Pruebas
+        working-directory: tests
+        run: npm test
+      - name: Dibujos de referencia que cambiaron (si alguna prueba de dibujo falló)
+        if: failure()
+        working-directory: tests
+        run: git status --short editor/snapshots || true
