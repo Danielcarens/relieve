@@ -49,7 +49,7 @@ Doble clic en **Iniciar editor.bat**. La primera vez tarda unos minutos: descarg
 Se agregan con **Insertar** o con el botón **+** entre bloques; se reordenan arrastrando el asa de la izquierda y tienen botones para subir, bajar, duplicar y eliminar.
 
 - **Texto:** párrafo, título, subtítulo, lista con viñetas, lista numerada, cita destacada (con autor opcional), **recuadro de texto** (fondo gris, sin fondo, amarillo, rojo o verde; marco sí o no; línea a la izquierda que cambia de color con cada clic: rosa, amarillo, verde, rojo o ninguna; el texto nunca se mueve al cambiarlos) y **desplegable** (pregunta y respuesta que se abre con un clic).
-- **Fotos y video:** foto (normal, a ancho de pantalla o panorámica deslizable con altura que se arrastra), fila o cuadrícula de fotos, **video de YouTube** (miniatura; el video carga solo al hacer clic) y **mapa** (pega un enlace de Google Maps; se muestra con OpenStreetMap, sin cuentas ni rastreo).
+- **Fotos y video:** foto (normal, a ancho de pantalla o panorámica deslizable con altura que se arrastra), **mosaico de fotos**, **video de YouTube** (miniatura; el video carga solo al hacer clic) y **mapa** (pega un enlace de Google Maps; se muestra con OpenStreetMap, sin cuentas ni rastreo).
 - **Diseño:** **datos en fila** (lugar, distancia, dificultad…, en cualquier parte del artículo), **botón** (principal o secundario, a la izquierda o centrado), **línea separadora**, **espacio en blanco** (altura arrastrando la barra rosa), ficha de datos y **código HTML** para casos especiales.
 - **Colores para advertir o destacar:** recuadros y fichas en gris, sin fondo, amarillo (advertencia), rojo (importante) o verde (consejo).
 - **Cabecera libre:** foto grande con el título encima, título arriba y la foto debajo, o solo el título.
@@ -61,8 +61,9 @@ Se agregan con **Insertar** o con el botón **+** entre bloques; se reordenan ar
 - **Tamaño de las fotos, como en Word:** al seleccionar una foto aparecen cuadritos rosas en sus bordes: los lados cambian el ancho, arriba y abajo el alto (el recorte), las esquinas ambos. Los bordes se pegan a los de las otras fotos (también a cada foto de una fila), a los márgenes y a la columna de texto. En una foto flotante, el cuadrito del lado interior da el ancho exacto. Las filas de fotos también tienen barras a los lados para su ancho, y las barras entre fotos se pegan a los bordes de otras fotos.
 - **Debajo de la cabecera, como en el sitio:** el subtítulo y la línea «Por (autor) · fecha · minutos de lectura», que se arma sola con el autor y la fecha de la pestaña Artículo.
 - **Recorte libre:** arrastra la foto para encuadrarla; arrastra la barra inferior para hacerla más alta o más baja; o elige una proporción (3:2, 16:9, 1:1…). Una foto sola siempre mide el ancho completo.
-- **Filas y cuadrículas de fotos:** dos o más fotos juntas con el mismo alto, que suman exactamente el ancho de una foto sola; también apiladas en vertical (mosaicos y cuadrículas) y a ancho completo de pantalla.
-- **Ajuste del texto (como Word):** una foto, una cita o una ficha puede ir *en su propia fila* o *flotar a la izquierda o a la derecha*; el texto que va **debajo** de ella la rodea y luego vuelve a todo el ancho. Si no hay texto debajo, el editor lo avisa y ofrece subirla un párrafo. Dos elementos flotantes nunca quedan uno al lado del otro. Una foto flotante también puede llegar al borde de la pantalla arrastrando su barra rosa.
+- **Mosaicos de fotos:** dos o más fotos juntas, en una fila o en filas y columnas, que suman exactamente el ancho de una foto sola (o el de la pantalla). Se arman arrastrando: una foto soltada sobre otra entra a su izquierda, a su derecha, encima o debajo, según el lado; cerca del borde de arriba o de abajo del mosaico, en una fila nueva sobre o bajo todas. Una línea rosa muestra dónde quedará. Las barras rosas entre fotos reparten el tamaño. Cada foto tiene una manija ✥ para llevarla a otro lugar.
+- **Arrastrar fotos de la página:** con su manija ✥, sobre otra foto (mosaico), a un lado de un párrafo (flota de ese lado) o al centro entre dos bloques (su propia fila).
+- **Ajuste del texto (como Word):** una foto, una cita o una ficha puede ir *en su propia fila* o *flotar a la izquierda o a la derecha*; el texto que va **debajo** de ella la rodea y luego vuelve a todo el ancho. El **+** que aparece bajo una foto flotante agrega debajo de ella, no a su lado. Si no hay texto debajo, el editor lo avisa y ofrece subirla un párrafo. Dos elementos flotantes nunca quedan uno al lado del otro. Una foto flotante también puede llegar al borde de la pantalla arrastrando su barra rosa.
 - **Fichas de datos:** cuadro con título, enlace opcional, foto opcional y datos. En su propia fila, el cuadro mide lo mismo que una foto y el texto de adentro se alinea con los párrafos; en celular va de borde a borde.
 - **Portada:** siempre 16:9. Arrastra para encuadrar.
 - **Texto alternativo:** el editor te lo pide para cada foto (marcado en rojo) y avisa antes de publicar, igual que si falta la dirección de un botón, el enlace de un video o el lugar de un mapa.
@@ -84,10 +85,17 @@ Se agregan con **Insertar** o con el botón **+** entre bloques; se reordenan ar
 |---|---|
 | `site` | copia del sitio (rama de trabajo). Se crea sola. |
 | `originals` | tus fotos originales, sin tocar. No se suben. |
-| `public`, `lib`, `server.js` | el editor |
+| `public`, `lib`, `server.js` | el editor (`public/js/`: la interfaz; `public/canvas/`: la página del artículo, dentro de un iframe) |
 
 Opciones avanzadas en `config.json` (opcional): `port`, `repo`, `sourceBranch`, `sitePath`, `author`, `credit`.
 
 ## Varias personas
 
 Cada persona instala su propio editor (esta carpeta) y necesita su cuenta de GitHub con permiso de escritura en el repositorio `relieve` (Settings → Collaborators). No comparten contraseñas. Un colaborador puede cambiar todo el sitio, así que invita solo a quien confíes.
+
+## Para quien programa
+
+- **Código:** `public/app.js` arranca el editor; cada parte está en un módulo de `public/js/` (estado, deshacer y guardar, cinta, panel, fotos, mosaicos, publicar, acceso, panel de estadísticas) y la página del artículo en `public/canvas/` (dibujo, texto, arrastre, tamaños). La primera línea de cada archivo dice qué hace. `public/js/mosaic.js` es puro (sin página ni estado) y tiene pruebas propias. Formato: Prettier (`.prettierrc.json` en la raíz).
+- **Pruebas** (carpeta `tests/` del repositorio): `cd tests && npm install && npx playwright install chromium && npm test`. Prueban que todos los artículos se leen y se escriben sin perder nada, el armado de los mosaicos, y el editor web en un navegador de verdad contra un GitHub simulado (escribir, deshacer, publicar, fotos, mosaicos, arrastre…). Las pruebas de dibujo comparan la página y el panel con archivos de referencia (`tests/editor/snapshots/`); si un cambio es a propósito, se escriben de nuevo con `UPDATE_SNAPSHOTS=1 npm test` y se revisa la diferencia en Git. En GitHub corren en cada cambio y **antes de publicar**: si fallan, el sitio no se publica.
+- **Versiones:** al publicar, `.github/scripts/version-editor.mjs` pone a cada archivo del editor web el número de versión (`?v=…`) y escribe `version.txt`; el editor avisa cuando hay una versión más nueva en línea.
+- **Errores:** un error que nadie atrapa (en el editor o en la página del artículo) aparece en un recuadro rojo con «Copiar detalles».

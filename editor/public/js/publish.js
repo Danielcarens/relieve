@@ -108,8 +108,16 @@ $("#publish").onclick = async () => {
 
 // When a new version of the editor is published while someone is writing, say so (their draft is safe in the browser)
 export function watchVersion() {
+  // The published editor says which version it is (<meta name="editor-version">) and which one is online now
+  // (version.txt), both written when it is published (.github/scripts/version-editor.mjs). Without them (the local
+  // editor), the date of app.js says it.
+  const mine = document.querySelector('meta[name="editor-version"]')?.content;
   const stamp = async () => {
     try {
+      if (mine) {
+        const r = await fetch("version.txt?t=" + Date.now(), { cache: "no-store" });
+        return r.ok ? (await r.text()).trim() : "";
+      }
       const r = await fetch("app.js", { method: "HEAD", cache: "no-store" });
       return r.headers.get("etag") || r.headers.get("last-modified") || "";
     } catch {
@@ -122,8 +130,8 @@ export function watchVersion() {
     const s = await stamp();
     if (!s) return;
     if (first === null) {
-      first = s;
-      return;
+      first = mine || s;
+      if (first === s) return;
     }
     if (s !== first && !told) {
       told = true;

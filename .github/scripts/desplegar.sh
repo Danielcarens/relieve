@@ -22,6 +22,8 @@ cp -r "$FUENTE/editor/public/." "$SITIO/editor/"
 cp "$FUENTE/editor/lib/article.js" "$SITIO/editor/lib/article.js"
 cp "$FUENTE/src/_includes/partials/logo-defs.njk" "$SITIO/editor/logo-defs.svg"
 if [ -f "$FUENTE/editor/acceso.json" ]; then cp "$FUENTE/editor/acceso.json" "$SITIO/editor/acceso.json"; fi
+# Cada archivo del editor con el número de versión, para que el navegador nunca mezcle archivos de dos versiones
+node "$FUENTE/.github/scripts/version-editor.mjs" "$SITIO/editor" "$(git -C "$FUENTE" rev-parse --short HEAD)"
 
 # Índice de búsqueda de los artículos (sin los archivos de interfaz que el sitio no usa)
 rm -rf "$SITIO/pagefind"

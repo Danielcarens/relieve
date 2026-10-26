@@ -95,30 +95,31 @@ function localApi(state, req, res, u, body) {
   }
 }
 
-export async function start() {
-  const git = makeGit(), state = { saved: {}, saves: 0, photos: 0 };
+export async function start({ editorDir = path.join(ROOT, "editor/public") } = {}) {
+  const git = makeGit(), state = { saved: {}, saves: 0, photos: 0 }, requests = [];
   const server = http.createServer(async (req, res) => {
     const u = new URL(req.url, "http://x"), p = decodeURIComponent(u.pathname), body = await readBody(req);
+    requests.push(req.url);
     try {
       if (p.startsWith("/gh/")) return github(git, req, res, u, body);
       if (p.startsWith("/api/")) return localApi(state, req, res, u, body);
       if (p === "/" || p === "/index.html") {
-        const html = fs.readFileSync(path.join(ROOT, "editor/public/index.html"), "utf8").replace("<!--LOGO-DEFS-->", fs.readFileSync(path.join(ROOT, "src/_includes/partials/logo-defs.njk"), "utf8"));
+        const html = fs.readFileSync(path.join(editorDir, "index.html"), "utf8").replace("<!--LOGO-DEFS-->", fs.readFileSync(path.join(ROOT, "src/_includes/partials/logo-defs.njk"), "utf8"));
         return send(res, 200, html, "text/html");
       }
       let f;
       if (/\/test-\d+(-sm)?\.jpg$/.test(p)) f = path.join(FIX, Number(p.match(/test-(\d+)/)[1]) % 2 ? "alta.jpg" : "ancha.jpg");   // photos the fake local server "made"
       else if (p.startsWith("/assets/")) f = path.join(ROOT, "src", p);
       else if (p.startsWith("/originals/")) { const m = p.match(/^\/originals\/([^/]+)\/(.+)$/); f = m && path.join(ROOT, "src/assets/img", m[1], m[2]); }
-      else if (p.startsWith("/lib/")) f = path.join(ROOT, "editor", p);
+      else if (p.startsWith("/lib/")) f = fs.existsSync(path.join(editorDir, p)) ? path.join(editorDir, p) : path.join(ROOT, "editor", p);
       else if (p.startsWith("/fixtures/")) f = path.join(FIX, p.slice(10));
       else if (p === "/logo-defs.svg") f = path.join(ROOT, "src/_includes/partials/logo-defs.njk");
-      else f = path.join(ROOT, "editor/public", p);
-      if (!f || !f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) return send(res, 404, "no: " + p, "text/plain");
+      else f = path.join(editorDir, p);
+      if (!f || !(f.startsWith(ROOT) || f.startsWith(editorDir)) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) return send(res, 404, "no: " + p, "text/plain");
       return send(res, 200, fs.readFileSync(f), TYPES[path.extname(f)] || "application/octet-stream");
     } catch (e) { return send(res, 500, { error: e.message }); }
   });
   await new Promise((ok) => server.listen(0, "127.0.0.1", ok));
   const port = server.address().port;
-  return { port, url: `http://127.0.0.1:${port}`, git, state, close: () => new Promise((ok) => server.close(ok)) };
+  return { port, url: `http://127.0.0.1:${port}`, git, state, requests, close: () => new Promise((ok) => server.close(ok)) };
 }

@@ -11,8 +11,8 @@ async function chromium() {
 }
 
 // One server and one browser for a test file; each editor() gets its own clean browser context (empty storage).
-export async function setup() {
-  const server = await start();
+export async function setup(opts) {
+  const server = await start(opts);
   const browser = await (await chromium()).launch();
   return { server, browser, close: async () => { await browser.close(); await server.close(); } };
 }
