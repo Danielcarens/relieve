@@ -7,7 +7,6 @@ description: una foto portada
 date: 2026-10-27
 author: Brando Blasco
 credit: Daniel Cárdenas
-draft: true
 imgBase: /assets/img/pruebaaaaaa/
 hero:
   file: hero
