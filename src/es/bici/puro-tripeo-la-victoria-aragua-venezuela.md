@@ -8,7 +8,6 @@ description: Una tarde de bicicleta entre La Guacamaya Bike Park y La Victoria. 
 date: 2026-10-27
 author: Brando Blasco
 credit: Brando Blasco
-draft: true
 youtube: uP8VkEdngLo
 imgBase: /assets/img/puro-tripeo-la-victoria-aragua-venezuela/
 hero:
