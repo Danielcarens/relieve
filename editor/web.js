@@ -75,6 +75,26 @@ const kv = {
 };
 
 // ---- GitHub ---------------------------------------------------------------------------------------------
+// GitHub answered 401. Before ending the session, ask again with the same key: if it still works, this one request
+// was refused (not the key), so the session stays, the reason is shown and the caller may try again.
+async function authFailed(method, path, message) {
+  try {
+    const r = await fetch(API() + R, {
+      headers: { Authorization: `Bearer ${session.token}`, Accept: "application/vnd.github+json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(20000),
+    });
+    if (r.status !== 401)
+      return Object.assign(
+        new Error(
+          `GitHub rechazó una petición (${method} ${path.replace(R, "")}: ${message || "401"}), aunque tu llave sigue sirviendo. Vuelve a intentarlo.`,
+        ),
+        { status: 401, network: true },
+      );
+  } catch {}
+  session.clear();
+  return new Error("La sesión venció o la llave de GitHub ya no sirve. Vuelve a entrar.");
+}
 // `timeout`: seconds to wait for GitHub's answer; a request that hangs fails (and can be tried again) instead of waiting forever
 async function gh(method, path, body, { auth = true, timeout = 60 } = {}) {
   const headers = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
@@ -99,11 +119,8 @@ async function gh(method, path, body, { auth = true, timeout = 60 } = {}) {
       { network: true },
     );
   }
-  if (r.status === 401 && auth) {
-    session.clear();
-    throw new Error("La sesión venció o la llave de GitHub ya no sirve. Vuelve a entrar.");
-  }
   const j = r.status === 204 ? {} : await r.json().catch(() => ({}));
+  if (r.status === 401 && auth) throw await authFailed(method, path, j.message);
   if (!r.ok)
     throw Object.assign(new Error(j.message ? `GitHub: ${j.message}` : `GitHub respondió ${r.status}`), {
       status: r.status,
@@ -406,16 +423,13 @@ function sendJson(path, body, onSent) {
       clearTimeout(timer);
       reject(Object.assign(new Error("No se pudo conectar con GitHub. Revisa tu conexión."), { network: true }));
     };
-    x.onload = () => {
+    x.onload = async () => {
       clearTimeout(timer);
       let j = {};
       try {
         j = JSON.parse(x.responseText);
       } catch {}
-      if (x.status === 401) {
-        session.clear();
-        return reject(new Error("La sesión venció o la llave de GitHub ya no sirve. Vuelve a entrar."));
-      }
+      if (x.status === 401) return reject(await authFailed("POST", path, j.message));
       if (x.status >= 200 && x.status < 300) return resolve(j);
       // too many requests at once, or GitHub busy: try this photo again
       const retry = x.status === 429 || x.status >= 500 || (x.status === 403 && /rate limit/i.test(j.message || ""));
@@ -486,22 +500,28 @@ async function publish({ message, path, force }) {
   // from the newest version, a few times.
   const who = session.name ? ` (${session.name}, editor web)` : " (editor web)";
   for (let attempt = 1; ; attempt++) {
-    const t = await tree(true),
-      cur = t.entries.get(path);
-    if (!force && d.baseSha && cur && cur.sha !== d.baseSha)
-      throw Object.assign(new Error("Otra persona publicó cambios en este mismo artículo después de que lo abriste."), {
-        conflict: true,
-      });
-    const newTree = await gh("POST", `${R}/git/trees`, { base_tree: t.treeSha, tree: items });
-    const commit = await gh("POST", `${R}/git/commits`, {
-      message: `${(message || "Actualiza artículo").trim()}${who}`,
-      tree: newTree.sha,
-      parents: [t.commit],
-    });
+    let t, commit;
     try {
+      t = await tree(true);
+      const cur = t.entries.get(path);
+      if (!force && d.baseSha && cur && cur.sha !== d.baseSha)
+        throw Object.assign(
+          new Error("Otra persona publicó cambios en este mismo artículo después de que lo abriste."),
+          {
+            conflict: true,
+          },
+        );
+      const newTree = await gh("POST", `${R}/git/trees`, { base_tree: t.treeSha, tree: items });
+      commit = await gh("POST", `${R}/git/commits`, {
+        message: `${(message || "Actualiza artículo").trim()}${who}`,
+        tree: newTree.sha,
+        parents: [t.commit],
+      });
       await gh("PATCH", `${R}/git/refs/heads/${REPO.branch}`, { sha: commit.sha, force: false });
     } catch (e) {
-      if ((e.status === 422 || e.status === 409) && attempt < 4) {
+      // someone else published in the same second (422 / 409), or GitHub refused one request while the key still works:
+      // start again from the newest version, a few times
+      if ((e.status === 422 || e.status === 409 || e.network) && attempt < 4) {
         treeCache = null;
         await new Promise((r) => setTimeout(r, 800 * attempt));
         continue;
