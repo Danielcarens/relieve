@@ -374,7 +374,7 @@
 <div class="ins" data-at="6">
 <button type="button" title="Agregar" aria-label="Agregar bloque aquí">+</button>
 </div>
-<div class="blk blk-pano" data-i="6">
+<div class="blk blk-pano blk-media" data-i="6">
 <div class="blk-handle" draggable="true" title="Arrastra para mover">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <circle cx="9" cy="6" r="1">
@@ -421,7 +421,11 @@
 </div>
 <figure class="pano-full my-5 " style="position:relative">
 <div class="pano-full-frame">
-<img class="pano-img" src="/assets/img/guia-fotos/atardecer-salto-sm.jpg" width="2600" height="1733" alt="" draggable="false">
+<div class="ratio figure-img" data-id="noche" style="--bs-aspect-ratio: 66.654%">
+<img src="/assets/img/guia-fotos/atardecer-salto-sm.jpg" class="object-fit-cover" style="object-position: 50% 50%" alt="" draggable="false">
+<div class="crop-handle" title="Arrastra hacia abajo o arriba para recortar">
+</div>
+</div>
 </div>
 <div class="container pt-2">
 <div class="ed-plain ed-inline cap-field figure-caption" contenteditable="true" spellcheck="true" data-cap="noche" data-ph="Descripción (opcional)">Un salto al agua a la hora dorada.</div>

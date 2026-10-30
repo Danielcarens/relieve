@@ -217,7 +217,7 @@ ${photoHtml}<div class="ficha-body">${title}${list}</div>
     // "completa": the whole photo at full width, natural proportions, no sliding.
     if (size === "completa") {
       return `<figure class="pano-full my-5">
-<div class="pano-full-frame">${img(p, base, "100vw", ' class="pano-img"')}</div>
+<div class="pano-full-frame">${Number(p.ratio) > 0 ? frame(p, base, "100vw").html : img(p, base, "100vw", ' class="pano-img"')}</div>
 ${figcaption(p, "figure-caption container pt-2")}
 </figure>`;
     }

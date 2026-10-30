@@ -73,6 +73,9 @@ export function photoFrame(p, base, i, id, inRow = false) {
 <img src="${IMG(base, p.file, "-sm.jpg")}" class="object-fit-cover" style="object-position: ${posOf(p)}" alt="" draggable="false">
 ${inRow ? "" : RZ}</div>`;
 }
+// The whole panorama at full width: its own proportion, or the crop (ratio + position); the bar at the bottom crops by hand
+export const panoFullFrame = (p, base, id) =>
+  `<div class="ratio figure-img" data-id="${esc(id)}" style="--bs-aspect-ratio: ${(100 / ratioOf(p)).toFixed(3)}%"><img src="${IMG(base, p.file, "-sm.jpg")}" class="object-fit-cover" style="object-position: ${posOf(p)}" alt="" draggable="false"><div class="crop-handle" title="Arrastra hacia abajo o arriba para recortar"></div></div>`;
 export const caption = (p, id) =>
   inl(`data-cap="${esc(id)}"`, p.caption, "Descripción (opcional)", "cap-field figure-caption");
 
@@ -331,8 +334,8 @@ export function blockHTML(b, i, S) {
       const cap = caption(p, b.id);
       if (b.mode === "completa")
         return wrap(
-          "blk-pano",
-          `<figure class="pano-full my-5 ${p.alt ? "" : "alt-missing"}" style="position:relative"><div class="pano-full-frame">${img}</div><div class="container pt-2">${cap}</div></figure>`,
+          "blk-pano blk-media",
+          `<figure class="pano-full my-5 ${p.alt ? "" : "alt-missing"}" style="position:relative"><div class="pano-full-frame">${panoFullFrame(p, base, b.id)}</div><div class="container pt-2">${cap}</div></figure>`,
         );
       const hs = b.h ? ` style="--pano-limit: clamp(12rem, ${b.h}vh, ${(b.h * 0.68).toFixed(1)}rem)"` : "";
       return wrap(

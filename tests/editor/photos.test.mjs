@@ -212,3 +212,34 @@ test("cuadritos de una foto, encuadre y publicar con sus archivos", async () => 
   assert.deepEqual(ed.errors, []);
   await ed.close();
 });
+
+test("foto a pantalla completa: se recorta con la barra de abajo y arrastrando; clic en mapa o video no falla", async () => {
+  const ed = await editor(env);
+  await article(ed, "Prueba de pantalla completa");
+  let p = await ed.box('.blk[data-i="1"]');
+  await ed.dropFiles(p.cx, p.t - 2, ["ancha.jpg"]);
+  const id = (await block(ed, 1)).id;
+  await ed.page.evaluate(() => window.act.select(1, null)); await ed.wait(200);
+  await press(ed, "[data-do=present][data-v=pantalla]"); await ed.wait(300);
+  assert.equal((await block(ed, 1)).mode, "completa");
+  const before = (await ratios(ed))[id];
+  // the bar at the bottom of the photo: a lower, wider crop
+  const h = await ed.box('.blk[data-i="1"] .crop-handle');
+  await ed.mouseDrag(h.cx, h.cy, h.cx, h.cy - 60);
+  const after = (await ratios(ed))[id];
+  assert.ok(after > before + 0.1, `recorte más ancho: ${before} → ${after}`);
+  // dragging the photo itself moves the crop
+  const f = await ed.box('.blk[data-i="1"] .ratio');
+  await ed.mouseDrag(f.cx, f.cy, f.cx + 100, f.cy + 10);
+  assert.match(await ed.page.evaluate((id) => window.ED.photos[id].pos || "", id), /^\d+% \d+%$/);
+  // the ratio buttons of the panel apply to it too, and the page keeps the crop
+  const ar = await ed.frame().evaluate(() => getComputedStyle(document.querySelector('.blk[data-i="1"] .ratio')).getPropertyValue("--bs-aspect-ratio"));
+  assert.match(ar, /%$/);
+  // a click inside a map frame (it has no photo to crop) is not an error
+  await ed.page.evaluate(() => window.act.add("map", window.ED.blocks.length));
+  await ed.wait(300);
+  const m = await ed.box(".blk-map .map-frame");
+  await ed.click(m.cx, m.cy);
+  assert.deepEqual(ed.errors, []);
+  await ed.close();
+});
