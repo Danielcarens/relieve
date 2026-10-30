@@ -78,6 +78,10 @@ $("#publish").onclick = async () => {
         const b = $("#pub-ok");
         b.disabled = true;
         b.textContent = "Publicando…";
+        if (MODE === "web" && env.web)
+          env.web.progress.fn = (n, total) => {
+            if (total && $("#pub-ok")) $("#pub-ok").textContent = `Subiendo fotos ${n} de ${total}…`;
+          };
         const go = async (force) => {
           try {
             await post("/api/publish", { message: $("#pub-msg") ? $("#pub-msg").value : "", path: ED.path, force });

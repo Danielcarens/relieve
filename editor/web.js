@@ -75,16 +75,30 @@ const kv = {
 };
 
 // ---- GitHub ---------------------------------------------------------------------------------------------
-async function gh(method, path, body, { auth = true } = {}) {
+// `timeout`: seconds to wait for GitHub's answer; a request that hangs fails (and can be tried again) instead of waiting forever
+async function gh(method, path, body, { auth = true, timeout = 60 } = {}) {
   const headers = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
   if (auth && session.token) headers.Authorization = `Bearer ${session.token}`;
   if (body) headers["Content-Type"] = "application/json";
-  const r = await fetch(API() + path, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store",
-  });
+  let r;
+  try {
+    r = await fetch(API() + path, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+      cache: "no-store",
+      signal: AbortSignal.timeout(timeout * 1000),
+    });
+  } catch (e) {
+    throw Object.assign(
+      new Error(
+        e.name === "TimeoutError"
+          ? "GitHub tardó demasiado en responder. Revisa tu conexión y vuelve a intentar."
+          : "No se pudo conectar con GitHub. Revisa tu conexión y vuelve a intentar.",
+      ),
+      { network: true },
+    );
+  }
   if (r.status === 401 && auth) {
     session.clear();
     throw new Error("La sesión venció o la llave de GitHub ya no sirve. Vuelve a entrar.");
@@ -364,6 +378,8 @@ const today = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
+// publish.js sets `fn` to show "photo n of m" while publishing
+export const progress = { fn: null };
 async function publish({ message, path, force }) {
   const d = await kv.get("drafts", path);
   if (!d) throw new Error("Este artículo no tiene cambios sin publicar.");
@@ -375,12 +391,29 @@ async function publish({ message, path, force }) {
   const mine = draftFiles(d.model),
     others = await usedByDrafts(path); // only this article's own photos and cover
   const imgKeys = (await kv.keys("blobs")).filter((k) => k.startsWith(`src/assets/img/${dir}/`) && mine.has(k));
-  for (const k of imgKeys) {
-    const v = await kv.get("blobs", k);
-    const b64 = bytesToB64(new Uint8Array(await v.blob.arrayBuffer()));
-    const r = await gh("POST", `${R}/git/blobs`, { content: b64, encoding: "base64" });
-    items.push({ path: k, mode: "100644", type: "blob", sha: r.sha });
-  }
+  // The photos go up four at a time; each one is tried up to 3 times, and the screen says how many are done
+  let done = 0;
+  const total = imgKeys.length;
+  progress.fn?.(done, total);
+  const queue = imgKeys.slice();
+  const worker = async () => {
+    for (let k; (k = queue.shift()); ) {
+      const v = await kv.get("blobs", k);
+      const b64 = bytesToB64(new Uint8Array(await v.blob.arrayBuffer()));
+      for (let attempt = 1; ; attempt++) {
+        try {
+          const r = await gh("POST", `${R}/git/blobs`, { content: b64, encoding: "base64" }, { timeout: 120 });
+          items.push({ path: k, mode: "100644", type: "blob", sha: r.sha });
+          break;
+        } catch (e) {
+          if (!e.network || attempt >= 3) throw e;
+          await new Promise((r) => setTimeout(r, 1000 * attempt));
+        }
+      }
+      progress.fn?.(++done, total);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(4, total) }, worker));
   // Only this article and its photos change, on top of the newest version of everything else. If someone else
   // (another writer, or a change to the site) lands in the same second, GitHub refuses the update: start again
   // from the newest version, a few times.
