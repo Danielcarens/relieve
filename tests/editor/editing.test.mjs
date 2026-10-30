@@ -176,3 +176,18 @@ test("un error que nadie atrapa se muestra con sus detalles para copiar", async 
   assert.deepEqual(ed.errors.filter((e) => !/falla de prueba/.test(e)), []);
   await ed.close();
 });
+
+test("GitHub rechaza una petición con 401 pero la llave sirve: se reintenta y la sesión sigue", async () => {
+  const ed = await editor(env);
+  const path = "src/es/guia/01-texto.md";
+  await ed.open(path);
+  await caret(ed, 0); await ed.page.keyboard.type(" Con un rechazo en medio.");
+  await ed.saved(); await ed.wait(1200);
+  env.server.git.fail401 = 2;
+  await press(ed, "#publish"); await ed.page.click("#pub-ok");
+  await ed.page.waitForFunction(() => document.getElementById("save-state").textContent === "Publicado", null, { timeout: 20000 });
+  assert.match(env.server.git.read(path), /Con un rechazo en medio\./);
+  assert.equal(await ed.page.evaluate(() => sessionStorage.getItem("relieve-token")), "test-token", "la sesión sigue abierta");
+  assert.deepEqual(ed.errors, []);
+  await ed.close();
+});

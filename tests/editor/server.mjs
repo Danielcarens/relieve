@@ -45,6 +45,8 @@ function github(git, req, res, u, body) {
   const j = () => JSON.parse(body.toString() || "{}");
   let m;
   if (req.headers.authorization !== "Bearer test-token" && !(req.method === "GET" && p.startsWith(`${R}/contents/editor/acceso.json`))) return send(res, 401, { message: "Bad credentials" });
+  // for tests: refuse the next N tree writes with 401 although the key is fine
+  if (git.fail401 > 0 && req.method === "POST" && p === `${R}/git/trees`) { git.fail401--; return send(res, 401, { message: "Bad credentials" }); }
   if (p === R) return send(res, 200, { full_name: `${OWNER}/${REPO}` });
   if (p === `${R}/git/ref/heads/${BRANCH}`) return send(res, 200, { object: { sha: git.head } });
   if ((m = p.match(new RegExp(`^${R}/git/commits/(\\w+)$`))) && req.method === "GET") { const c = git.commits.get(m[1]); return c ? send(res, 200, { sha: m[1], tree: { sha: c.tree } }) : send(res, 404, {}); }
