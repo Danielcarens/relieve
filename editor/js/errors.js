@@ -4,7 +4,7 @@ const shown = new Set();
 const IGNORE = /ResizeObserver loop|Script error\.?$/;
 
 function details(err, where) {
-  const e = err instanceof Error ? err : new Error(String(err?.message || err));
+  const e = err && typeof err.message === "string" && err.stack ? err : new Error(String(err?.message || err)); // the page's errors come from another window: not instanceof Error
   return [
     `Editor de RELIEVE · error en ${where}`,
     `Mensaje: ${e.message}`,

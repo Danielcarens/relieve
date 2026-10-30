@@ -1,5 +1,6 @@
 // Preview, publishing, and the notice when a new version of the editor is out.
-import { MODE, post } from "./env.js";
+import { loginScreen } from "./access.js";
+import { MODE, env, post } from "./env.js";
 import { save, setState } from "./state.js";
 import { ED, S } from "./store.js";
 import { $, closeModal, esc, modal, toast } from "./util.js";
@@ -97,6 +98,13 @@ $("#publish").onclick = async () => {
               );
             b.disabled = false;
             b.textContent = "Publicar ahora";
+            if (MODE === "web" && env.web && !env.web.session.token) {
+              // the session ended: sign in again without leaving the article (the draft stays in this browser)
+              closeModal();
+              await loginScreen();
+              toast("Listo, volviste a entrar. Pulsa Publicar otra vez.", false, 8000);
+              return;
+            }
             toast("No se pudo publicar: " + e.message, true, 15000);
           }
         };

@@ -7,11 +7,12 @@ root.addEventListener("pointerdown", (e) => {
   if (e.target.closest(".rz")) return; // the resize handles have their own drag
   const handle = e.target.closest(".crop-handle");
   const frame = e.target.closest(".blk-media .ratio");
-  if (!frame) return;
+  if (!frame || !frame.dataset.id) return; // map and video frames have no photo to crop
   const S = E(),
     id = frame.dataset.id,
     p = S.photos[id],
     img = frame.querySelector("img");
+  if (!p) return;
   const rect = frame.getBoundingClientRect();
   const item = frame.closest(".fila-item");
   e.preventDefault();

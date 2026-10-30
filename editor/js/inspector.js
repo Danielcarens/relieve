@@ -423,7 +423,7 @@ export function photoForm(id) {
   const cur = Number(p.ratio) > 0 ? Number(p.ratio) : 0;
   return `${fld("Texto alternativo", `<textarea data-k="p.${id}.alt" class="form-control ${p.alt ? "" : "invalid"}" placeholder="Describe lo que se ve en la foto">${esc(p.alt)}</textarea>`, `<p class="hint bad" ${p.alt ? "hidden" : ""}>Obligatorio: sirve para accesibilidad y Google.</p>`)}
 <div><label class="form-label">Recorte</label><div class="btnrow">${RATIOS.map(([l, v]) => `<button class="btn btn-outline-dark ${Math.abs(cur - v) < 0.01 ? "active" : ""}" data-do="ratio" data-id="${esc(id)}" data-v="${v}">${l}</button>`).join("")}</div>
-<p class="hint">Arrastra la foto para encuadrar. Arrastra la barra inferior para recortar a mano.</p><div class="btnrow"><button class="btn btn-outline-dark" data-do="pos0" data-id="${esc(id)}">Centrar</button></div></div>`;
+<p class="hint">Arrastra la foto para encuadrar. Para recortar a mano, arrastra la barra de abajo (foto a pantalla completa) o el cuadrito rosa del borde de la foto.</p><div class="btnrow"><button class="btn btn-outline-dark" data-do="pos0" data-id="${esc(id)}">Centrar</button></div></div>`;
 }
 
 export function wrapPane(b) {
