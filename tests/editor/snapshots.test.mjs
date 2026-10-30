@@ -54,6 +54,12 @@ for (const f of files) {
 
 test("lista de artículos y barras", async () => {
   const ed = await editor(env);
-  check("lista", clean(await ed.page.evaluate(() => document.getElementById("view-list").innerHTML + document.querySelector("nav").outerHTML + document.getElementById("ribbon").outerHTML)));
+  // only the guides: the real articles change with every publication and must not break this
+  const list = await ed.page.evaluate(() => {
+    const view = document.getElementById("view-list").cloneNode(true);
+    view.querySelectorAll(".art").forEach((a) => { if (!a.dataset.path.startsWith("src/es/guia/")) a.closest("li")?.remove(); });
+    return view.innerHTML + document.querySelector("nav").outerHTML + document.getElementById("ribbon").outerHTML;
+  });
+  check("lista", clean(list));
   await ed.close();
 });

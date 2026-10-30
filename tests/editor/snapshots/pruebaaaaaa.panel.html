@@ -1,0 +1,119 @@
+<!-- bloque 0 -->
+<div class="insp-tabs">
+<div class="btn-group w-100">
+<button data-tab="article" class="btn btn-outline-dark ">Artículo</button>
+<button data-tab="block" class="btn btn-outline-dark active">Bloque</button>
+<button data-tab="photos" class="btn btn-outline-dark ">Fotos</button>
+</div>
+</div>
+<div class="pane">
+<div class="kind">
+<div class="d-flex flex-wrap align-items-center gap-2">
+<span class="tape">Párrafo</span>
+</div>
+<p class="hint mb-1 mt-2">El texto normal del artículo.</p>
+<p class="hint mb-0">
+<strong>Para agregar uno:</strong> Enter al final de otro párrafo, o Insertar → Párrafo. Ctrl + Shift + N vuelve cualquier bloque de texto a párrafo.</p>
+</div>
+<hr>
+<p class="hint">El estilo, el formato y la alineación están en la barra de arriba, como en Word. Enter crea un párrafo nuevo; Shift+Enter, un salto de línea.</p>
+<div>
+<label class="form-label">Ancho</label>
+<p class="hint">Normal: la columna de texto. Arrastra las barras rosas a los lados del bloque para cambiarlo; los bordes se pegan a los márgenes de las fotos, a los de la columna de texto, al centro y a los bordes de las otras fotos.</p>
+</div>
+</div>
+<!-- article -->
+<div class="insp-tabs">
+<div class="btn-group w-100">
+<button data-tab="article" class="btn btn-outline-dark active">Artículo</button>
+<button data-tab="block" class="btn btn-outline-dark ">Bloque</button>
+<button data-tab="photos" class="btn btn-outline-dark ">Fotos</button>
+</div>
+</div>
+<div class="pane">
+<div>
+<label class="form-label">Título</label>
+<textarea class="form-control" data-k="m.title" rows="2">pruebaaaaaa</textarea>
+</div>
+<div>
+<label class="form-label">Descripción para Google</label>
+<textarea class="form-control" data-k="m.description" rows="3">una foto portada</textarea>
+<p class="hint">
+<span id="desc-n">16</span> de unos 155 caracteres</p>
+</div>
+<div>
+<label class="form-label">Sección</label>
+<select class="form-select" data-k="m.section">
+<option value="viajes" selected="">Viajes</option>
+<option value="bici">Bici</option>
+<option value="moto">Moto</option>
+<option value="reviews">Reviews</option>
+<option value="videos">Videos</option>
+<option value="opinion">Opinión</option>
+</select>
+</div>
+<div>
+<label class="form-label">Fecha</label>
+<input class="form-control" type="date" data-k="m.date" value="2026-10-27" placeholder="">
+</div>
+<div>
+<label class="form-label">Video de YouTube</label>
+<input class="form-control" type="text" data-k="m.youtube" value="" placeholder="Pega el enlace o el código">
+<p class="hint">Se reproduce al hacer clic sobre la portada.</p>
+</div>
+<div class="form-check">
+<input class="form-check-input" type="checkbox" id="c-draft" data-k="m.draft">
+<label class="form-check-label" for="c-draft">Borrador (no sale en el inicio, la sección ni el buscador; Google no lo indexa)</label>
+</div>
+<div class="form-check">
+<input class="form-check-input" type="checkbox" id="c-ai" data-k="m.ai">
+<label class="form-check-label" for="c-ai">Mostrar aviso de texto escrito con IA</label>
+</div>
+<hr>
+<div>
+<label class="form-label">Cabecera</label>
+<select class="form-select" data-k="m.cabecera">
+<option value="" selected="">Foto grande con el título encima</option>
+<option value="debajo">Foto grande con el título debajo</option>
+<option value="titulo">Título arriba y la foto debajo</option>
+<option value="texto">Solo el título, sin foto</option>
+</select>
+</div>
+<div class="btnrow">
+<button class="btn btn-outline-dark" data-do="hero-replace">Cambiar foto</button>
+<button class="btn btn-outline-dark" data-do="hero-center">Centrar</button>
+</div>
+    <div>
+<label class="form-label">Acercar la portada</label>
+<input class="form-range" type="range" min="100" max="300" step="5" data-k="herozoom" value="100">
+<p class="hint">100 %. Acércala y arrastra la foto en la página para elegir el recorte; también con los botones + y − sobre la foto.</p>
+</div>
+    <div>
+<label class="form-label">Texto alternativo de la portada</label>
+<textarea data-k="m.hero.alt" class="form-control " placeholder="Describe lo que se ve en la foto">retrato fondo negro</textarea>
+</div>
+<hr>
+<div>
+<label class="form-label">Crédito de las fotos</label>
+<input class="form-control" type="text" data-k="m.credit" value="Daniel Cárdenas" placeholder="">
+</div>
+<div>
+<label class="form-label">Autor</label>
+<input class="form-control" type="text" data-k="m.author" value="Brando Blasco" placeholder="">
+</div>
+<div>
+<label class="form-label">Fuentes</label>
+<button class="btn btn-outline-dark" data-do="src-add">Agregar fuente</button>
+</div>
+</div>
+<!-- photos -->
+<div class="insp-tabs">
+<div class="btn-group w-100">
+<button data-tab="article" class="btn btn-outline-dark ">Artículo</button>
+<button data-tab="block" class="btn btn-outline-dark ">Bloque</button>
+<button data-tab="photos" class="btn btn-outline-dark active">Fotos</button>
+</div>
+</div>
+<div class="pane">
+<p class="empty">Todavía no hay fotos. Arrástralas sobre la página o usa el botón + entre los bloques.</p>
+</div>
