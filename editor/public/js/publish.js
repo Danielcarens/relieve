@@ -79,8 +79,11 @@ $("#publish").onclick = async () => {
         b.disabled = true;
         b.textContent = "Publicando…";
         if (MODE === "web" && env.web)
-          env.web.progress.fn = (n, total) => {
-            if (total && $("#pub-ok")) $("#pub-ok").textContent = `Subiendo fotos ${n} de ${total}…`;
+          env.web.progress.fn = ({ done, total, sent, bytes, retry }) => {
+            const mb = (n) => (n / 1048576).toFixed(1).replace(".", ",");
+            if (total && $("#pub-ok"))
+              $("#pub-ok").textContent =
+                `Subiendo fotos: ${done} de ${total} (${mb(sent)} de ${mb(bytes)} MB)${retry ? ` · reintentos: ${retry}` : ""}…`;
           };
         const go = async (force) => {
           try {

@@ -378,6 +378,58 @@ const today = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
+// One POST with a JSON body, reporting the bytes sent; fails with `network: true` when nothing moves for 45 seconds
+function sendJson(path, body, onSent) {
+  return new Promise((resolve, reject) => {
+    const x = new XMLHttpRequest();
+    let timer;
+    const stall = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        x.abort();
+        reject(
+          Object.assign(new Error("La subida se detuvo: GitHub no está recibiendo datos. Revisa tu conexión."), {
+            network: true,
+          }),
+        );
+      }, 45000);
+    };
+    x.open("POST", API() + path);
+    x.setRequestHeader("Accept", "application/vnd.github+json");
+    x.setRequestHeader("Authorization", `Bearer ${session.token}`);
+    x.setRequestHeader("Content-Type", "application/json");
+    x.upload.onprogress = (e) => {
+      stall();
+      onSent(e.loaded);
+    };
+    x.onerror = () => {
+      clearTimeout(timer);
+      reject(Object.assign(new Error("No se pudo conectar con GitHub. Revisa tu conexión."), { network: true }));
+    };
+    x.onload = () => {
+      clearTimeout(timer);
+      let j = {};
+      try {
+        j = JSON.parse(x.responseText);
+      } catch {}
+      if (x.status === 401) {
+        session.clear();
+        return reject(new Error("La sesión venció o la llave de GitHub ya no sirve. Vuelve a entrar."));
+      }
+      if (x.status >= 200 && x.status < 300) return resolve(j);
+      // too many requests at once, or GitHub busy: try this photo again
+      const retry = x.status === 429 || x.status >= 500 || (x.status === 403 && /rate limit/i.test(j.message || ""));
+      reject(
+        Object.assign(new Error(j.message ? `GitHub: ${j.message}` : `GitHub respondió ${x.status}`), {
+          status: x.status,
+          network: retry,
+        }),
+      );
+    };
+    stall();
+    x.send(body);
+  });
+}
 // publish.js sets `fn` to show "photo n of m" while publishing
 export const progress = { fn: null };
 async function publish({ message, path, force }) {
@@ -391,29 +443,44 @@ async function publish({ message, path, force }) {
   const mine = draftFiles(d.model),
     others = await usedByDrafts(path); // only this article's own photos and cover
   const imgKeys = (await kv.keys("blobs")).filter((k) => k.startsWith(`src/assets/img/${dir}/`) && mine.has(k));
-  // The photos go up four at a time; each one is tried up to 3 times, and the screen says how many are done
-  let done = 0;
-  const total = imgKeys.length;
-  progress.fn?.(done, total);
-  const queue = imgKeys.slice();
+  // The photos go up three at a time, smallest first. The screen shows the bytes really sent; an upload that makes
+  // no progress for 45 seconds is cancelled and that photo alone is tried again (up to 4 times).
+  const sizes = new Map();
+  for (const k of imgKeys) sizes.set(k, (await kv.get("blobs", k)).blob.size);
+  const queue = imgKeys.slice().sort((a, b) => sizes.get(a) - sizes.get(b));
+  const sent = new Map(),
+    state = { done: 0, total: queue.length, bytes: [...sizes.values()].reduce((a, b) => a + b, 0), retry: 0 };
+  const report = () => progress.fn?.({ ...state, sent: [...sent.values()].reduce((a, b) => a + b, 0) });
+  report();
   const worker = async () => {
     for (let k; (k = queue.shift()); ) {
       const v = await kv.get("blobs", k);
-      const b64 = bytesToB64(new Uint8Array(await v.blob.arrayBuffer()));
+      const body = JSON.stringify({
+        content: bytesToB64(new Uint8Array(await v.blob.arrayBuffer())),
+        encoding: "base64",
+      });
       for (let attempt = 1; ; attempt++) {
         try {
-          const r = await gh("POST", `${R}/git/blobs`, { content: b64, encoding: "base64" }, { timeout: 120 });
+          const r = await sendJson(`${R}/git/blobs`, body, (n) => {
+            sent.set(k, (n / body.length) * sizes.get(k));
+            report();
+          });
           items.push({ path: k, mode: "100644", type: "blob", sha: r.sha });
+          sent.set(k, sizes.get(k));
           break;
         } catch (e) {
-          if (!e.network || attempt >= 3) throw e;
+          sent.set(k, 0);
+          if (!e.network || attempt >= 4) throw e;
+          state.retry++;
+          report();
           await new Promise((r) => setTimeout(r, 1000 * attempt));
         }
       }
-      progress.fn?.(++done, total);
+      state.done++;
+      report();
     }
   };
-  await Promise.all(Array.from({ length: Math.min(4, total) }, worker));
+  await Promise.all(Array.from({ length: Math.min(3, queue.length) }, worker));
   // Only this article and its photos change, on top of the newest version of everything else. If someone else
   // (another writer, or a change to the site) lands in the same second, GitHub refuses the update: start again
   // from the newest version, a few times.
